@@ -40,7 +40,7 @@
 'use strict';
 
 //--------------------------------------
-// テスト用：敵タイムゲージ表示
+// 敵タイムゲージ表示
 
 const KRD_Sprite_Enemy_setBattler = Sprite_Enemy.prototype.setBattler;
 Sprite_Enemy.prototype.setBattler = function(battler) {

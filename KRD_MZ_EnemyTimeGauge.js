@@ -46,7 +46,7 @@ const KRD_Sprite_Enemy_setBattler = Sprite_Enemy.prototype.setBattler;
 Sprite_Enemy.prototype.setBattler = function(battler) {
 	KRD_Sprite_Enemy_setBattler.apply(this, arguments);
 	if (BattleManager.isTpb()) {
-			this.setTimeGauge(battler);
+		this.setTimeGauge(battler);
 	}
 };
 

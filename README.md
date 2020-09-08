@@ -5,14 +5,14 @@
 バトルステータスを透明化して、右側に移動させます。
 カスタマイズ機能はありません。
 
-![KRD_MZ_BattleStatus 表示](https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/WS000092.jpg "バトルステータス透明化")
+![バトルステータス透明化](WS000092.jpg)
 
 ## KRD_MZ_EnemyTimeGauge
 
 バトル中に常時、敵キャラにタイムゲージを表示します。
 カスタマイズ機能はありません。
 
-![KRD_MZ_EnemyTimeGauge 表示](https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/WS000083.jpg "敵タイムゲージ")
+![敵タイムゲージ](WS000083.jpg)
 
 ## KRD_MZ_TestTimeGauge
 

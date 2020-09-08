@@ -3,6 +3,7 @@
 ## KRD_MZ_BattleStatus
 
 バトルステータスを透明化して、右側に移動させます。
+カスタマイズ機能はありません。
 
 ![KRD_MZ_BattleStatus 表示](https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/WS000092.jpg "バトルステータス透明化")
 

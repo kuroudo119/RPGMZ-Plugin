@@ -1,5 +1,9 @@
 # RPGMZ-Plugin
 
+## KRD_MZ_BattleStatus
+
+バトルステータスを透明化して、右側に移動させます。
+
 ## KRD_MZ_EnemyTimeGauge
 
 バトル中に常時、敵キャラにタイムゲージを表示します。

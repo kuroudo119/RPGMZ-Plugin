@@ -1,4 +1,4 @@
-# RPGMZ-Plugin
+# RPGツクールMZプラグイン
 
 ## KRD_MZ_BattleStatus （バトルステータス透明化）
 

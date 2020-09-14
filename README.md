@@ -15,6 +15,8 @@
 バトル中に常時、敵キャラにタイムゲージを表示します。
 カスタマイズ機能はありません。
 
+[KRD_MZ_EnemyTimeGaugeをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_EnemyTimeGauge.js)
+
 ![敵タイムゲージ](WS000083.jpg)
 
 ## KRD_MZ_TestTimeGauge

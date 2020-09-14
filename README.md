@@ -1,6 +1,6 @@
 # RPGMZ-Plugin
 
-## KRD_MZ_BattleStatus
+## KRD_MZ_BattleStatus （バトルステータス透明化）
 
 バトルステータスを透明化して、右側に移動させます。
 カスタマイズ機能はありません。
@@ -10,7 +10,7 @@
 
 ![バトルステータス透明化](WS000092.jpg)
 
-## KRD_MZ_EnemyTimeGauge
+## KRD_MZ_EnemyTimeGauge （敵タイムゲージ）
 
 バトル中に常時、敵キャラにタイムゲージを表示します。
 カスタマイズ機能はありません。

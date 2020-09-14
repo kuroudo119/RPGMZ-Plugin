@@ -6,6 +6,8 @@
 カスタマイズ機能はありません。
 敵キャラの縦位置（Y座標）を1.3倍していますので、ツクールMZのエディタよりも縦位置がズレて表示されます。
 
+[KRD_MZ_BattleStatusをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_BattleStatus.js)
+
 ![バトルステータス透明化](WS000092.jpg)
 
 ## KRD_MZ_EnemyTimeGauge

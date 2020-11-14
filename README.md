@@ -7,6 +7,9 @@
 
 [KRD_MZ_Diceをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Dice.js)
 
+次のようにイベントコマンドを設定します。
+![サイコロ処理](Sugo_dice.png)
+
 ## KRD_MZ_Freeze （プレイヤー移動不可プラグイン）
 
 プレイヤーを移動できなくするプラグインです。
@@ -20,6 +23,15 @@
 プレイヤーとライバル1人ですごろく出来ます。
 
 [KRD_MZ_Sugorokuをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Sugoroku.js)
+
+次のようにイベントコマンドを設定します。
+![すごろくプレイヤー移動処理](Sugo_move.png)
+
+次のように地形タグを設定します。地形タグを設定したタイルの上に別のタイルを置く事も出来ます。
+![すごろく地形タグ](Sugo_tag.png)
+
+次のようにリージョンを設定します。
+![すごろくマップとリージョン](Sugo_region.png)
 
 ## KRD_MZ_BattleStatus （バトルステータス透明化）
 

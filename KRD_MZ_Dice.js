@@ -36,12 +36,12 @@
  * @text サイコロ消去
  * @desc 振ったサイコロ結果を消去します。
  * 
- * @requiredAssets img/pictures/KRD/Dice_01
- * @requiredAssets img/pictures/KRD/Dice_02
- * @requiredAssets img/pictures/KRD/Dice_03
- * @requiredAssets img/pictures/KRD/Dice_04
- * @requiredAssets img/pictures/KRD/Dice_05
- * @requiredAssets img/pictures/KRD/Dice_06
+ * @requiredAssets img/pictures/Dice_01
+ * @requiredAssets img/pictures/Dice_02
+ * @requiredAssets img/pictures/Dice_03
+ * @requiredAssets img/pictures/Dice_04
+ * @requiredAssets img/pictures/Dice_05
+ * @requiredAssets img/pictures/Dice_06
  * 
  * @help
  * KRD_MZ_Dice.js
@@ -52,6 +52,7 @@
  * https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
  * 
  * ver.1 (2020/11/14) 1st Release.
+ * ver.2 (2020/11/15) サイコロ画像フォルダ位置を修正。
  * 
  * 出目1～6のサイコロ画像（100x100ピクセル）を用意して下さい。
  * img/pictures/KRD フォルダ配下にサイコロ画像を置いて下さい。
@@ -146,12 +147,12 @@ const maxDice = 15;
 
 Game_Screen.prototype.rollDice = function(count = 0, max = 1){
 	const name = [
-		'KRD/Dice_01'
-		, 'KRD/Dice_02'
-		, 'KRD/Dice_03'
-		, 'KRD/Dice_04'
-		, 'KRD/Dice_05'
-		, 'KRD/Dice_06'
+		'Dice_01'
+		, 'Dice_02'
+		, 'Dice_03'
+		, 'Dice_04'
+		, 'Dice_05'
+		, 'Dice_06'
 	];
 	const d4 = dNext + dHalf;
 	const d5 = dNext + dNext;

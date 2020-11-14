@@ -5,15 +5,21 @@
 サイコロを振るプラグインです。
 画像はありません。100ピクセル四方のサイコロ画像を想定しています。
 
+[KRD_MZ_Diceをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Dice.js)
+
 ## KRD_MZ_Freeze （プレイヤー移動不可プラグイン）
 
 プレイヤーを移動できなくするプラグインです。
 すごろくなどにお使いください。
 
+[KRD_MZ_Freezeをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Freeze.js)
+
 ## KRD_MZ_Sugoroku （すごろくプラグイン）
 
 すごろくプラグインです。
 プレイヤーとライバル1人ですごろく出来ます。
+
+[KRD_MZ_Sugorokuをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Sugoroku.js)
 
 ## KRD_MZ_BattleStatus （バトルステータス透明化）
 

@@ -6,7 +6,7 @@
  * 
  * @param cmnSugoroku
  * @text すごろくコモン開始位置
- * @desc このプラグインで使用するコモンイベントの開始位置（5個以上使用する）
+ * @desc このプラグインで使用するコモンイベントの開始位置（6個以上使用する）
  * @default 1
  * @type common_event
  * 
@@ -63,18 +63,21 @@
  * https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
  * 
  * ver.1 (2020/11/14) 1st Release.
+ * ver.2 (2020/11/15) 「すごろくコモン開始位置」を変更した。
  * 
  * 【プラグインパラメータ】
  * 「すごろくコモン開始位置」で指定したコモンイベントから
  * 連続したコモンイベントを使用します。
  * それぞれに応じたイベントを作成して下さい。
- *   0:ライバル移動処理（プラグイン内では使用しません）
- *   1:ライバルからの衝突時に呼ばれるイベント
- *   2:アクターからの衝突時に呼ばれるイベント
- *   3:戻る移動での衝突時に呼ばれるイベント
- *   4:プレイヤーがマスに止まった時のイベント
- *       （リージョン0番のすごろくイベント）
- *   5:以降リージョン番号に対応するすごろくイベント
+ *   0:プレイヤー移動処理（プラグイン内では使用しません）
+ *   1:ライバル移動処理（プラグイン内では使用しません）
+ *   2:ライバルからの衝突時に呼ばれるイベント
+ *   3:アクターからの衝突時に呼ばれるイベント
+ *   4:戻る移動での衝突時に呼ばれるイベント
+ *   5:プレイヤーがマスに止まった時のイベント
+ *       リージョン0番のすごろくイベントです。
+ *       ゴールイベントとしてお使い下さい。
+ *   6:以降リージョン番号に対応するすごろくイベント
  * 
  * 「すごろくスイッチ開始位置」から2個のスイッチを使用します。
  * 必要に応じてイベントコマンドからON／OFFして下さい。
@@ -167,11 +170,12 @@ const PARAM			= PluginManager.parameters(PLUGIN_NAME);
 
 // Common Event ID
 const CMN_SUGOROKU			= Number(PARAM["cmnSugoroku"]) || 1;
-const cmnRivalMove			= CMN_SUGOROKU;    // プラグイン内では使用しない
-const cmnCollisionByRival	= CMN_SUGOROKU + 1;
-const cmnCollisionByActor	= CMN_SUGOROKU + 2;
-const cmnCollisionByReverse	= CMN_SUGOROKU + 3;
-const cmnSugorokuEvent		= CMN_SUGOROKU + 4;
+const cmnPlayerMove			= CMN_SUGOROKU;      // プラグイン内では使用しない
+const cmnRivalMove			= CMN_SUGOROKU + 1;  // プラグイン内では使用しない
+const cmnCollisionByRival	= CMN_SUGOROKU + 2;
+const cmnCollisionByActor	= CMN_SUGOROKU + 3;
+const cmnCollisionByReverse	= CMN_SUGOROKU + 4;
+const cmnSugorokuEvent		= CMN_SUGOROKU + 5;
 
 // Switch ID
 const SW_SUGOROKU	= Number(PARAM["swSugoroku"]) || 1;

@@ -3,7 +3,7 @@
 ## KRD_MZ_Dice （サイコロプラグイン）
 
 サイコロを振るプラグインです。
-画像はありません。100ピクセル四方のサイコロ画像を想定しています。
+画像の提供はありません。100ピクセル四方のサイコロ画像を想定しています。
 
 [KRD_MZ_Diceをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Dice.js)
 

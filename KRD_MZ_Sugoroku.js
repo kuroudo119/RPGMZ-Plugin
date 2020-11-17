@@ -53,6 +53,14 @@
  * @command KRD_initRival
  * @text ライバル初期化
  * @desc 保存したライバル位置を初期化します。
+ * @arg x
+ * @text X座標
+ * @desc ライバルの初期位置です。
+ * @type number
+ * @arg y
+ * @text Y座標
+ * @desc ライバルの初期位置です。
+ * @type number
  * 
  * @help
  * KRD_MZ_Sugoroku.js
@@ -64,6 +72,7 @@
  * 
  * ver.1 (2020/11/14) 1st Release.
  * ver.2 (2020/11/15) 「すごろくコモン開始位置」を変更した。
+ * ver.3 (2020/11/17) 「ライバル初期化」にパラメータを追加した。
  * 
  * 【プラグインパラメータ】
  * 「すごろくコモン開始位置」で指定したコモンイベントから
@@ -222,7 +231,11 @@ Game_Interpreter.prototype.pluginCommand = function(command, args) {
 			break;
 		case 'KRD_initRival':
 			if (!!$gameMap._events[evRival]) {
-				$gameMap._events[evRival].initRival();
+				const a = args.split(" ");
+				const x = Number(a[0]) || 0;
+				const y = Number(a[1]) || 0;
+				$gameMap._events[evRival].initRival(x, y);
+				$gameMap._events[evRival].loadRival();
 			}
 			break;
 	}
@@ -252,9 +265,12 @@ PluginManager.registerCommand(PLUGIN_NAME, "KRD_setRivalStep", args => {
 	}
 });
 
-PluginManager.registerCommand(PLUGIN_NAME, "KRD_initRival", () => {
+PluginManager.registerCommand(PLUGIN_NAME, "KRD_initRival", args => {
 	if (!!$gameMap._events[evRival]) {
-		$gameMap._events[evRival].initRival();
+		const x = Number(args.x) || 0;
+		const y = Number(args.y) || 0;
+		$gameMap._events[evRival].initRival(x, y);
+		$gameMap._events[evRival].loadRival();
 	}
 });
 
@@ -438,9 +454,9 @@ Game_Event.prototype.updateStop = function() {
 //------------------------------------------------
 // Rival Position
 
-Game_Event.prototype.initRival = function(){
-	$gameVariables.setValue(varEventX, 0);
-	$gameVariables.setValue(varEventY, 0);
+Game_Event.prototype.initRival = function(x = 0, y = 0){
+	$gameVariables.setValue(varEventX, x);
+	$gameVariables.setValue(varEventY, y);
 };
 
 Game_Event.prototype.loadRival = function(){

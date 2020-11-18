@@ -73,6 +73,7 @@
  * ver.1 (2020/11/14) 1st Release.
  * ver.2 (2020/11/15) 「すごろくコモン開始位置」を変更した。
  * ver.3 (2020/11/17) 「ライバル初期化」にパラメータを追加した。
+ * ver.4 (2020/11/19) ライバルのマイナス移動を可能にした。
  * 
  * 【プラグインパラメータ】
  * 「すごろくコモン開始位置」で指定したコモンイベントから
@@ -114,7 +115,7 @@
  * 歩数の入った変数を指定して下さい。
  * 
  * 「ライバル初期化」は新しいマップに移動した場合などに使います。
- * ライバル位置が初期化されます。
+ * 座標(X=0, Y=0)を指定すると、ライバル位置が
  * そのマップでイベント1番が置かれている位置になります。
  * 
  * 【マップに関する設定】
@@ -432,6 +433,30 @@ Game_Event.prototype.sugorokuStep = function(){
 	this.collisionEvent(cmnCollisionByRival);
 };
 
+Game_Event.prototype.sugorokuReverse = function(){
+	const x = this.x;
+	const y = this.y;
+	const tag = $gameMap.terrainTag(x, y);
+	switch (tag) {
+		case 1: // Down -> Up
+			this.setDirection(8);
+			break;
+		case 2: // Left -> Right
+			this.setDirection(6);
+			break;
+		case 3: // Right -> Left
+			this.setDirection(4);
+			break;
+		case 4: // Up -> Down
+			this.setDirection(2);
+			break;
+		default: // Don't Move
+			return;
+	}
+	this.moveForward();
+	this.collisionEvent(cmnCollisionByRival);
+};
+
 const KRD_Game_Event_updateStop = Game_Event.prototype.updateStop;
 Game_Event.prototype.updateStop = function() {
 	KRD_Game_Event_updateStop.call(this);
@@ -442,6 +467,11 @@ Game_Event.prototype.updateStop = function() {
 			this.setThrough(true);
 			this.setMoveSpeed(moveSpeed);
 			this.sugorokuStep();
+		} else if (this._step < 0) {
+			this._step += 1;
+			this.setThrough(true);
+			this.setMoveSpeed(moveSpeed);
+			this.sugorokuReverse();
 		} else {
 			this.saveRival();
 			this.setMoveSpeed(defaultSpeed);

@@ -1,5 +1,15 @@
 # RPGツクールMZプラグイン
 
+## KRD_MZ_InputRange （音量調節スライダー）
+
+設定画面に音量調節用のスライダーを追加します。
+スマホ動作用に RangeTouch という外部ライブラリを使用しますので、index.html の修正が必要です。
+
+[KRD_MZ_InputRangeをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_InputRange.js)
+
+次のように表示されます。見た目はブラウザ依存です。
+![音量調節スライダー](slider.png)
+
 ## KRD_MZ_Dice （サイコロプラグイン）
 
 サイコロを振るプラグインです。

@@ -1,9 +1,18 @@
 # RPGツクールMZプラグイン
 
+## KRD_MZ_Motion （スキルモーション変更）
+
+サイドビュー戦闘時に、指定したスキル（[SV]魔法スキルを含む）のスキル使用アクターモーションを通常攻撃モーションに変更します。
+
+[KRD_MZ_Motionをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Motion.js)
+
+![スキルモーション変更](img/changeSkillMotion.png)
+
 ## KRD_MZ_InputRange （音量調節スライダー）
 
 設定画面に音量調節用のスライダーを追加します。
 スマホ動作用に RangeTouch という外部ライブラリを使用しますので、index.html の修正が必要です。
+尚、スマホでの操作感はイマイチです。
 
 [KRD_MZ_InputRangeをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_InputRange.js)
 

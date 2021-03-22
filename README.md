@@ -1,5 +1,13 @@
 # RPGツクールMZプラグイン
 
+## KRD_MZ_Speech （音声入力）
+
+ブラウザのマイク機能を使って音声入力（音声認識）します。
+
+[KRD_MZ_Speechをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Speech.js)
+
+![音声入力](img/speechEvent.png)
+
 ## KRD_MZ_Motion （スキルモーション変更）
 
 サイドビュー戦闘時に、指定したスキル（[SV]魔法スキルを含む）のスキル使用アクターモーションを通常攻撃モーションに変更します。

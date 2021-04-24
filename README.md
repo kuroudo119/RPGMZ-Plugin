@@ -1,5 +1,13 @@
 # RPGツクールMZプラグイン
 
+## KRD_MZ_DamageGauge （ダメージゲージ）
+
+ダメージを受けた時にゲージが伸びるように変更します。
+
+[KRD_MZ_DamageGaugeをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_DamageGauge.js)
+
+![ダメージゲージ](img/DamageGauge.png)
+
 ## KRD_MZ_Speech （音声入力）
 
 ブラウザのマイク機能（Web Speech API）を使って音声入力（音声認識）します。  

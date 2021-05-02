@@ -25,6 +25,13 @@
 
 ![スキルモーション変更](img/changeSkillMotion.png)
 
+## スマホ画面高さ修正プラグイン
+
+RPGツクールMZのゲームをスマホで表示すると、ゲーム画面の周りに余白（デフォルトだと黒い）があるのを表示領域いっぱいいっぱいに表示するプラグイン。
+コアスクリプトでなぜかゲーム画面のサイズが0.9倍されてるのをやめて等倍にしてる。
+
+[KRD_MZ_StretchHeightをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_StretchHeight.js)
+
 ## KRD_MZ_InputRange （音量調節スライダー）
 
 設定画面に音量調節用のスライダーを追加します。

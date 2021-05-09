@@ -5,6 +5,8 @@
 このプラグインは道楽さんのサンプルゲーム「SoulsLore」の app.js から、キャストタイムゲージ処理を抜粋して再配布しているものです。
 キャストタイム（速度補正にマイナスを入力するとコマンド入力後に待機時間が発生する）時のゲージを表示します。
 
+尚、以下の画像は（敵タイムゲージなど）他のプラグインを導入しています。
+
 [CastingTimeGauge.jsをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/CastingTimeGauge.js)
 
 ![キャストタイムゲージ](img/casting.jpg)

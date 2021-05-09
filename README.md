@@ -1,13 +1,13 @@
 # RPGツクールMZプラグイン
 
-## app.js （サンプルゲーム「SoulsLore」より、キャストタイムゲージ処理を抜粋）
+## CastingTimeGauge.js （キャストタイムゲージ）
 
-このプラグインは道楽さんのプラグインからキャストタイムゲージ処理を抜粋して再配布しているものです。
-キャストタイム（速度補正にマイナスを入力するとコマンド入力後に待機時間が発生する）時のゲージを表示する。
+このプラグインは道楽さんのサンプルゲーム「SoulsLore」の app.js から、キャストタイムゲージ処理を抜粋して再配布しているものです。
+キャストタイム（速度補正にマイナスを入力するとコマンド入力後に待機時間が発生する）時のゲージを表示します。
 
-[app.jsをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/app.js)
+[CastingTimeGauge.jsをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/CastingTimeGauge.js)
 
-![ダメージゲージ](img/casting.jpg)
+![キャストタイムゲージ](img/casting.jpg)
 
 ## KRD_MZ_DamageGauge （ダメージゲージ）
 

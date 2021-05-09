@@ -1,5 +1,5 @@
 //==============================================================================
-// app.js
+// CastingTimeGauge.js (元 app.js)
 // Copyright (c) 2015 - 2020 Douraku
 // Released under the MIT License.
 // http://opensource.org/licenses/mit-license.php
@@ -7,12 +7,22 @@
 
 /*:
  * @target MZ
- * @plugindesc アプリケーション専用プラグイン ver1.0.0 キャストタイムゲージを抜粋
- * @author 道楽
+ * @plugindesc キャストタイムゲージ
+ * @author 道楽（改変：くろうど）
+ * 
+ * @help
+ * このプラグインは、
+ * サンプルゲーム「SoulsLore」の app.js から、
+ * キャストタイムゲージ処理を抜粋したものです。
+ * 
+ * 【機能】
+ * TPBの場合、
+ * 速度補正にマイナスの値を設定するとコマンド入力後に待機時間が発生しますが、
+ * その待機時間（キャストタイム）を表すゲージを表示します。
  * 
  */
 
-(function (exports) {
+(function () {
 	'use strict';
 
 	//--------------------------------------------------------------------------
@@ -87,4 +97,4 @@
 		return true;
 	};
 
-}((this.app = this.app || {})));
+})();

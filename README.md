@@ -1,5 +1,14 @@
 # RPGツクールMZプラグイン
 
+## KRD_MZ_LoginBonus （ログインボーナス支援）
+
+独自の内部タイマーの時間経過を確認し、経過している場合スイッチがONになります。
+時間経過をチェックするイベントに使用可能です。
+
+[KRD_MZ_LoginBonusをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_LoginBonus.js)
+
+![ログインボーナス支援](img/LoginBonus.png)
+
 ## CastingTimeGauge.js （キャストタイムゲージ）
 
 このプラグインは道楽さんのサンプルゲーム「SoulsLore」の app.js から、キャストタイムゲージ処理を抜粋して再配布しているものです。

@@ -10,6 +10,8 @@
 
 [KRD_MZ_Multilingualをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Multilingual.js)
 
+![多言語プラグイン](img/Multilingual.png)
+
 ## KRD_MZ_LoginBonus （ログインボーナス支援）
 
 独自の内部タイマーの時間経過を確認し、経過している場合スイッチがONになります。

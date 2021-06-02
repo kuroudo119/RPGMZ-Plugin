@@ -4,6 +4,12 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_Multilingual （多言語プラグイン）
+
+オプション等から言語切り替え出来るようにします。
+
+[KRD_MZ_Multilingualをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Multilingual.js)
+
 ## KRD_MZ_LoginBonus （ログインボーナス支援）
 
 独自の内部タイマーの時間経過を確認し、経過している場合スイッチがONになります。

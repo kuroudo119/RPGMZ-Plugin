@@ -5,12 +5,16 @@
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
  ***************************************
+ * @param basicSection
+ * @text 基本設定
+ * 
  * @param argLanguage
  * @text 言語一覧
  * @desc 切り替え可能な言語の一覧を指定します。
  * デフォルト言語を最初に設定してください。
  * @default ["日本語"]
  * @type string[]
+ * @parent basicSection
  * 
  * @param argOptionText
  * @text オプション表示名
@@ -18,60 +22,94 @@
  * デフォルト言語を最初に設定してください。
  * @default ["言語"]
  * @type string[]
+ * @parent basicSection
+ * 
+ ***************************************
+ * @param dataSection
+ * @text 用語系データ
  * 
  * @param argGameTitle
  * @text ゲームタイトル
  * @desc 言語一覧で設定した順に設定してください。
  * デフォルト言語は設定しないでください。
  * @type struct<gameTitle>[]
+ * @parent dataSection
  * 
  * @param argCurrencyUnit
  * @text 通貨単位
  * @desc 言語一覧で設定した順に設定してください。
  * デフォルト言語は設定しないでください。
  * @type struct<currencyUnit>[]
+ * @parent dataSection
  * 
  * @param argElements
  * @text 属性
  * @desc 言語一覧で設定した順に設定してください。
  * 対応したプラグインを使用する場合に設定してください。
  * @type struct<elements>[]
+ * @parent dataSection
  * 
  * @param argSkillTypes
  * @text スキルタイプ
  * @desc 言語一覧で設定した順に設定してください。
  * デフォルト言語は設定しないでください。
  * @type struct<skillTypes>[]
+ * @parent dataSection
  * 
  * @param argEquipTypes
  * @text 装備タイプ
  * @desc 言語一覧で設定した順に設定してください。
  * デフォルト言語は設定しないでください。
  * @type struct<equipTypes>[]
+ * @parent dataSection
  * 
  * @param argBasic
  * @text 基本ステータス
  * @desc 言語一覧で設定した順に設定してください。
  * デフォルト言語は設定しないでください。
  * @type struct<basic>[]
+ * @parent dataSection
  * 
  * @param argParams
  * @text 能力値
  * @desc 言語一覧で設定した順に設定してください。
  * デフォルト言語は設定しないでください。
  * @type struct<params>[]
+ * @parent dataSection
  * 
  * @param argCommands
  * @text コマンド
  * @desc 言語一覧で設定した順に設定してください。
  * デフォルト言語は設定しないでください。
  * @type struct<commands>[]
+ * @parent dataSection
  * 
  * @param argMessages
  * @text メッセージ
  * @desc 言語一覧で設定した順に設定してください。
  * デフォルト言語は設定しないでください。
  * @type struct<messages>[]
+ * @parent dataSection
+ * 
+ ***************************************
+ * @param fileSection
+ * @text 外部ファイル読込設定
+ * @desc UniqueDataLoaderプラグインを使用してjsonファイルを用意してください。制御文字は \LANGF[文章プロパティ] です。
+ * 
+ * @param globalName
+ * @text グローバル変数名
+ * @desc UniqueDataLoaderプラグインで指定したグローバル変数名です。
+ * @default $dataUniques
+ * @type string
+ * @parent fileSection
+ * 
+ * @param propertyName
+ * @text プロパティ名
+ * @desc UniqueDataLoaderプラグインで指定したプロパティ名の前部分です。後ろに言語番号が追加されます。
+ * @default msg_
+ * @type string
+ * @parent fileSection
+ * 
  ***************************************
  * @command setLanguage
  * @text 言語切替コマンド
@@ -112,6 +150,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0 (2021/01/26) 初版（希望者に期間限定配布）
 - ver.0.0.1 (2021/03/17) 非公開版完成
 - ver.1.0.0 (2021/06/02) 公開開始
+- ver.1.1.0 (2021/06/04) 外部ファイル読込機能を追加
 
 ## 使い方
 
@@ -607,6 +646,9 @@ const argParams			= JSON.parse(PARAM["argParams"] || null);
 const argCommands		= JSON.parse(PARAM["argCommands"] || null);
 const argMessages		= JSON.parse(PARAM["argMessages"] || null);
 
+const globalName	= PARAM["globalName"] || "$dataUniques";
+const propertyName	= PARAM["propertyName"] || "msg_";
+
 const defaultValue = 0
 ConfigManager.multilingual = defaultValue;
 
@@ -1054,6 +1096,40 @@ Window_Base.prototype.getUseLanguage = function(text, language) {
 Window_Base.prototype.processLanguage = function(textState) {
 	const language = ConfigManager.multilingual;
 	textState.text = this.getUseLanguage(textState.text, language);
+};
+
+//--------------------------------------
+// 外部ファイル読込：制御文字追加
+
+const KRD_2_Window_Base_processEscapeCharacter = Window_Base.prototype.processEscapeCharacter;
+Window_Base.prototype.processEscapeCharacter = function(code, textState) {
+	switch (code) {
+		case "LANGF":
+			this.changeText(code, textState);
+			break;
+		default:
+			KRD_2_Window_Base_processEscapeCharacter.apply(this, arguments);
+	}
+};
+
+Window_Base.prototype.changeText = function(code, textState) {
+	const language = ConfigManager.multilingual;
+	const start = textState.text.indexOf(`${code}[`);
+	const end = textState.text.indexOf("]", start);
+	const plus = `${code}[`.length;
+	const name = textState.text.slice(start + plus, end);
+
+	if (window[globalName] &&
+		window[globalName][propertyName + language] &&
+		window[globalName][propertyName + language][name]) {
+			textState.text = window[globalName][propertyName + language][name];
+			textState.text = this.convertEscapeCharacters(textState.text);
+			textState.index = 0;
+	} else {
+		if (textState.text.match(`[${name}]`)) {
+			textState.text = textState.text.slice(`[${name}]`.length);
+		}
+	}
 };
 
 //--------------------------------------

@@ -151,6 +151,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2021/03/17) 非公開版完成
 - ver.1.0.0 (2021/06/02) 公開開始
 - ver.1.1.0 (2021/06/04) 外部ファイル読込機能を追加
+- ver.2.0.0 (2021/06/04) プロパティをゲッターに差し替え
 
 ## 使い方
 
@@ -775,84 +776,41 @@ Window_Options.prototype.changeIndex = function(symbol, value) {
 };
 
 //--------------------------------------
-// 表示：アイテム名など
-
-const KRD_Window_Base_drawItemName = Window_Base.prototype.drawItemName;
-Window_Base.prototype.drawItemName = function(item, x, y, width) {
-	if (item) {
-		const data = getData(item);
-
-		if (this.drawItemNameRuby) {
-			this.drawItemNameRuby(data, x, y, width);
-		} else {
-			KRD_Window_Base_drawItemName.call(this, data, x, y, width);
-		}
-	}
-};
-
-const KRD_Window_Help_setItem = Window_Help.prototype.setItem;
-Window_Help.prototype.setItem = function(item) {
-	if (item) {
-		const data = getData(item);
-		this.setText(data.description);
-	} else {
-		KRD_Window_Help_setItem.apply(this, arguments);
-	}
-};
-
-//--------------------------------------
 // 取得：アクター情報
+
+const KRD_Game_Actor_setup = Game_Actor.prototype.setup;
+Game_Actor.prototype.setup = function(actorId) {
+	KRD_Game_Actor_setup.apply(this, arguments);
+	this._initName = this._name;
+	this._initNickname = this._nickname;
+	this._initProfile = this._profile;
+};
 
 const KRD_Game_Actor_name = Game_Actor.prototype.name;
 Game_Actor.prototype.name = function() {
-	const id = this.actorId();
-	const dafaultName = $dataActors[id].name;
-	if (this._name !== dafaultName) {
+	if (this._name !== this._initName) {
 		// イベントで変更した場合は変更を優先する。
 		return KRD_Game_Actor_name.apply(this, arguments);
 	}
-	return getData($dataActors[id]).name;
+	return getData($dataActors[this.actorId()]).name;
 };
 
 const KRD_Game_Actor_nickname = Game_Actor.prototype.nickname;
 Game_Actor.prototype.nickname = function() {
-	const id = this.actorId();
-	const dafaultNickname = $dataActors[id].nickname;
-	if (this._nickname !== dafaultNickname) {
+	if (this._nickname !== this._initNickname) {
 		// イベントで変更した場合は変更を優先する。
 		return KRD_Game_Actor_nickname.apply(this, arguments);
 	}
-	return getData($dataActors[id]).nickname;
+	return getData($dataActors[this.actorId()]).nickname;
 };
 
 const KRD_Game_Actor_profile = Game_Actor.prototype.profile;
 Game_Actor.prototype.profile = function() {
-	const id = this.actorId();
-	const dafaultProfile = $dataActors[id].profile;
-	if (this._profile !== dafaultProfile) {
+	if (this._profile !== this._initProfile) {
 		// イベントで変更した場合は変更を優先する。
 		return KRD_Game_Actor_profile.apply(this, arguments);
 	}
-	return getData($dataActors[id]).profile;
-};
-
-//--------------------------------------
-// 取得：職業名
-
-Window_StatusBase.prototype.drawActorClass = function(actor, x, y, width) {
-	const data = getData($dataClasses[actor.currentClass().id]);
-
-	width = width || 168;
-	this.resetTextColor();
-	this.drawText(data.name, x, y, width);
-};
-
-//--------------------------------------
-// 取得：敵キャラ名
-
-Game_Enemy.prototype.originalName = function() {
-	const data = getData($dataEnemies[this.enemyId()]);
-	return data.name;
+	return getData($dataActors[this.actorId()]).profile;
 };
 
 //--------------------------------------
@@ -970,89 +928,6 @@ TextManager.element = function(id) {
 };
 
 //--------------------------------------
-// バトルログ
-
-Window_BattleLog.prototype.displayAction = function(subject, item) {
-	if (useSimpleMsgSV_Plugin) {
-		const param = PluginManager.parameters("SimpleMsgSideViewMZ");
-		const displayAttack = param["displayAttack"] === "true";
-		const data = getData(item);
-		if (displayAttack ||
-			!(DataManager.isSkill(item) && item.id === subject.attackSkillId())
-		 ) {
-		   this.push('addItemNameText', data);
-		 } else {
-		   this.push('wait');
-		 }
-	} else {
-		const numMethods = this._methods.length;
-		if (DataManager.isSkill(item)) {
-			const data = getData(item);
-			this.displayItemMessage(data.message1, subject, data);
-			this.displayItemMessage(data.message2, subject, data);
-		} else {
-			this.displayItemMessage(TextManager.useItem, subject, item);
-		}
-		if (this._methods.length === numMethods) {
-			this.push("wait");
-		}
-	}
-};
-
-Window_BattleLog.prototype.displayAddedStates = function(target) {
-	const result = target.result();
-	const states = result.addedStateObjects();
-	for (const state of states) {
-		const data = getData(state);
-		const stateText = target.isActor() ? data.message1 : data.message2;
-		if (state.id === target.deathStateId()) {
-			this.push("performCollapse", target);
-		}
-		if (stateText) {
-			this.push("popBaseLine");
-			this.push("pushBaseLine");
-			this.push("addText", stateText.format(target.name()));
-			this.push("waitForEffect");
-		}
-	}
-};
-
-Window_BattleLog.prototype.displayRemovedStates = function(target) {
-	const result = target.result();
-	const states = result.removedStateObjects();
-	for (const state of states) {
-		const data = getData(state);
-		if (data.message4) {
-			this.push("popBaseLine");
-			this.push("pushBaseLine");
-			this.push("addText", data.message4.format(target.name()));
-		}
-	}
-};
-
-//--------------------------------------
-// ステートメッセージ
-
-Game_BattlerBase.prototype.mostImportantStateText = function() {
-	for (const state of this.states()) {
-		const data = getData(state);
-		if (data.message3) {
-			return data.message3;
-		}
-	}
-	return "";
-};
-
-Game_Actor.prototype.showRemovedStates = function() {
-	for (const state of this.result().removedStateObjects()) {
-		const data = getData(state);
-		if (data.message4) {
-			$gameMessage.add(data.message4.format(this._name));
-		}
-	}
-};
-
-//--------------------------------------
 // ゲームタイトル
 
 const KRD_Scene_Title_drawGameTitle = Scene_Title.prototype.drawGameTitle;
@@ -1133,6 +1008,181 @@ Window_Base.prototype.changeText = function(code, textState) {
 };
 
 //--------------------------------------
+// プロパティをゲッターに差し替え
+
+const KRD_Scene_Title_create = Scene_Title.prototype.create;
+Scene_Title.prototype.create = function() {
+	KRD_Scene_Title_create.apply(this, arguments);
+	$gameSystem.resetAllData();
+};
+
+Game_System.prototype.resetAllData = function() {
+	$gameSystem.resetDataActors();
+	$gameSystem.resetDataName($dataClasses);
+	$gameSystem.resetDataName($dataEnemies);
+	$gameSystem.resetDataSkills();
+	$gameSystem.resetDatabase($dataItems);
+	$gameSystem.resetDatabase($dataWeapons);
+	$gameSystem.resetDatabase($dataArmors);
+	$gameSystem.resetDataStates();
+};
+
+Game_System.prototype.resetDataActors = function() {
+	$dataActors.forEach(data => {
+		if (data) {
+			data.meta.name_0 = data.meta.name_0 ? data.meta.name_0 : data.name;
+			data.meta.nickname_0 = data.meta.nickname_0 ? data.meta.nickname_0 : data.nickname;
+			data.meta.profile_0 = data.meta.profile_0 ? data.meta.profile_0 : data.profile;
+
+			Object.defineProperties(data, {
+				name: {
+					get: function() {
+						return getData(data).name;
+					},
+					configurable: true
+				},
+				nickname: {
+					get: function() {
+						return getData(data).nickname;
+					},
+					configurable: true
+				},
+				profile: {
+					get: function() {
+						return getData(data).profile;
+					},
+					configurable: true
+				}
+			});
+		}
+	});
+};
+
+Game_System.prototype.resetDataName = function(database) {
+	database.forEach(data => {
+		if (data) {
+			data.meta.name_0 = data.meta.name_0 ? data.meta.name_0 : data.name;
+
+			Object.defineProperties(data, {
+				name: {
+					get: function() {
+						return getData(data).name;
+					},
+					configurable: true
+				}
+			});
+		}
+	});
+};
+
+Game_System.prototype.resetDataSkills = function() {
+	$dataSkills.forEach(data => {
+		if (data) {
+			data.meta.name_0 = data.meta.name_0 ? data.meta.name_0 : data.name;
+			data.meta.description_0 = data.meta.description_0 ? data.meta.description_0 : data.description;
+			data.meta.message1_0 = data.meta.message1_0 ? data.meta.message1_0 : data.message1;
+			data.meta.message2_0 = data.meta.message2_0 ? data.meta.message2_0 : data.message2;
+
+			Object.defineProperties(data, {
+				name: {
+					get: function() {
+						return getData(data).name;
+					},
+					configurable: true
+				},
+				description: {
+					get: function() {
+						return getData(data).description;
+					},
+					configurable: true
+				},
+				message1: {
+					get: function() {
+						return getData(data).message1;
+					},
+					configurable: true
+				},
+				message2: {
+					get: function() {
+						return getData(data).message2;
+					},
+					configurable: true
+				}
+			});
+		}
+	});
+};
+
+Game_System.prototype.resetDatabase = function(database) {
+	database.forEach(data => {
+		if (data) {
+			data.meta.name_0 = data.meta.name_0 ? data.meta.name_0 : data.name;
+			data.meta.description_0 = data.meta.description_0 ? data.meta.description_0 : data.description;
+
+			Object.defineProperties(data, {
+				name: {
+					get: function() {
+						return getData(data).name;
+					},
+					configurable: true
+				},
+				description: {
+					get: function() {
+						return getData(data).description;
+					},
+					configurable: true
+				}
+			});
+		}
+	});
+};
+
+Game_System.prototype.resetDataStates = function() {
+	$dataStates.forEach(data => {
+		if (data) {
+			data.meta.name_0 = data.meta.name_0 ? data.meta.name_0 : data.name;
+			data.meta.message1_0 = data.meta.message1_0 ? data.meta.message1_0 : data.message1;
+			data.meta.message2_0 = data.meta.message2_0 ? data.meta.message2_0 : data.message2;
+			data.meta.message3_0 = data.meta.message3_0 ? data.meta.message3_0 : data.message3;
+			data.meta.message4_0 = data.meta.message4_0 ? data.meta.message4_0 : data.message4;
+
+			Object.defineProperties(data, {
+				name: {
+					get: function() {
+						return getData(data).name;
+					},
+					configurable: true
+				},
+				message1: {
+					get: function() {
+						return getData(data).message1;
+					},
+					configurable: true
+				},
+				message2: {
+					get: function() {
+						return getData(data).message2;
+					},
+					configurable: true
+				},
+				message3: {
+					get: function() {
+						return getData(data).message3;
+					},
+					configurable: true
+				},
+				message4: {
+					get: function() {
+						return getData(data).message4;
+					},
+					configurable: true
+				}
+			});
+		}
+	});
+};
+
+//--------------------------------------
 })();
 
 //--------------------------------------
@@ -1141,28 +1191,28 @@ Window_Base.prototype.changeText = function(code, textState) {
 function getData(data) {
 	return {
 		get name() {
-			return data.meta["name_" + Number(ConfigManager.multilingual)] || data.name;
+			return data.meta["name_" + ConfigManager.multilingual] || data.meta.name_0 || "";
 		},
 		get nickname() {
-			return data.meta["nickname_" + Number(ConfigManager.multilingual)] || data.nickname;
+			return data.meta["nickname_" + ConfigManager.multilingual] || data.meta.nickname_0 || "";
 		},
 		get profile() {
-			return data.meta["profile_" + Number(ConfigManager.multilingual)] || data.profile;
+			return data.meta["profile_" + ConfigManager.multilingual] || data.meta.profile_0 || "";
 		},
 		get description() {
-			return data.meta["description_" + Number(ConfigManager.multilingual)] || data.description;
+			return data.meta["description_" + ConfigManager.multilingual] || data.meta.description_0 || "";
 		},
 		get message1() {
-			return data.meta["message1_" + Number(ConfigManager.multilingual)] || data.message1;
+			return data.meta["message1_" + ConfigManager.multilingual] || data.meta.message1_0 || "";
 		},
 		get message2() {
-			return data.meta["message2_" + Number(ConfigManager.multilingual)] || data.message2;
+			return data.meta["message2_" + ConfigManager.multilingual] || data.meta.message2_0 || "";
 		},
 		get message3() {
-			return data.meta["message3_" + Number(ConfigManager.multilingual)] || data.message3;
+			return data.meta["message3_" + ConfigManager.multilingual] || data.meta.message3_0 || "";
 		},
 		get message4() {
-			return data.meta["message4_" + Number(ConfigManager.multilingual)] || data.message4;
+			return data.meta["message4_" + ConfigManager.multilingual] || data.meta.message4_0 || "";
 		},
 		get iconIndex() {
 			return data.iconIndex;

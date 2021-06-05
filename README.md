@@ -4,6 +4,13 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_DamagePopup （バトルイベント時ダメージポップ）
+
+バトル中にイベントでHPの増減をしてもダメージ表示がされません。
+イベントのHPの増減後に、このプラグインのプラグインコマンドを使うとダメージポップアップが表示されます。
+
+[KRD_MZ_DamagePopupをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_DamagePopup.js)
+
 ## KRD_MZ_Multilingual （多言語プラグイン）
 
 オプション等から言語切り替え出来るようにします。

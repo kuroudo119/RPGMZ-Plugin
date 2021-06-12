@@ -4,6 +4,13 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_Button （メニューボタンサイズ拡大）
+
+メニューボタン（タッチUI）の幅を2マス分に拡大します。
+ただし、画像(ButtonSet.png)は各自で用意する必要があります。
+
+[KRD_MZ_Buttonをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Button.js)
+
 ## KRD_MZ_DamagePopup （バトルイベント時ダメージポップ）
 
 バトル中にイベントでHPの増減をしてもダメージ表示がされません。

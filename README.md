@@ -11,6 +11,12 @@
 
 [KRD_MZ_Buttonをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Button.js)
 
+![メニューボタン規定値](img/btn_01.png)
+
+↓このようになります。
+
+![メニューボタン拡大後](img/btn_02.png)
+
 ## KRD_MZ_DamagePopup （バトルイベント時ダメージポップ）
 
 バトル中にイベントでHPの増減をしてもダメージ表示がされません。

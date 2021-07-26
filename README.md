@@ -28,6 +28,9 @@
 
 オプション等から言語切り替え出来るようにします。
 
+動作サンプル（ゲームアツマール）
+https://game.nicovideo.jp/atsumaru/games/gm21290
+
 [KRD_MZ_Multilingualをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Multilingual.js)
 
 ![多言語プラグイン](img/Multilingual.png)

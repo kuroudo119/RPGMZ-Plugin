@@ -4,6 +4,16 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_UI_Portrait （縦長画面ユーザーインターフェース）
+
+「縦816：横624」の画面解像度用レイアウトに変更します。
+
+[KRD_MZ_UI_Portraitをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_UI_Portrait.js)
+
+![縦長メニュー](img/p010.png)
+
+![縦長バトル](img/p020.png)
+
 ## KRD_MZ_Button （メニューボタンサイズ拡大）
 
 メニューボタン（タッチUI）の幅を2マス分に拡大します。

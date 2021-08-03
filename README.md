@@ -10,9 +10,9 @@
 他のキャラの行動とアクターコマンド入力が被った時に、コマンド入力を一旦キャンセルします。
 これにより、コマンドWindowとダメージ表示が重なって見えない問題を解消します。
 
-![動作サンプル動画](img/tpb_input.mp4)
-
 尚、TPB（アクティブ）で使うと他のキャラが行動するたびにキャンセルされてしまい、コマンド入力が困難になります。
+
+https://user-images.githubusercontent.com/43639887/128059052-c605e088-c863-4df6-894b-0615c650e2b9.mp4
 
 [KRD_MZ_TPB_Inputをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_TPB_Input.js)
 

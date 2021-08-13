@@ -16,6 +16,9 @@
 
 [KRD_MZ_Scheduleをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Schedule.js)
 
+動作サンプル (ゲームアツマール)
+https://game.nicovideo.jp/atsumaru/games/gm21562
+
 ![スケジュール管理](img/calendar_060.png)
 
 ## KRD_MZ_ChoiceSE （選択肢SE変更）

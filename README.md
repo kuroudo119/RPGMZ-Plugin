@@ -4,6 +4,20 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_Schedule （スケジュール管理）
+
+スケジュール管理画面を作成する事が出来ます。
+前提としてカレンダープラグインとテーブルプラグインが必要です。
+処理はコモンイベントに記述します。
+
+[KRD_MZ_Tableをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Table.js)
+
+[KRD_MZ_Calendarをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Calendar.js)
+
+[KRD_MZ_Scheduleをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Schedule.js)
+
+![スケジュール管理](img/calendar_060.png)
+
 ## KRD_MZ_ChoiceSE （選択肢SE変更）
 
 選択肢イベントの2番以降の選択肢を選択した時のSEを変更できます。

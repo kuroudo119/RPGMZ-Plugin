@@ -61,6 +61,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.0 (2021/08/13) 公開
 - ver.1.1.0 (2021/08/14) rect中心座標関数を追加
 - ver.1.2.0 (2021/08/15) rect左上座標関数を追加
+- ver.1.2.1 (2021/08/15) バグ修正。通常マップ用Spriteset_Map処理を追加
 
  * 
  * 
@@ -221,6 +222,7 @@ Window_Calendar.daysJa = ["日", "月", "火", "水", "木", "金", "土"];
 Scene_Calendar = class extends Scene_Map {
 	constructor() {
 		super(...arguments);
+		this._spritesetFlag = true;
 	}
 
 	createDisplayObjects() {
@@ -338,9 +340,15 @@ class Spriteset_Picture extends Spriteset_Base {
 }
 
 // ここのピクチャ表示を使わない。
+const KRD_Spriteset_Map_createUpperLayer = Spriteset_Map.prototype.createUpperLayer;
 Spriteset_Map.prototype.createUpperLayer = function() {
-	this.createTimer();
-	this.createOverallFilters();
+	const flag = SceneManager._scene._spritesetFlag;
+	if (flag) {
+		this.createTimer();
+		this.createOverallFilters();
+	} else {
+		KRD_Spriteset_Map_createUpperLayer.apply(this, arguments);
+	}
 };
 
 })();

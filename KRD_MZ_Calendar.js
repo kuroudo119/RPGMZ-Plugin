@@ -58,6 +58,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 - ver.0.0.1 (2021/08/09) 作成開始
 - ver.0.1.0 (2021/08/12) 非公開版完成
+- ver.1.0.0 (2021/08/13) 公開
+- ver.1.1.0 (2021/08/14) rect中心座標関数を追加
 
  * 
  * 
@@ -190,6 +192,16 @@ Window_Calendar = class extends Window_Table {
 
 	fittingHeight(numLines) {
 		return !!LINE_HEIGHT ? numLines * LINE_HEIGHT + $gameSystem.windowPadding() * 2 : super.fittingHeight(...arguments);
+	}
+
+	rectCenterX(index) {
+		const rect = this.itemRect(index);
+		return this.x + rect.x + Math.floor(rect.width / 2) + this.padding;
+	}
+
+	rectCenterY(index) {
+		const rect = this.itemRect(index);
+		return this.y + rect.y + Math.floor(rect.height / 2) + this.padding;
 	}
 };
 

@@ -46,6 +46,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 - ver.0.0.1 (2021/08/09) 作成開始
 - ver.0.1.0 (2021/08/13) 非公開版完成
+- ver.1.0.0 (2021/08/13) 公開
+- ver.1.1.0 (2021/08/15) スケジュール管理の開始日取得関数を追加
 
  * 
  * 
@@ -165,6 +167,12 @@ Game_System.prototype.stringDate = function(year, month, date) {
 
 Game_System.prototype.countSchedule = function() {
 	return Object.keys(this._schedule).length;
+};
+
+Game_System.prototype.firstSchedule = function() {
+	const schedule = Object.keys(this._schedule);
+	const first = schedule[0];
+	return first;
 };
 
 Game_System.prototype.lastSchedule = function() {

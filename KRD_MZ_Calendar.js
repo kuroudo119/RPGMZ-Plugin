@@ -62,13 +62,14 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.1.0 (2021/08/14) rect中心座標関数を追加
 - ver.1.2.0 (2021/08/15) rect左上座標関数を追加
 - ver.1.2.1 (2021/08/15) バグ修正。通常マップ用Spriteset_Map処理を追加
+- ver.1.2.2 (2021/08/21) 即時関数外の変数宣言をletに修正。
 
  * 
  * 
  */
 
-Window_Calendar = null;
-Scene_Calendar = null;
+let Window_Calendar = null;
+let Scene_Calendar = null;
 
 (() => {
 

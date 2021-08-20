@@ -48,12 +48,13 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2021/08/13) 非公開版完成
 - ver.1.0.0 (2021/08/13) 公開
 - ver.1.1.0 (2021/08/15) スケジュール管理の開始日取得関数を追加
+- ver.1.1.1 (2021/08/21) 即時関数外の変数宣言をletに修正。
 
  * 
  * 
  */
 
-Scene_Schedule = null;
+let Scene_Schedule = null;
 
 (() => {
 
@@ -112,7 +113,7 @@ Scene_Schedule = class extends Scene_Calendar {
 			this._calendarWindow.activate();
 		}
 	}
-}
+};
 
 const KRD_Game_Interpreter_setupReservedCommonEvent = Game_Interpreter.prototype.setupReservedCommonEvent;
 Game_Interpreter.prototype.setupReservedCommonEvent = function() {

@@ -23,12 +23,14 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 - ver.0.0.1 (2021/08/09) 作成開始
 - ver.0.1.0 (2021/08/12) 非公開版完成
+- ver.1.0.0 (2021/08/13) 公開
+- ver.1.0.1 (2021/08/21) 即時関数外の変数宣言をletに修正。
 
  * 
  * 
  */
 
-Window_Table = null;
+let Window_Table = null;
 
 (() => {
 

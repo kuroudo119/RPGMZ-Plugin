@@ -4,7 +4,7 @@
  * @url https://twitter.com/kuroudo119/
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
- ***************************************
+ * 
  * @param basicSection
  * @text 基本設定
  * 
@@ -24,7 +24,6 @@
  * @type string[]
  * @parent basicSection
  * 
- ***************************************
  * @param dataSection
  * @text 用語系データ
  * 
@@ -91,7 +90,6 @@
  * @type struct<messages>[]
  * @parent dataSection
  * 
- ***************************************
  * @param fileSection
  * @text 外部ファイル読込設定
  * @desc UniqueDataLoaderプラグインを使用してjsonファイルを用意してください。制御文字は \LANGF[文章プロパティ] です。
@@ -110,7 +108,16 @@
  * @type string
  * @parent fileSection
  * 
- ***************************************
+ * @param extraSection
+ * @text 追加設定
+ * 
+ * @param useId
+ * @text ID取得機能
+ * @desc DBメモ欄で制御文字 \ID をその項目の id に置換。名前と説明のみ有効。この処理は少し重いのでfalse推奨。
+ * @default false
+ * @type boolean
+ * @parent extraSection
+ * 
  * @command setLanguage
  * @text 言語切替コマンド
  * @desc 指定された番号の言語に切り替えます。
@@ -121,8 +128,8 @@
  * 言語番号の値は 0 始まりです。
  * @default 1
  * @type variable
- ***************************************
- * @command getLanguage
+ * 
+* @command getLanguage
  * @text 現在言語取得コマンド
  * @desc 現在の言語番号を変数に入れます。
  * 
@@ -132,9 +139,11 @@
  * 言語番号の値は 0 始まりです。
  * @default 1
  * @type variable
- ***************************************
+ * 
  * @help
 # KRD_MZ_Multilingual.js
+
+多言語プラグイン
 
 ## 権利表記
 
@@ -152,6 +161,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.0 (2021/06/02) 公開開始
 - ver.1.1.0 (2021/06/04) 外部ファイル読込機能を追加
 - ver.2.0.0 (2021/06/04) プロパティをゲッターに差し替え
+- ver.2.0.1 (2021/06/18) コメント部分修正
+- ver.2.1.0 (2021/08/25) 内部データ修正、useId追加
 
 ## 使い方
 
@@ -627,34 +638,35 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 "use strict";
 
-const PLUGIN_NAME	= document.currentScript.src.match(/^.*\/(.*).js$/)[1];
-const PARAM			= PluginManager.parameters(PLUGIN_NAME);
+const KRD_MULTILINGUAL = {};
 
-const argLanguage	= JSON.parse(PARAM["argLanguage"] || null);
+const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
+const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
-let argOptionText	= null;
+const LANGUAGE = JSON.parse(PARAM["argLanguage"] || null);
+
+let OPTION_TEXT = null;
 if (PARAM["argOptionText"]) {
-	argOptionText = JSON.parse(PARAM["argOptionText"] || null);
+	OPTION_TEXT = JSON.parse(PARAM["argOptionText"] || null);
 }
 
-const argGameTitle		= JSON.parse(PARAM["argGameTitle"] || null);
-const argCurrencyUnit	= JSON.parse(PARAM["argCurrencyUnit"] || null);
-const argElements		= JSON.parse(PARAM["argElements"] || null);
-const argSkillTypes		= JSON.parse(PARAM["argSkillTypes"] || null);
-const argEquipTypes		= JSON.parse(PARAM["argEquipTypes"] || null);
-const argBasic			= JSON.parse(PARAM["argBasic"] || null);
-const argParams			= JSON.parse(PARAM["argParams"] || null);
-const argCommands		= JSON.parse(PARAM["argCommands"] || null);
-const argMessages		= JSON.parse(PARAM["argMessages"] || null);
+const GAME_TITLE = JSON.parse(PARAM["argGameTitle"] || null);
+const CURRENCY_UNIT = JSON.parse(PARAM["argCurrencyUnit"] || null);
+const ELEMENTS = JSON.parse(PARAM["argElements"] || null);
+const SKILL_TYPES = JSON.parse(PARAM["argSkillTypes"] || null);
+const EQUIP_TYPES = JSON.parse(PARAM["argEquipTypes"] || null);
+const BASIC = JSON.parse(PARAM["argBasic"] || null);
+const PARAMS = JSON.parse(PARAM["argParams"] || null);
+const COMMANDS = JSON.parse(PARAM["argCommands"] || null);
+const MESSAGES = JSON.parse(PARAM["argMessages"] || null);
 
-const globalName	= PARAM["globalName"] || "$dataUniques";
-const propertyName	= PARAM["propertyName"] || "msg_";
+const GLOBAL_NAME = PARAM["globalName"] || "$dataUniques";
+const PROPERTY_NAME = PARAM["propertyName"] || "msg_";
 
-const defaultValue = 0
-ConfigManager.multilingual = defaultValue;
+const USE_ID = PARAM["useId"] === "true";
 
-const simpleMsgSV_Plugin = $plugins.find(plugin => plugin.name === "SimpleMsgSideViewMZ") || {status:false};
-const useSimpleMsgSV_Plugin = simpleMsgSV_Plugin.status === true;
+const OPTION_DEFAULT = 0
+ConfigManager.multilingual = OPTION_DEFAULT;
 
 //--------------------------------------
 // Plugin Command for MZ
@@ -662,7 +674,7 @@ const useSimpleMsgSV_Plugin = simpleMsgSV_Plugin.status === true;
 PluginManager.registerCommand(PLUGIN_NAME, "setLanguage", args => {
 	const varLanguage = Number(args.varLanguage) || 1;
 	const value = $gameVariables.value(varLanguage);
-	if (value < 0 || value >= argLanguage.length) {
+	if (value < 0 || value >= LANGUAGE.length) {
 		return;
 	}
 	ConfigManager.multilingual = value;
@@ -680,7 +692,7 @@ PluginManager.registerCommand(PLUGIN_NAME, "getLanguage", args => {
 
 const KRD_Scene_Options_maxCommands = Scene_Options.prototype.maxCommands;
 Scene_Options.prototype.maxCommands = function() {
-	if (argOptionText) {
+	if (OPTION_TEXT) {
 		return KRD_Scene_Options_maxCommands.apply(this, arguments) + 1;
 	} else {
 		return KRD_Scene_Options_maxCommands.apply(this, arguments);
@@ -690,8 +702,8 @@ Scene_Options.prototype.maxCommands = function() {
 const KRD_Window_Options_addGeneralOptions = Window_Options.prototype.addGeneralOptions;
 Window_Options.prototype.addGeneralOptions = function() {
 	KRD_Window_Options_addGeneralOptions.apply(this, arguments);
-	if (argOptionText) {
-		this.addCommand(argOptionText[ConfigManager.multilingual], "multilingual");
+	if (OPTION_TEXT) {
+		this.addCommand(OPTION_TEXT[ConfigManager.multilingual], "multilingual");
 	}
 };
 
@@ -710,9 +722,9 @@ ConfigManager.applyData = function(config) {
 
 ConfigManager.readIndex = function(config, name) {
 	if (name in config) {
-		return Number(config[name]).clamp(0, argLanguage.length - 1);
+		return Number(config[name]).clamp(0, LANGUAGE.length - 1);
 	} else {
-		return defaultValue;
+		return OPTION_DEFAULT;
 	}
 };
 
@@ -723,7 +735,7 @@ Window_Options.prototype.statusText = function(index) {
 		return KRD_Window_Options_statusText.apply(this, arguments);
 	}
 	const value = this.getConfigValue(symbol);
-	return argLanguage[value];
+	return LANGUAGE[value];
 };
 
 const KRD_Window_Options_processOk = Window_Options.prototype.processOk;
@@ -745,7 +757,7 @@ Window_Options.prototype.cursorRight = function() {
 		KRD_Window_Options_cursorRight.apply(this, arguments);
 		return;
 	}
-	const value = Math.min(this.getConfigValue(symbol) + 1, argLanguage.length - 1);
+	const value = Math.min(this.getConfigValue(symbol) + 1, LANGUAGE.length - 1);
 	this.changeIndex(symbol, value);
 };
 
@@ -762,10 +774,10 @@ Window_Options.prototype.cursorLeft = function() {
 };
 
 Window_Options.prototype.changeIndex = function(symbol, value) {
-	if (value >= argLanguage.length) {
+	if (value >= LANGUAGE.length) {
 		value = 0;
 	} else if (value < 0) {
-		value = argLanguage.length - 1;
+		value = LANGUAGE.length - 1;
 	}
 	const lastValue = this.getConfigValue(symbol);
 	if (lastValue !== value) {
@@ -792,7 +804,7 @@ Game_Actor.prototype.name = function() {
 		// イベントで変更した場合は変更を優先する。
 		return KRD_Game_Actor_name.apply(this, arguments);
 	}
-	return getData($dataActors[this.actorId()]).name;
+	return KRD_MULTILINGUAL.getData($dataActors[this.actorId()]).name;
 };
 
 const KRD_Game_Actor_nickname = Game_Actor.prototype.nickname;
@@ -801,7 +813,7 @@ Game_Actor.prototype.nickname = function() {
 		// イベントで変更した場合は変更を優先する。
 		return KRD_Game_Actor_nickname.apply(this, arguments);
 	}
-	return getData($dataActors[this.actorId()]).nickname;
+	return KRD_MULTILINGUAL.getData($dataActors[this.actorId()]).nickname;
 };
 
 const KRD_Game_Actor_profile = Game_Actor.prototype.profile;
@@ -810,7 +822,7 @@ Game_Actor.prototype.profile = function() {
 		// イベントで変更した場合は変更を優先する。
 		return KRD_Game_Actor_profile.apply(this, arguments);
 	}
-	return getData($dataActors[this.actorId()]).profile;
+	return KRD_MULTILINGUAL.getData($dataActors[this.actorId()]).profile;
 };
 
 //--------------------------------------
@@ -822,9 +834,17 @@ TextManager.basic = function(id) {
 	if (language <= 0) {
 		return KRD_TextManager_basic.apply(this, arguments);
 	}
-	const preData = JSON.parse(argBasic[language - 1]);
-	const data = JSON.parse(preData.basic);
-	return data[id] || KRD_TextManager_basic.apply(this, arguments);
+	if (BASIC) {
+		const preData = JSON.parse(BASIC[language - 1]);
+		if (preData && preData.basic) {
+			const data = JSON.parse(preData.basic);
+			return data[id] || KRD_TextManager_basic.apply(this, arguments);
+		} else {
+			return KRD_TextManager_basic.apply(this, arguments);
+		}
+	} else {
+		return KRD_TextManager_basic.apply(this, arguments);
+	}
 };
 
 const KRD_TextManager_param = TextManager.param;
@@ -833,9 +853,17 @@ TextManager.param = function(id) {
 	if (language <= 0) {
 		return KRD_TextManager_param.apply(this, arguments);
 	}
-	const preData = JSON.parse(argParams[language - 1]);
-	const data = JSON.parse(preData.params);
-	return data[id] || KRD_TextManager_param.apply(this, arguments);
+	if (PARAMS) {
+		const preData = JSON.parse(PARAMS[language - 1]);
+		if (preData && preData.params) {
+			const data = JSON.parse(preData.params);
+			return data[id] || KRD_TextManager_param.apply(this, arguments);
+		} else {
+			return KRD_TextManager_param.apply(this, arguments);
+		}
+	} else {
+		return KRD_TextManager_param.apply(this, arguments);
+	}
 };
 
 const KRD_TextManager_command = TextManager.command;
@@ -844,9 +872,17 @@ TextManager.command = function(id) {
 	if (language <= 0) {
 		return KRD_TextManager_command.apply(this, arguments);
 	}
-	const preData = JSON.parse(argCommands[language - 1]);
-	const data = JSON.parse(preData.commands);
-	return data[id] || KRD_TextManager_command.apply(this, arguments);
+	if (COMMANDS) {
+		const preData = JSON.parse(COMMANDS[language - 1]);
+		if (preData && preData.commands) {
+			const data = JSON.parse(preData.commands);
+			return data[id] || KRD_TextManager_command.apply(this, arguments);
+		} else {
+			return KRD_TextManager_command.apply(this, arguments);
+		}
+	} else {
+		return KRD_TextManager_command.apply(this, arguments);
+	}
 };
 
 const KRD_TextManager_message = TextManager.message;
@@ -855,8 +891,12 @@ TextManager.message = function(id) {
 	if (language <= 0) {
 		return KRD_TextManager_message.apply(this, arguments);
 	}
-	const data = JSON.parse(argMessages[language - 1]);
-	return data[id] || KRD_TextManager_message.apply(this, arguments);
+	if (MESSAGES) {
+		const data = JSON.parse(MESSAGES[language - 1]);
+		return data[id] || KRD_TextManager_message.apply(this, arguments);
+	} else {
+		return KRD_TextManager_message.apply(this, arguments);
+	}
 };
 
 Object.defineProperty(TextManager, "currencyUnit", {
@@ -865,8 +905,12 @@ Object.defineProperty(TextManager, "currencyUnit", {
 		if (language <= 0) {
 			return $dataSystem.currencyUnit;
 		}
-		const data = JSON.parse(argCurrencyUnit[language - 1]);
-		return data.currencyUnit || $dataSystem.currencyUnit;
+		if (CURRENCY_UNIT) {
+			const data = JSON.parse(CURRENCY_UNIT[language - 1]);
+			return data && data.currencyUnit ? data.currencyUnit : $dataSystem.currencyUnit;
+		} else {
+			return $dataSystem.currencyUnit;
+		}
 	},
 	configurable: true
 });
@@ -879,9 +923,17 @@ TextManager.skillType = function(id) {
 	if (language <= 0) {
 		return $dataSystem.skillTypes[id];
 	}
-	const preData = JSON.parse(argSkillTypes[language - 1]);
-	const data = JSON.parse(preData.skillTypes);
-	return data[id - 1] || $dataSystem.skillTypes[id];
+	if (SKILL_TYPES) {
+		const preData = JSON.parse(SKILL_TYPES[language - 1]);
+		if (preData && preData.skillTypes) {
+			const data = JSON.parse(preData.skillTypes);
+			return data[id - 1] || $dataSystem.skillTypes[id];
+		} else {
+			return $dataSystem.skillTypes[id];
+		}
+	} else {
+		return $dataSystem.skillTypes[id];
+	}
 };
 
 Window_SkillType.prototype.makeCommandList = function() {
@@ -907,9 +959,17 @@ TextManager.equipType = function(id) {
 	if (language <= 0) {
 		return $dataSystem.equipTypes[id];
 	}
-	const preData = JSON.parse(argEquipTypes[language - 1]);
-	const data = JSON.parse(preData.equipTypes);
-	return data[id - 1] || $dataSystem.equipTypes[id];
+	if (EQUIP_TYPES) {
+		const preData = JSON.parse(EQUIP_TYPES[language - 1]);
+		if (preData && preData.equipTypes) {
+			const data = JSON.parse(preData.equipTypes);
+			return data[id - 1] || $dataSystem.equipTypes[id];
+		} else {
+			return $dataSystem.equipTypes[id];
+		}
+	} else {
+		return $dataSystem.equipTypes[id];
+	}
 };
 
 Window_StatusBase.prototype.actorSlotName = function(actor, index) {
@@ -922,9 +982,17 @@ TextManager.element = function(id) {
 	if (language <= 0) {
 		return $dataSystem.elements[id];
 	}
-	const preData = JSON.parse(argElements[language - 1]);
-	const data = JSON.parse(preData.elements);
-	return data[id - 1] || $dataSystem.elements[id];
+	if (ELEMENTS) {
+		const preData = JSON.parse(ELEMENTS[language - 1]);
+		if (preData && preData.elements) {
+			const data = JSON.parse(preData.elements);
+			return data[id - 1] || $dataSystem.elements[id];
+		} else {
+			return $dataSystem.elements[id];
+		}
+	} else {
+		return $dataSystem.elements[id];
+	}
 };
 
 //--------------------------------------
@@ -936,17 +1004,21 @@ Scene_Title.prototype.drawGameTitle = function() {
 	if (language <= 0) {
 		KRD_Scene_Title_drawGameTitle.apply(this, arguments);
 	} else {
-		const x = 20;
-		const y = Graphics.height / 4;
-		const maxWidth = Graphics.width - x * 2;
-		const data = JSON.parse(argGameTitle[language - 1]);
-		const text = data.gameTitle || $dataSystem.gameTitle;
-		const bitmap = this._gameTitleSprite.bitmap;
-		bitmap.fontFace = $gameSystem.mainFontFace();
-		bitmap.outlineColor = "black";
-		bitmap.outlineWidth = 8;
-		bitmap.fontSize = 72;
-		bitmap.drawText(text, x, y, maxWidth, 48, "center");
+		if (GAME_TITLE) {
+			const x = 20;
+			const y = Graphics.height / 4;
+			const maxWidth = Graphics.width - x * 2;
+			const data = JSON.parse(GAME_TITLE[language - 1]);
+			const text = data && data.gameTitle ? data.gameTitle : $dataSystem.gameTitle;
+			const bitmap = this._gameTitleSprite.bitmap;
+			bitmap.fontFace = $gameSystem.mainFontFace();
+			bitmap.outlineColor = "black";
+			bitmap.outlineWidth = 8;
+			bitmap.fontSize = 72;
+			bitmap.drawText(text, x, y, maxWidth, 48, "center");
+		} else {
+			KRD_Scene_Title_drawGameTitle.apply(this, arguments);
+		}
 	}
 };
 
@@ -965,7 +1037,7 @@ Window_Base.prototype.processEscapeCharacter = function(code, textState) {
 };
 
 Window_Base.prototype.getUseLanguage = function(text, language) {
-	return getUseLanguage(text, language);
+	return KRD_MULTILINGUAL.getUseLanguage(text, language);
 };
 
 Window_Base.prototype.processLanguage = function(textState) {
@@ -994,11 +1066,12 @@ Window_Base.prototype.changeText = function(code, textState) {
 	const plus = `${code}[`.length;
 	const name = textState.text.slice(start + plus, end);
 
-	if (window[globalName] &&
-		window[globalName][propertyName + language] &&
-		window[globalName][propertyName + language][name]) {
-			textState.text = window[globalName][propertyName + language][name];
+	if (window[GLOBAL_NAME] &&
+		window[GLOBAL_NAME][PROPERTY_NAME + language] &&
+		window[GLOBAL_NAME][PROPERTY_NAME + language][name]) {
+			textState.text = window[GLOBAL_NAME][PROPERTY_NAME + language][name];
 			textState.text = this.convertEscapeCharacters(textState.text);
+			textState.text = textState.text.replace(/\x1bn/g, "\n");
 			textState.index = 0;
 	} else {
 		if (textState.text.match(`[${name}]`)) {
@@ -1030,26 +1103,26 @@ Game_System.prototype.resetAllData = function() {
 Game_System.prototype.resetDataActors = function() {
 	$dataActors.forEach(data => {
 		if (data) {
-			data.meta.name_0 = data.meta.name_0 ? data.meta.name_0 : data.name;
-			data.meta.nickname_0 = data.meta.nickname_0 ? data.meta.nickname_0 : data.nickname;
-			data.meta.profile_0 = data.meta.profile_0 ? data.meta.profile_0 : data.profile;
+			data.name_0 = data.name_0 ? data.name_0 : data.name;
+			data.nickname_0 = data.nickname_0 ? data.nickname_0 : data.nickname;
+			data.profile_0 = data.profile_0 ? data.profile_0 : data.profile;
 
 			Object.defineProperties(data, {
 				name: {
 					get: function() {
-						return getData(data).name;
+						return KRD_MULTILINGUAL.getData(data).name;
 					},
 					configurable: true
 				},
 				nickname: {
 					get: function() {
-						return getData(data).nickname;
+						return KRD_MULTILINGUAL.getData(data).nickname;
 					},
 					configurable: true
 				},
 				profile: {
 					get: function() {
-						return getData(data).profile;
+						return KRD_MULTILINGUAL.getData(data).profile;
 					},
 					configurable: true
 				}
@@ -1061,12 +1134,12 @@ Game_System.prototype.resetDataActors = function() {
 Game_System.prototype.resetDataName = function(database) {
 	database.forEach(data => {
 		if (data) {
-			data.meta.name_0 = data.meta.name_0 ? data.meta.name_0 : data.name;
+			data.name_0 = data.name_0 ? data.name_0 : data.name;
 
 			Object.defineProperties(data, {
 				name: {
 					get: function() {
-						return getData(data).name;
+						return KRD_MULTILINGUAL.getData(data).name;
 					},
 					configurable: true
 				}
@@ -1078,33 +1151,33 @@ Game_System.prototype.resetDataName = function(database) {
 Game_System.prototype.resetDataSkills = function() {
 	$dataSkills.forEach(data => {
 		if (data) {
-			data.meta.name_0 = data.meta.name_0 ? data.meta.name_0 : data.name;
-			data.meta.description_0 = data.meta.description_0 ? data.meta.description_0 : data.description;
-			data.meta.message1_0 = data.meta.message1_0 ? data.meta.message1_0 : data.message1;
-			data.meta.message2_0 = data.meta.message2_0 ? data.meta.message2_0 : data.message2;
+			data.name_0 = data.name_0 ? data.name_0 : data.name;
+			data.desc_0 = data.desc_0 ? data.desc_0 : data.description;
+			data.message1_0 = data.message1_0 ? data.message1_0 : data.message1;
+			data.message2_0 = data.message2_0 ? data.message2_0 : data.message2;
 
 			Object.defineProperties(data, {
 				name: {
 					get: function() {
-						return getData(data).name;
+						return KRD_MULTILINGUAL.getData(data).name;
 					},
 					configurable: true
 				},
 				description: {
 					get: function() {
-						return getData(data).description;
+						return KRD_MULTILINGUAL.getData(data).description;
 					},
 					configurable: true
 				},
 				message1: {
 					get: function() {
-						return getData(data).message1;
+						return KRD_MULTILINGUAL.getData(data).message1;
 					},
 					configurable: true
 				},
 				message2: {
 					get: function() {
-						return getData(data).message2;
+						return KRD_MULTILINGUAL.getData(data).message2;
 					},
 					configurable: true
 				}
@@ -1116,19 +1189,19 @@ Game_System.prototype.resetDataSkills = function() {
 Game_System.prototype.resetDatabase = function(database) {
 	database.forEach(data => {
 		if (data) {
-			data.meta.name_0 = data.meta.name_0 ? data.meta.name_0 : data.name;
-			data.meta.description_0 = data.meta.description_0 ? data.meta.description_0 : data.description;
+			data.name_0 = data.name_0 ? data.name_0 : data.name;
+			data.desc_0 = data.desc_0 ? data.desc_0 : data.description;
 
 			Object.defineProperties(data, {
 				name: {
 					get: function() {
-						return getData(data).name;
+						return KRD_MULTILINGUAL.getData(data).name;
 					},
 					configurable: true
 				},
 				description: {
 					get: function() {
-						return getData(data).description;
+						return KRD_MULTILINGUAL.getData(data).description;
 					},
 					configurable: true
 				}
@@ -1140,40 +1213,40 @@ Game_System.prototype.resetDatabase = function(database) {
 Game_System.prototype.resetDataStates = function() {
 	$dataStates.forEach(data => {
 		if (data) {
-			data.meta.name_0 = data.meta.name_0 ? data.meta.name_0 : data.name;
-			data.meta.message1_0 = data.meta.message1_0 ? data.meta.message1_0 : data.message1;
-			data.meta.message2_0 = data.meta.message2_0 ? data.meta.message2_0 : data.message2;
-			data.meta.message3_0 = data.meta.message3_0 ? data.meta.message3_0 : data.message3;
-			data.meta.message4_0 = data.meta.message4_0 ? data.meta.message4_0 : data.message4;
+			data.name_0 = data.name_0 ? data.name_0 : data.name;
+			data.message1_0 = data.message1_0 ? data.message1_0 : data.message1;
+			data.message2_0 = data.message2_0 ? data.message2_0 : data.message2;
+			data.message3_0 = data.message3_0 ? data.message3_0 : data.message3;
+			data.message4_0 = data.message4_0 ? data.message4_0 : data.message4;
 
 			Object.defineProperties(data, {
 				name: {
 					get: function() {
-						return getData(data).name;
+						return KRD_MULTILINGUAL.getData(data).name;
 					},
 					configurable: true
 				},
 				message1: {
 					get: function() {
-						return getData(data).message1;
+						return KRD_MULTILINGUAL.getData(data).message1;
 					},
 					configurable: true
 				},
 				message2: {
 					get: function() {
-						return getData(data).message2;
+						return KRD_MULTILINGUAL.getData(data).message2;
 					},
 					configurable: true
 				},
 				message3: {
 					get: function() {
-						return getData(data).message3;
+						return KRD_MULTILINGUAL.getData(data).message3;
 					},
 					configurable: true
 				},
 				message4: {
 					get: function() {
-						return getData(data).message4;
+						return KRD_MULTILINGUAL.getData(data).message4;
 					},
 					configurable: true
 				}
@@ -1183,36 +1256,51 @@ Game_System.prototype.resetDataStates = function() {
 };
 
 //--------------------------------------
-})();
+// 共通関数 : 他のプラグインから使用可能
 
-//--------------------------------------
-// 共通関数
-
-function getData(data) {
+KRD_MULTILINGUAL.getData = function(data) {
 	return {
 		get name() {
-			return data.meta["name_" + ConfigManager.multilingual] || data.meta.name_0 || "";
+			const text = data.meta["name_" + ConfigManager.multilingual];
+			if (USE_ID) {
+				if (text) {
+					return text.replace(/\\ID/g, data.id);
+				} else {
+					return data.name_0 || "";
+				}
+			} else {
+				return text || data.name_0 || "";
+			}
 		},
 		get nickname() {
-			return data.meta["nickname_" + ConfigManager.multilingual] || data.meta.nickname_0 || "";
+			return data.meta["nickname_" + ConfigManager.multilingual] || data.nickname_0 || "";
 		},
 		get profile() {
-			return data.meta["profile_" + ConfigManager.multilingual] || data.meta.profile_0 || "";
+			return data.meta["profile_" + ConfigManager.multilingual] || data.profile_0 || "";
 		},
 		get description() {
-			return data.meta["description_" + ConfigManager.multilingual] || data.meta.description_0 || "";
+			const text = data.meta["desc_" + ConfigManager.multilingual] || data.meta["description_" + ConfigManager.multilingual];
+			if (USE_ID) {
+				if (text) {
+					return text.replace(/\\ID/g, data.id);
+				} else {
+					return data.desc_0 || "";
+				}
+			} else {
+				return text || data.desc_0 || "";
+			}
 		},
 		get message1() {
-			return data.meta["message1_" + ConfigManager.multilingual] || data.meta.message1_0 || "";
+			return data.meta["message1_" + ConfigManager.multilingual] || data.message1_0 || "";
 		},
 		get message2() {
-			return data.meta["message2_" + ConfigManager.multilingual] || data.meta.message2_0 || "";
+			return data.meta["message2_" + ConfigManager.multilingual] || data.message2_0 || "";
 		},
 		get message3() {
-			return data.meta["message3_" + ConfigManager.multilingual] || data.meta.message3_0 || "";
+			return data.meta["message3_" + ConfigManager.multilingual] || data.message3_0 || "";
 		},
 		get message4() {
-			return data.meta["message4_" + ConfigManager.multilingual] || data.meta.message4_0 || "";
+			return data.meta["message4_" + ConfigManager.multilingual] || data.message4_0 || "";
 		},
 		get iconIndex() {
 			return data.iconIndex;
@@ -1223,13 +1311,13 @@ function getData(data) {
 	};
 };
 
-function getUseLanguage(text, language, escape) {
+KRD_MULTILINGUAL.getUseLanguage = function(text, language, escape) {
 	escape = escape ? escape : "\x1b";
 	const check = escape + "LANG[" + language + "]";
 	const start = text.indexOf(check);
 	if (language > 0 && start < 0) {
 		// 再帰
-		return getUseLanguage(text, 0, escape);
+		return KRD_MULTILINGUAL.getUseLanguage(text, 0, escape);
 	}
 	if (start < 0) {
 		// 再帰の終端
@@ -1244,3 +1332,6 @@ function getUseLanguage(text, language, escape) {
 		return text.slice(start + plus);
 	}
 };
+
+//--------------------------------------
+})();

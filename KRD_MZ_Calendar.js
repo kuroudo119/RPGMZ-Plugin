@@ -63,6 +63,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.2.0 (2021/08/15) rect左上座標関数を追加
 - ver.1.2.1 (2021/08/15) バグ修正。通常マップ用Spriteset_Map処理を追加
 - ver.1.2.2 (2021/08/21) 即時関数外の変数宣言をletに修正。
+- ver.1.3.0 (2021/09/19) ページ（月）切替を追加。
 
  * 
  * 
@@ -90,11 +91,17 @@ PluginManager.registerCommand(PLUGIN_NAME, "startScene", args => {
 });
 
 Window_Calendar = class extends Window_Table {
-	constructor(rect) {
+	constructor(rect, date) {
 		super(...arguments);
-		this.setDate(this.makeDate());
-		this.select(this.initIndex());
-		this.refresh();
+		if (date) {
+			this.setDate(date);
+			this.select(this.initIndex());
+			this.refresh();
+		} else {
+			this.setDate(this.makeDate());
+			this.select(this.initIndex());
+			this.refresh();
+		}
 	}
 
 	makeDate() {
@@ -244,12 +251,14 @@ Scene_Calendar = class extends Scene_Map {
 		this.createPictureLayer();
 	}
 
-	createCalendarWindow() {
+	createCalendarWindow(date) {
 		const rect = this.calendarWindowRect();
-		const calendarWindow = new Window_Calendar(rect);
+		const calendarWindow = new Window_Calendar(rect, date);
 		calendarWindow.setHandler("calendar", this.commandDay.bind(this));
 		calendarWindow.setHandler("cancel", this.commandCancel.bind(this));
-		this.addWindow(calendarWindow);
+		calendarWindow.setHandler("pagedown", this.nextMonth.bind(this));
+		calendarWindow.setHandler("pageup", this.previousMonth.bind(this));
+	  this.addWindow(calendarWindow);
 		this._calendarWindow = calendarWindow;
 	}
 
@@ -296,12 +305,14 @@ Scene_Calendar = class extends Scene_Map {
 		const year = this._calendarWindow.getFullYear();
 		const month = this._calendarWindow.getMonth();
 		const text = year + "年" + month + "月";
+		this._titleWindow.contents.clear();
 		this._titleWindow.drawText(text, 0, 0, this._titleWindow.innerWidth, "center");
 	}
 
 	createButtons() {
 		if (ConfigManager.touchUI) {
 				this.createCancelButton();
+				this.createPageButtons();
 		}
 	}
 
@@ -322,6 +333,36 @@ Scene_Calendar = class extends Scene_Map {
 		this._spritesetOther = new Spriteset_Map();
 		this.addChild(this._spritesetOther);
 		this._spritesetOther.update();
+	}
+
+	nextMonth() {
+		const year = this._calendarWindow.getFullYear();
+		const month = this._calendarWindow.getMonth() - 1;
+		this._calendarWindow.close();
+		this.createCalendarWindow(new Date(year, month + 1, 1));
+		this.drawTitle();
+	}
+
+	previousMonth() {
+		const year = this._calendarWindow.getFullYear();
+		const month = this._calendarWindow.getMonth() - 1;
+		this._calendarWindow.close();
+		this.createCalendarWindow(new Date(year, month - 1, 1));
+		this.drawTitle();
+	}
+
+	createPageButtons() {
+		this._pageupButton = new Sprite_Button("pageup");
+		this._pageupButton.x = 4;
+		this._pageupButton.y = this.buttonY();
+		const pageupRight = this._pageupButton.x + this._pageupButton.width;
+		this._pagedownButton = new Sprite_Button("pagedown");
+		this._pagedownButton.x = pageupRight + 4;
+		this._pagedownButton.y = this.buttonY();
+		this.addWindow(this._pageupButton);
+		this.addWindow(this._pagedownButton);
+		this._pageupButton.setClickHandler(this.previousMonth.bind(this));
+		this._pagedownButton.setClickHandler(this.nextMonth.bind(this));
 	}
 };
 

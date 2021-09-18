@@ -24,6 +24,12 @@
  * @default 3
  * @type common_event
  * 
+ * @param cmnPage
+ * @text ページ切替時コモンイベント
+ * @desc ページ切替ボタン（月変更）を押した時に実行されるコモンイベント。
+ * @default 4
+ * @type common_event
+ * 
  * @command startScene
  * @text シーン開始
  * @desc Scene_Schedule を始めます。
@@ -48,7 +54,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2021/08/13) 非公開版完成
 - ver.1.0.0 (2021/08/13) 公開
 - ver.1.1.0 (2021/08/15) スケジュール管理の開始日取得関数を追加
-- ver.1.1.1 (2021/08/21) 即時関数外の変数宣言をletに修正。
+- ver.1.1.1 (2021/08/15) 即時関数外の変数宣言をletに修正。
+- ver.1.2.0 (2021/09/19) ページ切替処理を追加。
 
  * 
  * 
@@ -66,6 +73,8 @@ const PARAM = PluginManager.parameters(PLUGIN_NAME);
 const CMN_OPENING = Number(PARAM["cmnOpening"]) || 0;
 const CMN_DAY = Number(PARAM["cmnDay"]) || 0;
 const CMN_CANCEL = Number(PARAM["cmnCancel"]) || 0;
+
+const CMN_PAGE = Number(PARAM["cmnPage"]) || 0;
 
 PluginManager.registerCommand(PLUGIN_NAME, "startScene", args => {
 	SceneManager.push(Scene_Schedule);
@@ -112,6 +121,16 @@ Scene_Schedule = class extends Scene_Calendar {
 		if (SceneManager._scene._calendarWindow) {
 			this._calendarWindow.activate();
 		}
+	}
+
+	nextMonth() {
+		super.nextMonth(...arguments);
+		$gameTemp.reserveCommonEvent(CMN_PAGE);
+	}
+
+	previousMonth() {
+		super.previousMonth(...arguments);
+		$gameTemp.reserveCommonEvent(CMN_PAGE);
 	}
 };
 

@@ -1,6 +1,6 @@
 /*:
  * @target MZ
- * @plugindesc 見切りスキル
+ * @plugindesc 見切りスキル（受けたスキルをミスにする）
  * @url https://twitter.com/kuroudo119/
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
@@ -20,7 +20,7 @@
  * @help
 # KRD_MZ_Mikiri.js
 
-見切りスキル
+見切りスキル（受けたスキルをミスにする）
 
 ## 権利表記
 
@@ -38,8 +38,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 ## 使い方
 
-使用スキルと見切りスキルを用意します。
-使用スキルのメモ欄に <mikiri:99> と書きます。
+スキルと見切りスキルを用意します。
+スキルのメモ欄に <mikiri:99> と書きます。
 99は見切りスキルの番号です。
 
 見切りスキルは使用不可にするとよいです。

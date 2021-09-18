@@ -4,6 +4,15 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_Mikiri （見切り）
+
+特定のスキルの対象になった時、強制的にミスにする「見切りスキル」を作成できます。
+下の画像は例です（他のプラグインと併用してます）。
+
+[KRD_MZ_Mikiriをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Mikiri.js)
+
+![見切り発動例](img/mikiri.png)
+
 ## KRD_MZ_Schedule （スケジュール管理）
 
 スケジュール管理画面を作成する事が出来ます。

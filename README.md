@@ -12,7 +12,7 @@
 
 [KRD_MZ_Infoをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Info.js)
 
-![情報コマンド](img/Info_330.png)
+![情報コマンド](img/info_1020.png)
 
 ## KRD_MZ_Mikiri （見切り）
 

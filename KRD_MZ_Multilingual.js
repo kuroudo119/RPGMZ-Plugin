@@ -163,6 +163,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.2.0.0 (2021/06/04) プロパティをゲッターに差し替え
 - ver.2.0.1 (2021/06/18) コメント部分修正
 - ver.2.1.0 (2021/08/25) 内部データ修正、useId追加
+- ver.2.1.1 (2021/09/28) KRD_MULTILINGUAL の宣言を即時関数外に移動
 
 ## 使い方
 
@@ -634,11 +635,11 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
  * 
  */
 
+const KRD_MULTILINGUAL = {};
+
 (() => {
 
 "use strict";
-
-const KRD_MULTILINGUAL = {};
 
 const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);

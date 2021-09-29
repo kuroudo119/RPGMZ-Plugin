@@ -4,6 +4,13 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_HideSkillType （バトル時スキルタイプ非表示）
+
+バトル時のアクターコマンドからひとつのスキルタイプを非表示にします。
+パッシブスキル等のバトル時に不要なスキルタイプに使います。
+
+[KRD_MZ_HideSkillTypeをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_HideSkillType.js)
+
 ## KRD_MZ_Info （情報コマンド）
 
 用語集＆図鑑をまとめた「情報」コマンドを追加できます。

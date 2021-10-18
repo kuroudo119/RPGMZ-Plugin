@@ -4,6 +4,13 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_AutoSave （オプション「オートセーブ」追加）
+
+オプションに「オートセーブ」を追加します。
+RPGツクールMZのオートセーブ機能をプレイヤーが任意にON／OFF出来るようになります。
+
+[KRD_MZ_AutoSaveをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_AutoSave.js)
+
 ## KRD_MZ_HideSkillType （バトル時スキルタイプ非表示）
 
 バトル時のアクターコマンドからひとつのスキルタイプを非表示にします。

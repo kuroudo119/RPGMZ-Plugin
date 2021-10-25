@@ -40,6 +40,30 @@
  * @text シーン開始
  * @desc Scene_Calendar を始めます。
  * 
+ * @command getFullYear
+ * @text 年取得
+ * @desc 年(4桁)を取得します。
+ * @arg result
+ * @text 取得データ
+ * @desc 取得した値を入れる変数番号です。
+ * @type variable
+ * 
+ * @command getMonth
+ * @text 月取得
+ * @desc 月を取得します。
+ * @arg result
+ * @text 取得データ
+ * @desc 取得した値を入れる変数番号です。
+ * @type variable
+ * 
+ * @command getDate
+ * @text 日取得
+ * @desc 日を取得します。
+ * @arg result
+ * @text 取得データ
+ * @desc 取得した値を入れる変数番号です。
+ * @type variable
+ * 
  * @help
 # KRD_MZ_Calendar.js
 
@@ -64,6 +88,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.2.1 (2021/08/15) バグ修正。通常マップ用Spriteset_Map処理を追加
 - ver.1.2.2 (2021/08/21) 即時関数外の変数宣言をletに修正。
 - ver.1.3.0 (2021/09/19) ページ（月）切替を追加。
+- ver.1.4.0 (2021/10/25) プラグインコマンドを追加。
 
  * 
  * 
@@ -88,6 +113,27 @@ const VAR_DATE = Number(PARAM["varDate"]) || 0;
 
 PluginManager.registerCommand(PLUGIN_NAME, "startScene", args => {
 	SceneManager.push(Scene_Calendar);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "getFullYear", args => {
+	$gameVariables.setValue(
+		args.result,
+		SceneManager._scene._calendarWindow.getFullYear()
+	);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "getMonth", args => {
+	$gameVariables.setValue(
+		args.result,
+		SceneManager._scene._calendarWindow.getMonth()
+	);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "getDate", args => {
+	$gameVariables.setValue(
+		args.result,
+		SceneManager._scene._calendarWindow.getDate()
+	);
 });
 
 Window_Calendar = class extends Window_Table {

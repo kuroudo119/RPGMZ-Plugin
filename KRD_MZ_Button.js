@@ -4,9 +4,11 @@
  * @url https://twitter.com/kuroudo119/
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
- ***************************************
+ * 
  * @help
-# KRD_MZ_Button.js メニューボタンサイズ拡大
+# KRD_MZ_Button.js
+
+メニューボタンサイズ拡大
 
 ## 権利表記
 
@@ -20,6 +22,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 ## 更新履歴
 - ver.0.0.1 (2021/02/20) 非公開版完成
 - ver.1.0.0 (2021/06/12) 公開開始
+- ver.1.0.1 (2021/06/18) コメント部分修正
 
 ## 使い方
 
@@ -33,9 +36,6 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 "use strict";
 
-//--------------------------------------
-// メニューボタンを拡大
-
 const KRD_Sprite_Button_buttonData = Sprite_Button.prototype.buttonData;
 Sprite_Button.prototype.buttonData = function() {
 	if (this._buttonType === "menu") {
@@ -45,5 +45,4 @@ Sprite_Button.prototype.buttonData = function() {
 	}
 };
 
-//--------------------------------------
 })();

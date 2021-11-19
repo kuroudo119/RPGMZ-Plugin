@@ -122,6 +122,27 @@
  * @desc 取得した値を入れる変数番号です。
  * @type variable
  * 
+ * @command drawCircles
+ * @text 画像描画
+ * @desc カレンダー上のスケジュールがtrueの日付に画像を描画します。
+ * @arg pictureName
+ * @text 画像
+ * @desc 表示する画像データを指定します。
+ * @type file
+ * @dir img/pictures
+ * @arg pictureId
+ * @text ピクチャ番号
+ * @desc ピクチャ番号開始値（+31まで使用されます）
+ * @type number
+ * 
+ * @command eraseCircles
+ * @text 画像消去
+ * @desc カレンダー上に描画した画像を消去します。
+ * @arg pictureId
+ * @text ピクチャ番号
+ * @desc ピクチャ番号開始値（+31まで使用されます）
+ * @type number
+ * 
  * @help
 # KRD_MZ_Schedule.js
 
@@ -145,6 +166,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.1.1 (2021/08/15) 即時関数外の変数宣言をletに修正。
 - ver.1.2.0 (2021/09/19) ページ切替処理を追加。
 - ver.1.3.0 (2021/10/25) プラグインコマンドを追加。
+- ver.1.4.0 (2021/11/19) 画像描画コマンドを追加。
 
  * 
  * 
@@ -164,6 +186,8 @@ const CMN_DAY = Number(PARAM["cmnDay"]) || 0;
 const CMN_CANCEL = Number(PARAM["cmnCancel"]) || 0;
 
 const CMN_PAGE = Number(PARAM["cmnPage"]) || 0;
+
+const MONTH_END = 31;
 
 //======================================
 // プラグインコマンド
@@ -217,6 +241,14 @@ PluginManager.registerCommand(PLUGIN_NAME, "diffToday", args => {
 	);
 });
 
+PluginManager.registerCommand(PLUGIN_NAME, "drawCircles", args => {
+	$gameSystem.drawCircles(Number(args.pictureId), args.pictureName);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "eraseCircles", args => {
+	$gameSystem.eraseCircles(Number(args.pictureId));
+});
+
 //======================================
 // スケジュールクラス
 //======================================
@@ -258,7 +290,7 @@ Scene_Schedule = class extends Scene_Calendar {
 	}
 
 	finishCommon() {
-		if (SceneManager._scene._calendarWindow) {
+		if (this._calendarWindow) {
 			this._calendarWindow.activate();
 		}
 	}
@@ -272,6 +304,20 @@ Scene_Schedule = class extends Scene_Calendar {
 		super.previousMonth(...arguments);
 		$gameTemp.reserveCommonEvent(CMN_PAGE);
 	}
+
+	drawCircle(date, pidStart, pictureName) {
+		const dateIndex = this._calendarWindow.startIndex() + date - 1;
+		const pictureId = pidStart + date;
+		const origin = 1;
+		const x = this._calendarWindow.rectCenterX(dateIndex);
+		const y = this._calendarWindow.rectCenterY(dateIndex);
+		const scaleX = 100;
+		const scaleY = 100;
+		const opacity = 255;
+		const blendMode = 0;
+		$gameScreen.showPicture(pictureId, pictureName, origin, x, y, scaleX, scaleY, opacity, blendMode);
+	}
+
 };
 
 const KRD_Game_Interpreter_setupReservedCommonEvent = Game_Interpreter.prototype.setupReservedCommonEvent;
@@ -315,6 +361,22 @@ Game_System.prototype.setSchedule = function(year, month, date, flag) {
 Game_System.prototype.getSchedule = function(year, month, date) {
 	const strDate = this.stringDate(year, month, date);
 	return this._schedule[strDate];
+};
+
+Game_System.prototype.makeScheduleMonth = function(year, month) {
+	const scheduleMonth = {};
+	for (let i = 1; i <= MONTH_END; i++) {
+		if (this.getSchedule(year, month, i)) {
+			const strDate = this.stringDate(year, month, i);
+			scheduleMonth[strDate] = true;
+		}
+	}
+	return scheduleMonth;
+};
+
+Game_System.prototype.getScheduleMonth = function(schedule, year, month, date) {
+	const strDate = this.stringDate(year, month, date);
+	return schedule[strDate];
 };
 
 Game_System.prototype.getAllSchedule = function() {
@@ -386,6 +448,28 @@ function getToday() {
 	const d = tmp.getDate();
 	const today = new Date(y, m, d);
 	return today;
+};
+
+//======================================
+// 画像描画
+//======================================
+
+Game_System.prototype.drawCircles = function(pictureId, pictureName) {
+	const year = SceneManager._scene._calendarWindow.getFullYear();
+	const month = SceneManager._scene._calendarWindow.getMonth();
+	const scheduleMonth = this.makeScheduleMonth(year, month);
+
+	for (let i = 1; i <= MONTH_END; i++) {
+		if (this.getScheduleMonth(scheduleMonth, year, month, i)) {
+			SceneManager._scene.drawCircle(i, pictureId, pictureName);
+		}
+	}
+};
+
+Game_System.prototype.eraseCircles = function(pictureId) {
+	for (let i = pictureId; i <= (pictureId + MONTH_END); i++) {
+		$gameScreen.erasePicture(i);
+	}
 };
 
 //======================================

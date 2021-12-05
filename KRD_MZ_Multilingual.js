@@ -126,7 +126,7 @@
  * @text 言語番号変数
  * @desc この変数の値の言語番号に変更します。
  * 言語番号の値は 0 始まりです。
- * @default 1
+ * @default 0
  * @type variable
  * 
 * @command getLanguage
@@ -137,7 +137,7 @@
  * @text 言語番号変数
  * @desc この変数に言語番号を入れます。
  * 言語番号の値は 0 始まりです。
- * @default 1
+ * @default 0
  * @type variable
  * 
  * @help
@@ -164,8 +164,14 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.2.0.1 (2021/06/18) コメント部分修正
 - ver.2.1.0 (2021/08/25) 内部データ修正、useId追加
 - ver.2.1.1 (2021/09/28) KRD_MULTILINGUAL の宣言を即時関数外に移動
+- ver.2.1.2 (2021/12/05) 使い方に追記。
 
 ## 使い方
+
+### プラグインコマンド
+
+- setLanguage 言語切替コマンド 言語を変更します。
+- getLanguage 現在言語取得コマンド 言語番号を変数に取得します。
 
 ### データベース項目（メモ欄に記述）
 
@@ -187,6 +193,23 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 ### イベント
 
 プラグインコマンドで言語番号を取得し、条件分岐で切り替えます。
+
+### 制御文字
+
+#### LANG
+
+制御文字 \LANG[0] が使えます。0 の部分は言語番号です。
+デフォルト値として \LANG[0] を使用します。
+次の \LANG[1] までを 言語番号 0 の文字列として使用します。
+
+以下のように設定します。
+\LANG[0]はい\LANG[1]Yes\LANG[2]ええで
+
+#### LANGF
+
+制御文字 \LANGF[データ名] が使えます。
+公式プラグイン UniqueDataLoader を併用し、
+文章を外部jsonファイルに記述します。
 
  * 
  * 
@@ -673,7 +696,10 @@ ConfigManager.multilingual = OPTION_DEFAULT;
 // Plugin Command for MZ
 
 PluginManager.registerCommand(PLUGIN_NAME, "setLanguage", args => {
-	const varLanguage = Number(args.varLanguage) || 1;
+	const varLanguage = Number(args.varLanguage);
+	if (isNaN(varLanguage)) {
+		return;
+	}
 	const value = $gameVariables.value(varLanguage);
 	if (value < 0 || value >= LANGUAGE.length) {
 		return;
@@ -683,7 +709,10 @@ PluginManager.registerCommand(PLUGIN_NAME, "setLanguage", args => {
 });
 
 PluginManager.registerCommand(PLUGIN_NAME, "getLanguage", args => {
-	const varLanguage = Number(args.varLanguage) || 1;
+	const varLanguage = Number(args.varLanguage);
+	if (isNaN(varLanguage)) {
+		return;
+	}
 	const value = ConfigManager.multilingual;
 	$gameVariables.setValue(varLanguage, value);
 });

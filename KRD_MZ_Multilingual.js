@@ -165,6 +165,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.2.1.0 (2021/08/25) 内部データ修正、useId追加
 - ver.2.1.1 (2021/09/28) KRD_MULTILINGUAL の宣言を即時関数外に移動
 - ver.2.1.2 (2021/12/05) 使い方に追記。
+- ver.2.1.3 (2021/12/07) 使い方に追記。
 
 ## 使い方
 
@@ -178,6 +179,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 <name_1:名前>
 <nickname_1:二つ名>
 <profile_1:プロフィール>
+<desc_1:説明>
 <description_1:説明>
 <message1_1:スキルのメッセージ1行目、ステートのメッセージ（アクター）>
 <message2_1:スキルのメッセージ2行目、ステートのメッセージ（敵キャラ）>

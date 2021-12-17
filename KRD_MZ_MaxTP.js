@@ -45,6 +45,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2021/12/06) 作成開始
 - ver.0.1.0 (2021/12/06) 非公開版完成
 - ver.1.0.0 (2021/12/06) 公開
+- ver.1.0.1 (2021/12/17) リファクタリング
 
  * 
  * 
@@ -89,28 +90,9 @@ Game_BattlerBase.prototype.maxTpParam = function() {
 	if (!isNaN(Number(MAX_TP_PARAM))) {
 		return Number(MAX_TP_PARAM);
 	} else {
-		switch (MAX_TP_PARAM) {
-			case "なし":
-				return null;
-			case "最大HP":
-				return this.mhp;
-			case "最大MP":
-				return this.mmp;
-			case "攻撃力":
-				return this.atk;
-			case "防御力":
-				return this.def;
-			case "魔法力":
-				return this.mat;
-			case "魔法防御":
-				return this.mdf;
-			case "敏捷性":
-				return this.agi;
-			case "運":
-				return this.luk;
-			default:
-				return null;
-		}
+		const paramName = ["最大HP", "最大MP", "攻撃力", "防御力", "魔法力", "魔法防御", "敏捷性", "運"];
+		const index = paramName.indexOf(MAX_TP_PARAM);
+		return index >= 0 && index < paramName.length ? this.param(index) : null;
 	}
 };
 

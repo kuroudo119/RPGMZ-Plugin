@@ -30,6 +30,12 @@
  * @default 4
  * @type common_event
  * 
+ * @param cmnPrePage
+ * @text 前ページ時コモンイベント
+ * @desc 前ページへの切替ボタン（月変更）を押した時に実行されるコモンイベント。
+ * @default 5
+ * @type common_event
+ * 
  * @command startScene
  * @text シーン開始
  * @desc Scene_Schedule を始めます。KRD_MZ_Calendar の年月日変数で初期値を設定できます。
@@ -167,6 +173,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.2.0 (2021/09/19) ページ切替処理を追加。
 - ver.1.3.0 (2021/10/25) プラグインコマンドを追加。
 - ver.1.4.0 (2021/11/19) 画像描画コマンドを追加。
+- ver.1.5.0 (2021/12/18) 前ページボタンは別パラメータにした。
 
  * 
  * 
@@ -186,6 +193,7 @@ const CMN_DAY = Number(PARAM["cmnDay"]) || 0;
 const CMN_CANCEL = Number(PARAM["cmnCancel"]) || 0;
 
 const CMN_PAGE = Number(PARAM["cmnPage"]) || 0;
+const CMN_PRE_PAGE = Number(PARAM["cmnPrePage"]) || 0;
 
 const MONTH_END = 31;
 
@@ -302,7 +310,7 @@ Scene_Schedule = class extends Scene_Calendar {
 
 	previousMonth() {
 		super.previousMonth(...arguments);
-		$gameTemp.reserveCommonEvent(CMN_PAGE);
+		$gameTemp.reserveCommonEvent(CMN_PRE_PAGE);
 	}
 
 	drawCircle(date, pidStart, pictureName) {

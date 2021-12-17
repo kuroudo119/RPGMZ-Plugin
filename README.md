@@ -4,6 +4,12 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_Gamepad （ゲームパッドABボタン入替）
+
+ゲームパッドのABボタンの機能を入れ替えるオプションを追加します。
+
+[KRD_MZ_Gamepadをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Gamepad.js)
+
 ## KRD_MZ_MaxTP （最大TP基準値変更）
 
 最大TPの値を能力値基準または固定値に変更できます。

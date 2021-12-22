@@ -1,8 +1,15 @@
 # RPGツクールMZプラグイン
 
-「ログインボーナス支援プラグイン」以降は、プラグイン内にヘルプを記述していません。
+「ログインボーナス支援プラグイン」以降は、プラグイン内にヘルプを少ししか記述していません。
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
+
+## KRD_MZ_EscapeDropItem （敵キャラ逃走時ドロップ）
+
+敵キャラ逃走時にもドロップアイテムをドロップするようにします。
+逃走時にしかドロップしないアイテムも設定可能です。
+
+[KRD_MZ_EscapeDropItemをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_EscapeDropItem.js)
 
 ## KRD_MZ_Gamepad （ゲームパッドABボタン入替）
 

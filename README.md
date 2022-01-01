@@ -4,6 +4,12 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_DirectionFix （振り向き禁止）
+
+マップ移動の衝突時（話しかけた時）にイベントの向き変更をしないようにします。
+
+[KRD_MZ_DirectionFixをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_DirectionFix.js)
+
 ## KRD_MZ_EscapeDropItem （敵キャラ逃走時ドロップ）
 
 敵キャラ逃走時にもドロップアイテムをドロップするようにします。

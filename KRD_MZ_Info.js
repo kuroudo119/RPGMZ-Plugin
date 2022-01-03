@@ -73,16 +73,16 @@
  * @type struct<infoData>[]
  * @parent infoSection
  * 
- * @param nameTrophy
- * @text 実績コマンド名
- * @desc 実績の表示名です。デフォルトは「実績」です。
- * @default 実績
+ * @param nameQuest
+ * @text クエストコマンド名
+ * @desc クエストの表示名です。デフォルトは「クエスト」です。
+ * @default クエスト
  * @type string
  * @parent infoSection
  * 
- * @param dataTrophy
- * @text 実績データ
- * @desc 実績のデータです。
+ * @param dataQuest
+ * @text クエストデータ
+ * @desc クエストのデータです。
  * @type struct<infoData>[]
  * @parent infoSection
  * 
@@ -279,7 +279,7 @@
  * @option gameInfo
  * @option help
  * @option glossary
- * @option trophy
+ * @option quest
  * @option actors
  * @option classes
  * @option skills
@@ -300,7 +300,7 @@
  * @option gameInfo
  * @option help
  * @option glossary
- * @option trophy
+ * @option quest
  * @option actors
  * @option classes
  * @option skills
@@ -327,7 +327,7 @@
  * @option gameInfo
  * @option help
  * @option glossary
- * @option trophy
+ * @option quest
  * @option actors
  * @option classes
  * @option skills
@@ -372,6 +372,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2021/09/17) 修正版完成
 - ver.0.1.1 (2021/09/27) 内部的に字下げ処理を追加
 - ver.1.0.0 (2021/09/27) 公開
+- ver.1.1.0 (2021/11/19) 実績をクエストに変更
+- ver.1.2.0 (2022/01/02) リファクタリング
 
 ## メモ欄タグ (meta)
 
@@ -446,7 +448,7 @@ const INFO_NAME = PARAM["nameInfo"] || "";
 const GAME_INFO = PARAM["nameGameInfo"];
 const HELP      = PARAM["nameHelp"];
 const GLOSSARY  = PARAM["nameGlossary"];
-const TROPHY    = PARAM["nameTrophy"];
+const QUEST     = PARAM["nameQuest"];
 const ACTORS    = PARAM["nameActors"];
 const CLASSES   = PARAM["nameClasses"];
 const SKILLS    = PARAM["nameSkills"];
@@ -489,11 +491,11 @@ const GLOSSARY_BASE = {
 	data: GLOSSARY_DATA,
 };
 
-const TROPHY_DATA = parseJson2Data(PARAM["dataTrophy"] || "[]");
-const TROPHY_BASE = {
-	subSymbol: "trophy",
-	name: TROPHY,
-	data: TROPHY_DATA,
+const QUEST_DATA = parseJson2Data(PARAM["dataQuest"] || "[]");
+const QUEST_BASE = {
+	subSymbol: "quest",
+	name: QUEST,
+	data: QUEST_DATA,
 };
 
 const TITLE_COMMAND = PARAM["titleCommand"] === "true";
@@ -642,7 +644,7 @@ Game_System.prototype.makeShowList = function() {
 		gameInfo: this.makeShowListDetail(GAME_INFO_BASE.data, this._showList.gameInfo),
 		help: this.makeShowListDetail(HELP_BASE.data, this._showList.help),
 		glossary: this.makeShowListDetail(GLOSSARY_BASE.data, this._showList.glossary),
-		trophy: this.makeShowListDetail(TROPHY_BASE.data, this._showList.trophy),
+		quest: this.makeShowListDetail(QUEST_BASE.data, this._showList.quest),
 		actors: this.makeShowListDetail($dataActors, this._showList.actors),
 		classes: this.makeShowListDetail($dataClasses, this._showList.classes),
 		skills: this.makeShowListDetail($dataSkills, this._showList.skills),
@@ -713,8 +715,8 @@ Game_System.prototype.getDbName = function(name) {
 			return HELP_BASE.data;
 		case "glossary":
 			return GLOSSARY_BASE.data;
-		case "trophy":
-			return TROPHY_BASE.data;
+		case "quest":
+			return QUEST_BASE.data;
 		case "actors":
 			return $dataActors;
 		case "classes":
@@ -843,24 +845,9 @@ BattleManager.setup = function(troopId, canEscape, canLose) {
 };
 
 //--------------------------------------
-// 情報シーン（新規）
+// 情報シーン基礎（新規）
 
-class Scene_Info extends Scene_MenuBase {
-	create() {
-		super.create(...arguments);
-		this._i = 0;
-
-		this.setShowList();
-
-		COMMAND = [];
-		this.createAllInfo();
-
-		this.createCommandWindow();
-		this._subCommandWindow = [];
-		this.createSubCommandWindow();
-		this.createInfoWindow();
-	}
-
+class Scene_InfoBase extends Scene_MenuBase {
 	setShowList() {
 		if (AUTO_SKILLS) {
 			$gameParty.members().forEach(actor => {
@@ -879,6 +866,61 @@ class Scene_Info extends Scene_MenuBase {
 		COMMAND.push(command);
 	}
 
+	command(index) {
+		this._i = index;
+		this._commandWindow.hide();
+		this._commandWindow.deactivate();
+		this._subCommandWindow[index].show()
+		this._subCommandWindow[index].activate();
+		this._subCommandWindow[index].refresh();
+	}
+
+	backToCommand() {
+		this._infoWindow.contents.clear();
+		this._subCommandWindow.forEach(sub => {
+			sub.deactivate();
+			sub.hide();
+		});
+		this._commandWindow.show();
+		this._commandWindow.activate();
+	}
+
+	drawInfo(symbol, i) {
+		this._subCommandWindow[i].activate();
+	}
+
+	update() {
+		super.update();
+		if (this._subCommandWindow[this._i].isOpenAndActive()) {
+			this._infoWindow.contents.clear();
+			const index = this._subCommandWindow[this._i]._index;
+			const symbol = this._subCommandWindow[this._i]._symbol + index;
+			const i = this._subCommandWindow[this._i]._i;
+			this._infoWindow.drawInfo(symbol, i);
+			this._subCommandWindow[this._i].activate();
+		}
+	}
+}
+
+//--------------------------------------
+// 情報シーン（新規）
+
+class Scene_Info extends Scene_InfoBase {
+	create() {
+		super.create(...arguments);
+		this._i = 0;
+
+		this.setShowList();
+
+		COMMAND = [];
+		this.createAllInfo();
+
+		this.createCommandWindow();
+		this._subCommandWindow = [];
+		this.createSubCommandWindow();
+		this.createInfoWindow();
+	}
+
 	createAllInfo() {
 		if (!$gameSystem._showList) {
 			$gameSystem._showList = $gameSystem.makeShowList();
@@ -892,8 +934,8 @@ class Scene_Info extends Scene_MenuBase {
 		if (GLOSSARY) {
 			this.createInfo(GLOSSARY_DATA, "glossary", GLOSSARY, $gameSystem._showList.glossary);
 		}
-		if (TROPHY) {
-			this.createInfo(TROPHY_DATA, "trophy", TROPHY, $gameSystem._showList.trophy);
+		if (QUEST) {
+			this.createInfo(QUEST_DATA, "quest", QUEST, $gameSystem._showList.quest);
 		}
 		if (ACTORS) {
 			this.createInfo($dataActors, "actorInfo", ACTORS, $gameSystem._showList.actors);
@@ -1010,41 +1052,6 @@ class Scene_Info extends Scene_MenuBase {
 	subCommandWindowRect() {
 		return this.commandWindowRect();
 	}
-
-	command(index) {
-		this._i = index;
-		this._commandWindow.hide();
-		this._commandWindow.deactivate();
-		this._subCommandWindow[index].show()
-		this._subCommandWindow[index].activate();
-		this._subCommandWindow[index].refresh();
-	}
-
-	backToCommand() {
-		this._infoWindow.contents.clear();
-		this._subCommandWindow.forEach(sub => {
-			sub.deactivate();
-			sub.hide();
-		});
-		this._commandWindow.show();
-		this._commandWindow.activate();
-	}
-
-	drawInfo(symbol, i) {
-		this._subCommandWindow[i].activate();
-	}
-
-	update() {
-		super.update();
-		if (this._subCommandWindow[this._i].isOpenAndActive()) {
-			this._infoWindow.contents.clear();
-			const index = this._subCommandWindow[this._i]._index;
-			const symbol = this._subCommandWindow[this._i]._symbol + index;
-			const i = this._subCommandWindow[this._i]._i;
-			this._infoWindow.drawInfo(symbol, i);
-			this._subCommandWindow[this._i].activate();
-		}
-	}
 }
 
 //--------------------------------------
@@ -1058,7 +1065,8 @@ class Window_InfoCommand extends Window_Command {
 
 	makeCommandList() {
 		COMMAND.forEach((command, index) => {
-			this.addCommand(command.name, CMD_SYMBOL + index);
+			const name = this.convertEscapeCharacters(command.name) || "";
+			this.addCommand(name, CMD_SYMBOL + index);
 		}, this);
 	}
 
@@ -1091,7 +1099,7 @@ class Window_InfoSubCommand extends Window_Command {
 		if (this._i >= 0) {
 			const subSymbol = COMMAND[this._i].subSymbol;
 			COMMAND[this._i].data.forEach((data, index) => {
-				const name = data.name || "";
+				const name = this.convertEscapeCharacters(data.name) || "";
 				this.addCommand(name, subSymbol + index);
 			}, this);
 			this._symbol = subSymbol;
@@ -1116,13 +1124,74 @@ class Window_InfoSubCommand extends Window_Command {
 }
 
 //--------------------------------------
-// 情報ウィンドウ：メッセージ部（新規）
+// 情報ウィンドウ基礎：メッセージ部（新規）
 
-class Window_InfoText extends Window_Base {
+class Window_InfoTextBase extends Window_Base {
 	lineHeight() {
 		return LINE_HEIGHT || super.lineHeight();
 	}
 
+	havePicture(found) {
+		return !!found.meta.KRD_picture || !!found.picture;
+	}
+
+	isActor(found) {
+		return !!found.classId;
+	}
+
+	isEnemy(found) {
+		return found.battlerName && !found.classId;
+	}
+
+	getData(kind) {
+		switch(kind) {
+			case 1:
+				return $dataItems;
+			case 2:
+				return $dataWeapons;
+			case 3:
+				return $dataArmors;
+			default:
+				return null;
+		}
+	}
+
+	text(found) {
+		const language = ConfigManager.multilingual;
+		const textLang = found.meta[`KRD_text_${language}`];
+		const tmpText = found.meta.KRD_text || "";
+		const useText = textLang ? textLang : tmpText;
+		const retText = this.convertEscapeCharacters(useText);
+		return retText;
+	}
+
+	alphabet(found) {
+		if (found.meta.KRD_alphabet) {
+			const fontSize = Number(found.meta.KRD_fontSize) || 0;
+			const lineHeight = Number(found.meta.KRD_lineHeight) || 0;
+			return [fontSize, lineHeight];
+		} else if (found.alphabet === "true") {
+			const fontSize = Number(found.fontSize) || 0;
+			const lineHeight = Number(found.lineHeight) || 0;
+			return [fontSize, lineHeight];
+		} else {
+			return null;
+		}
+	}
+
+	drawPicture(found) {
+		const filename = found.meta.KRD_picture || found.picture;
+		if (filename) {
+			this._bitmap = ImageManager.loadPicture(filename);
+			this._bitmap.addLoadListener(this.drawTextWithImage.bind(this, found));
+		}
+	}
+}
+
+//--------------------------------------
+// 情報ウィンドウ：メッセージ部（新規）
+
+class Window_InfoText extends Window_InfoTextBase {
 	drawInfo(symbol, i) {
 		const subSymbol = COMMAND[i].subSymbol;
 		const found = COMMAND[i].data.find((data, index) => symbol === subSymbol + index);
@@ -1142,24 +1211,13 @@ class Window_InfoText extends Window_Base {
 		}
 	}
 
-	havePicture(found) {
-		return !!found.meta.KRD_picture || !!found.picture;
-	}
-
-	isActor(found) {
-		return !!found.classId;
-	}
-
-	isEnemy(found) {
-		return found.battlerName && !found.classId;
-	}
-
 	drawInfoText(found, x = 0, y = DOWN_LETTER) {
 		if (found) {
-			const name = found.name || "";
+			const name = this.convertEscapeCharacters(found.name) || "";
 			const tmpDesc = found.description || "";
 			const description = this.convertEscapeCharacters(tmpDesc);
-			const descLF = description.replace(/\x1bn/g, "\n");
+			const tmpDescLF = description.replace(/\x1bn/g, "\n");
+			const descLF = tmpDescLF.replace(/\\n/g, "\n");;
 
 			const icon = found.iconIndex ? "\\I[" + found.iconIndex + "]" : "";
 			const name4draw = icon + name;
@@ -1189,29 +1247,6 @@ class Window_InfoText extends Window_Base {
 			y = y + lineHeight;
 			KRD_Window_Base_drawText.call(this, str, x, y, width);
 		}, this);
-	}
-
-	text(found) {
-		const language = ConfigManager.multilingual;
-		const textLang = found.meta[`KRD_text_${language}`];
-		const tmpText = found.meta.KRD_text || "";
-		const useText = textLang ? textLang : tmpText;
-		const retText = this.convertEscapeCharacters(useText);
-		return retText;
-	}
-
-	alphabet(found) {
-		if (found.meta.KRD_alphabet) {
-			const fontSize = Number(found.meta.KRD_fontSize) || 0;
-			const lineHeight = Number(found.meta.KRD_lineHeight) || 0;
-			return [fontSize, lineHeight];
-		} else if (found.alphabet === "true") {
-			const fontSize = Number(found.fontSize) || 0;
-			const lineHeight = Number(found.lineHeight) || 0;
-			return [fontSize, lineHeight];
-		} else {
-			return null;
-		}
 	}
 
 	drawEnemy(found) {
@@ -1339,19 +1374,6 @@ class Window_InfoText extends Window_Base {
 		return y;
 	}
 
-	getData(kind) {
-		switch(kind) {
-			case 1:
-				return $dataItems;
-			case 2:
-				return $dataWeapons;
-			case 3:
-				return $dataArmors;
-			default:
-				return null;
-		}
-	}
-
 	drawActorStart(found) {
 		const data = $gameActors._data[found.id];
 		const faceName = data ? data.faceName() : found.faceName;
@@ -1392,14 +1414,6 @@ class Window_InfoText extends Window_Base {
 	drawActorWithFace2(found, name, faceIndex) {
 		this.drawFace(name, faceIndex, 0, 0, ImageManager.faceWidth, ImageManager.faceHeight);
 		this.drawActorText(found, 0, ImageManager.faceHeight);
-	}
-
-	drawPicture(found) {
-		const filename = found.meta.KRD_picture || found.picture;
-		if (filename) {
-			this._bitmap = ImageManager.loadPicture(filename);
-			this._bitmap.addLoadListener(this.drawTextWithImage.bind(this, found));
-		}
 	}
 }
 

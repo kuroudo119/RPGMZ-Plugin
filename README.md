@@ -10,6 +10,8 @@
 
 [KRD_MZ_DirectionFixをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_DirectionFix.js)
 
+![振り向き禁止](img/noTurn.png)
+
 ## KRD_MZ_EscapeDropItem （敵キャラ逃走時ドロップ）
 
 敵キャラ逃走時にもドロップアイテムをドロップするようにします。

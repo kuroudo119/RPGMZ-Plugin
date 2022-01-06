@@ -25,6 +25,8 @@
 
 [KRD_MZ_Gamepadをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Gamepad.js)
 
+![ゲームパッドABボタン入替](img/gamepad.png)
+
 ## KRD_MZ_MaxTP （最大TP基準値変更）
 
 最大TPの値を能力値基準または固定値に変更できます。

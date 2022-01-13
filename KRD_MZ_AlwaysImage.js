@@ -6,22 +6,26 @@
  * @author kuroudo119 (くろうど)
  * 
  * @param file
+ * @text ファイル名
  * @desc 表示する画像のFILE名です。
  * 画像は img/pictures/ フォルダ内に置いてください。
  * @type file
  * @dir img/pictures/
  * 
  * @param alt
+ * @text ALTタグ
  * @desc HTMLのimgタグのaltに設定する値です。
  * 画像の読込失敗時にこの文字列が表示されます。
  * @default KRD_AlwaysImage
  * 
  * @param id
+ * @text IDタグ
  * @desc HTMLのimgタグのIDに設定する値です。
  * 特に変更する必要はありません。
  * @default KRD_AlwaysImage
  * 
  * @param bottom
+ * @text 画像下余白
  * @desc Windowの下と画像の下の空白部分です。
  * 単位はピクセルです。表示する位置を微調整できます。
  * @default 10
@@ -29,6 +33,7 @@
  * @min -10000
  * 
  * @param right
+ * @text 画像右余白
  * @desc Windowの右端と画像の右端の空白部分です。
  * 単位はピクセルです。表示する位置を微調整できます。
  * @default 10
@@ -36,6 +41,7 @@
  * @min -10000
  * 
  * @param opacity
+ * @text 不透明度
  * @desc 表示する画像の不透明度です。
  * 0:透明 → 100:不透明
  * @default 100
@@ -43,6 +49,7 @@
  * @max 100
  * 
  * @param commonEventId
+ * @text コモンイベント番号
  * @desc 画像をクリックまたはタッチした時に実行する
  * コモンイベントの番号です。1以上の場合に有効。
  * @default 0
@@ -67,6 +74,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2022/01/13) MZ版作成開始
 - ver.0.1.0 (2022/01/13) 非公開版完成
 - ver.1.0.0 (2022/01/13) 公開
+- ver.1.1.0 (2022/01/13) コモン呼出を左クリックのみ＆連打不可
 
 ## 概要
 
@@ -86,13 +94,9 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 表示位置は変更されます。
 
 オマケ機能として、
-画像をクリックまたはタッチした時に、
+マップ画面で、
+画像を左クリックまたはタッチした時に、
 任意のコモンイベントひとつを呼ぶ機能があります。
-
-クリックは左右両方ともです。
-
-画像を連打すると何回もコモンイベントが
-呼ばれますので注意してください。
 
  * 
  * 
@@ -109,8 +113,8 @@ const PATH = "./img/pictures/";
 const FILE = PARAM["file"] + ".png";
 const ALT  = PARAM["alt"] || "KRD_AlwaysImage";
 const ID   = PARAM["id"] || "KRD_AlwaysImage";
-const BOTTOM_SPACE = PARAM["bottom"] || "10";
-const RIGHT_SPACE  = PARAM["right"] || "10";
+const BOTTOM_SPACE = PARAM["bottom"] || "0";
+const RIGHT_SPACE  = PARAM["right"] || "0";
 const OPACITY      = ((Number(PARAM["opacity"]) || 0) / 100).toString();
 const COMMON_EVENT = Number(PARAM["commonEventId"]) || 0;
 
@@ -128,31 +132,40 @@ class KRD_AlwaysImage {
 		this._img.style.opacity  = OPACITY;
 		this._img.style.zIndex   = "11";
 
-		function touchEvent() {
-			if (!$gameParty.inBattle() && $gameMap._mapId > 0) {
-				if (COMMON_EVENT > 0) {
-					$gameTemp.reserveCommonEvent(COMMON_EVENT);
-				}
-			}
+		this.noDeaultAction();
+
+		if (COMMON_EVENT > 0) {
+			this.touchListener();
 		}
 
+		document.body.appendChild(this._img);
+	}
+
+	noDeaultAction() {
 		this._img.oncontextmenu = function() {
 			return false;
 		};
-		this._img.addEventListener("mousedown", function(ev){
+		this._img.addEventListener("mousedown", ev => {
 			ev.preventDefault();
 		}, false);
-		this._img.addEventListener("mouseup", function(ev){
-			touchEvent();
-		}, false);
-		this._img.addEventListener("touchstart", function(ev){
+		this._img.addEventListener("touchstart", ev => {
 			ev.preventDefault();
 		}, false);
-		this._img.addEventListener("touchend", function(ev){
-			touchEvent();
-		}, false);
+	}
 
-		document.body.appendChild(this._img);
+	touchListener() {
+		function touchEvent() {
+			if ($gamePlayer.canMove()) {
+				$gameTemp.reserveCommonEvent(COMMON_EVENT);
+			}
+		}
+
+		this._img.addEventListener("click", () => {
+			touchEvent();
+		}, false);
+		this._img.addEventListener("touchend", () => {
+			touchEvent();
+		}, false);
 	}
 }
 

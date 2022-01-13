@@ -4,6 +4,14 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_AlwaysImage （常時画像表示）
+
+ブラウザのWindowの右下に常時画像表示します。ウォーターマーク等に使用できます。
+
+[KRD_MZ_AlwaysImageをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_AlwaysImage.js)
+
+![常時画像表示](img/alwaysimg.png)
+
 ## KRD_MZ_DirectionFix （振り向き禁止）
 
 マップ移動の衝突時（話しかけた時）にイベントの向き変更をしないようにします。

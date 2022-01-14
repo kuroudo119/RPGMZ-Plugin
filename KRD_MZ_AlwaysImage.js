@@ -163,9 +163,12 @@ class KRD_AlwaysImage {
 	}
 
 	noDefaultAction() {
+		// Nothing right click.
 		this._img.oncontextmenu = function() {
 			return false;
 		};
+
+		// Nothing zoom by double click on iPhone.
 		this._img.addEventListener("mousedown", ev => {
 			ev.preventDefault();
 		}, false);

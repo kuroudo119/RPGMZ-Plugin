@@ -24,18 +24,30 @@
  * 特に変更する必要はありません。
  * @default KRD_AlwaysImage
  * 
+ * @param top
+ * @text 画像上余白
+ * @desc Window上端と画像上側の空白をピクセルで指定します。bottomより優先です。使わない時は値を削除してください。
+ * @default
+ * @type number
+ * @min -10000
+ * 
+ * @param left
+ * @text 画像左余白
+ * @desc Window左端と画像左側の空白をピクセルで指定します。rightより優先です。使わない時は値を削除してください。
+ * @default
+ * @type number
+ * @min -10000
+ * 
  * @param bottom
  * @text 画像下余白
- * @desc Windowの下と画像の下の空白部分です。
- * 単位はピクセルです。表示する位置を微調整できます。
+ * @desc Window下端と画像下側の空白をピクセルで指定します。使わない時は値を削除してください。
  * @default 10
  * @type number
  * @min -10000
  * 
  * @param right
  * @text 画像右余白
- * @desc Windowの右端と画像の右端の空白部分です。
- * 単位はピクセルです。表示する位置を微調整できます。
+ * @desc Window右端と画像右側の空白をピクセルで指定します。使わない時は値を削除してください。
  * @default 10
  * @type number
  * @min -10000
@@ -75,6 +87,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2022/01/13) 非公開版完成
 - ver.1.0.0 (2022/01/13) 公開
 - ver.1.1.0 (2022/01/13) コモン呼出を左クリックのみ＆連打不可
+- ver.1.2.0 (2022/01/14) 画像位置を右下以外も可能にした
 
 ## 概要
 
@@ -83,11 +96,11 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 ここで言うWindowはブラウザのWindowです。
 ゲームの表示領域の外も含みます。
 
-そのWindowの右下に画像を常時表示します。
+そのWindowの端っこに画像を常時表示します。
 ゲーム起動時から表示するので、
 タイトル画面でも表示されます。
 
-非表示にする機能はありません。
+特定の画面で非表示にする機能はありません。
 
 ブラウザのサイズを変更しても
 画像サイズは変わりませんが、
@@ -102,7 +115,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
  * 
  */
 
-(function() {
+(() => {
 
 "use strict";
 
@@ -112,9 +125,13 @@ const PARAM = PluginManager.parameters(PLUGIN_NAME);
 const PATH = "./img/pictures/";
 const FILE = PARAM["file"] + ".png";
 const ALT  = PARAM["alt"] || "KRD_AlwaysImage";
-const ID   = PARAM["id"] || "KRD_AlwaysImage";
-const BOTTOM_SPACE = PARAM["bottom"] || "0";
-const RIGHT_SPACE  = PARAM["right"] || "0";
+const ID   = PARAM["id"]  || "KRD_AlwaysImage";
+
+const TOP    = PARAM["top"];
+const LEFT   = PARAM["left"];
+const BOTTOM = PARAM["bottom"];
+const RIGHT  = PARAM["right"];
+
 const OPACITY      = ((Number(PARAM["opacity"]) || 0) / 100).toString();
 const COMMON_EVENT = Number(PARAM["commonEventId"]) || 0;
 
@@ -126,13 +143,17 @@ class KRD_AlwaysImage {
 		this._img.src = PATH + FILE;
 		this._img.alt = ALT;
 		this._img.id  = ID;
-		this._img.style.position = "fixed";
-		this._img.style.bottom   = BOTTOM_SPACE + "px";
-		this._img.style.right    = RIGHT_SPACE + "px";
-		this._img.style.opacity  = OPACITY;
-		this._img.style.zIndex   = "11";
 
-		this.noDeaultAction();
+		this._img.style.position = "fixed";
+		if (!isNaN(Number(TOP)))    this._img.style.top    = TOP    + "px";
+		if (!isNaN(Number(LEFT)))   this._img.style.left   = LEFT   + "px";
+		if (!isNaN(Number(BOTTOM))) this._img.style.bottom = BOTTOM + "px";
+		if (!isNaN(Number(RIGHT)))  this._img.style.right  = RIGHT  + "px";
+
+		this._img.style.opacity = OPACITY;
+		this._img.style.zIndex  = "11";
+
+		this.noDefaultAction();
 
 		if (COMMON_EVENT > 0) {
 			this.touchListener();
@@ -141,7 +162,7 @@ class KRD_AlwaysImage {
 		document.body.appendChild(this._img);
 	}
 
-	noDeaultAction() {
+	noDefaultAction() {
 		this._img.oncontextmenu = function() {
 			return false;
 		};
@@ -178,4 +199,4 @@ Scene_Base.prototype.start = function() {
 	}
 };
 
-}());
+})();

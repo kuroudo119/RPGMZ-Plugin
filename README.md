@@ -14,9 +14,9 @@
 使い方を書いていないので、代わりにサンプルプロジェクトを配布しています。
 新規プロジェクトに上書きしてください。
 
-[Sample_ARPG.zipをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/Sample_ARPG.zip)
+[サンプルプロジェクト：Sample_ARPG.zipをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/Sample_ARPG.zip)
 
-[KRD_MZ_MapEnemyをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_MapEnemy.js)
+[ソースコード単独：KRD_MZ_MapEnemyをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_MapEnemy.js)
 
 ![体当たりアクションRPGサンプル](img/ARPG.png)
 

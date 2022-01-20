@@ -16,6 +16,8 @@
 
 [Sample_ARPG.zipをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/Sample_ARPG.zip)
 
+[KRD_MZ_MapEnemyをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_MapEnemy.js)
+
 ![体当たりアクションRPGサンプル](img/ARPG.png)
 
 ## KRD_MZ_AlwaysImage （常時画像表示）

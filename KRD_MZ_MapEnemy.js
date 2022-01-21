@@ -17,6 +17,10 @@
  * @default true
  * @type boolean
  * 
+ * @command processTroopCollapse
+ * @text 敵キャラ撃破時報酬獲得
+ * @desc 敵キャラ撃破時にこのコマンドを使うと経験値、お金、宝物を獲得します。
+ * 
  * @help
 # KRD_MZ_MapEnemy.js
 
@@ -44,6 +48,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.9 (2022/01/20) KRD_Game_MapAction クラスを追加。
 - ver.0.1.0 (2022/01/21) 非公開版完成
 - ver.1.0.0 (2022/01/21) 公開
+- ver.1.1.0 (2022/01/21) 報酬獲得関数を作成。
+- ver.1.1.1 (2022/01/22) ポップアップとゲージが出ないバグ修正。
 
 ## 使い方
 
@@ -75,7 +81,17 @@ const PARAM = PluginManager.parameters(PLUGIN_NAME);
 const USE_DAMAGE_POPUP = PARAM["useDamagePopup"] === "true";
 const USE_HP_GAUGE = PARAM["useHpGauge"] === "true";
 
+const USE_DISPLAY_REWARDS = false;
+const DEFAULT_ANIMATION_ID = 1;
+
 const META_TAG = "MapEnemy";
+
+// -------------------------------------
+// プラグインコマンド
+
+PluginManager.registerCommand(PLUGIN_NAME, "processTroopCollapse", args => {
+	$gameTemp.processTroopCollapse();
+});
 
 // -------------------------------------
 // KRD_Game_MapEnemy クラス
@@ -152,7 +168,7 @@ KRD_Game_MapAction = class extends Game_Action {
 		if (this._subjectActorId > 0) {
 			return super.subject(...arguments);
 		} else {
-			return $gameMap._events[this._subjectEnemyIndex]._enemy;
+			return $gameMap.event(this._subjectEnemyIndex)._enemy;
 		}
 	}
 
@@ -198,14 +214,15 @@ Scene_Map.prototype.createDisplayObjects = function() {
 };
 
 Scene_Map.prototype.createHpGauge = function() {
-	const events = $gameMap.metaList(META_TAG);
-	events.forEach(event => {
-		const ev = $gameMap._events[event.id];
-		const eventId = ev.eventId() - 1;
-		const characterSprites = SceneManager._scene._spriteset._characterSprites;
-		const gauge = new KRD_Sprite_MapGauge();
-		gauge.setup(ev._enemy, "hp");
-		characterSprites[eventId].addChild(gauge);
+	const metaList = $gameMap.metaList(META_TAG);
+	const metaIdList = metaList.map(e => e.id);
+	$gameMap.events().forEach((event, i) => {
+		if (metaIdList.includes(event.eventId())) {
+			const characterSprites = SceneManager._scene._spriteset._characterSprites;
+			const gauge = new KRD_Sprite_MapGauge();
+			gauge.setup(event._enemy, "hp");
+			characterSprites[i].addChild(gauge);
+		}
 	});
 };
 
@@ -221,29 +238,31 @@ Scene_Map.prototype.createDisplayObjects = function() {
 };
 
 Scene_Map.prototype.createDamagePopup = function() {
-	const events = $gameMap.metaList(META_TAG);
-	if (events && events.length > 0) {
-		this.createDamagePopupPlayer();
-		this.createDamagePopupEnemy(events);
-	}
+	this.createDamagePopupPlayer();
+	this.createDamagePopupEnemy();
 };
 
-Scene_Map.prototype.createDamagePopupEnemy = function(events = []) {
-	events.forEach(event => {
-		const ev = $gameMap._events[event.id];
-		const index = ev.eventId() - 1;
-		const sprite = new KRD_Sprite_Battler(ev._enemy);
-		const characterSprites = SceneManager._scene._spriteset._characterSprites;
-		characterSprites[index].addChild(sprite);
+Scene_Map.prototype.createDamagePopupEnemy = function() {
+	const metaList = $gameMap.metaList(META_TAG);
+	const metaIdList = metaList.map(e => e.id);
+	$gameMap.events().forEach((event, i) => {
+		if (metaIdList.includes(event.eventId())) {
+			const characterSprites = SceneManager._scene._spriteset._characterSprites;
+			const sprite = new KRD_Sprite_Battler(event._enemy);
+			characterSprites[i].addChild(sprite);
+		}
 	});
 };
 
 Scene_Map.prototype.createDamagePopupPlayer = function() {
-	const sprite = new KRD_Sprite_Battler($gameParty.leader());
-	const characterSprites = SceneManager._scene._spriteset._characterSprites;
-	const index = characterSprites.findIndex(cs => cs._character.constructor.name === "Game_Player");
-	if (index > 0) {
-		characterSprites[index].addChild(sprite);
+	const metaList = $gameMap.metaList(META_TAG);
+	if (metaList && metaList.length > 0) {
+		const sprite = new KRD_Sprite_Battler($gameParty.leader());
+		const characterSprites = SceneManager._scene._spriteset._characterSprites;
+		const index = characterSprites.findIndex(cs => cs._character.constructor.name === "Game_Player");
+		if (index > 0) {
+			characterSprites[index].addChild(sprite);
+		}
 	}
 };
 
@@ -261,15 +280,14 @@ Game_Temp.prototype.mapPopupPlayer = function() {
 
 Game_Temp.prototype.mapPopupEnemy = function(eventId) {
 	if (USE_DAMAGE_POPUP) {
-		const ev = $gameMap._events[eventId];
+		const ev = $gameMap.event(eventId);
 		ev._enemy.startDamagePopup();
 	}
 };
 
 Game_Temp.prototype.mapPopupTroop = function() {
 	if (USE_DAMAGE_POPUP) {
-		const events = $gameMap.metaList(META_TAG);
-		events.forEach(event => {
+		$gameMap.metaList(META_TAG).forEach(event => {
 			this.mapPopupEnemy(event.id);
 		}, this);
 	}
@@ -286,19 +304,18 @@ Game_Temp.prototype.mapDamage = function(target, subject, skillId) {
 
 Game_Temp.prototype.mapDamageEnemy = function(eventId, skillId) {
 	const subject = $gameParty.leader();
-	const target = $gameMap._events[eventId]._enemy;
+	const target = $gameMap.event(eventId)._enemy;
 	this.mapDamage(target, subject, skillId);
 };
 
 Game_Temp.prototype.mapDamageTroop = function(skillId) {
-	const events = $gameMap.metaList(META_TAG);
-	events.forEach(event => {
+	$gameMap.metaList(META_TAG).forEach(event => {
 		this.mapDamageEnemy(event.id, skillId);
 	}, this);
 };
 
 Game_Temp.prototype.mapDamagePlayer = function(eventId, skillId) {
-	const subject = $gameMap._events[eventId]._enemy;
+	const subject = $gameMap.event(eventId)._enemy;
 	const target = $gameParty.leader();
 	this.mapDamage(target, subject, skillId);
 };
@@ -314,13 +331,12 @@ Game_Temp.prototype.itemMapDamage = function(target, subject, itemId) {
 
 Game_Temp.prototype.itemMapDamageEnemy = function(eventId, itemId) {
 	const subject = $gameParty.leader();
-	const target = $gameMap._events[eventId]._enemy;
+	const target = $gameMap.event(eventId)._enemy;
 	this.itemMapDamage(target, subject, itemId);
 };
 
 Game_Temp.prototype.itemMapDamageTroop = function(itemId) {
-	const events = $gameMap.metaList(META_TAG);
-	events.forEach(event => {
+	$gameMap.metaList(META_TAG).forEach(event => {
 		this.itemMapDamageEnemy(event.id, itemId);
 	}, this);
 };
@@ -329,13 +345,13 @@ Game_Temp.prototype.itemMapDamageTroop = function(itemId) {
 // 残HPチェック
 
 Game_Temp.prototype.isDeadEnemy = function(eventId) {
-	const event = $gameMap._events[eventId];
+	const event = $gameMap.event(eventId);
 	return !event._erased && event._enemy.isDead();
 };
 
 Game_Temp.prototype.isDeadTroop = function() {
-	const events = $gameMap.metaList(META_TAG);
-	this._deadList = events.filter(event => this.isDeadEnemy(event.id), this);
+	const metaList = $gameMap.metaList(META_TAG);
+	this._deadList = metaList.filter(event => this.isDeadEnemy(event.id), this);
 	return !!this._deadList.length;
 };
 
@@ -375,7 +391,7 @@ Game_Temp.prototype.runningEventId = function() {
 };
 
 Game_Temp.prototype.runningEvent = function() {
-	return $gameMap._events[this.runningEventId()];
+	return $gameMap.event(this.runningEventId());
 };
 
 Game_Temp.prototype.eventPosition = function(player, event) {
@@ -427,6 +443,91 @@ Game_Temp.prototype.checkCollisionTable = function(position, direction) {
 	const range = [0, 1, 2, 3];
 	if (range.includes(positionIndex) && range.includes(directionIndex)) {
 		return collisionTable[positionIndex][directionIndex];
+	} else {
+		return 0;
+	}
+};
+
+// -------------------------------------
+// マップバトル報酬
+
+Game_Temp.prototype.processTroopCollapse = function() {
+	if (this._deadList) {
+		this._deadList.forEach(enemy => {
+			this.processEnemyCollapse(enemy.id);
+		}, this);
+	}
+};
+
+Game_Temp.prototype.processEnemyCollapse = function(eventId) {
+	BattleManager.makeMapEnemyRewards(eventId);
+	if (USE_DISPLAY_REWARDS) {
+		BattleManager.displayRewards();
+	}
+	BattleManager.gainRewards();
+};
+
+BattleManager.makeMapEnemyRewards = function(eventId) {
+	const enemy = $gameMap.event(eventId)._enemy;
+	const goldRate = Game_Troop.prototype.goldRate.call(this);
+	this._rewards = {
+		 gold: enemy.gold() * goldRate,
+		 exp: enemy.exp(),
+		 items: enemy.makeDropItems()
+	};
+};
+
+const KRD_Game_Actor_gainExp = Game_Actor.prototype.gainExp;
+Game_Actor.prototype.gainExp = function(exp) {
+	if ($gameParty.inBattle()) {
+		KRD_Game_Actor_gainExp.apply(this, arguments);
+	} else {
+		const newExp = this.currentExp() + Math.round(exp * this.finalExpRate());
+		this.changeExp(newExp, USE_DISPLAY_REWARDS);
+	}
+};
+
+// -------------------------------------
+// スキルに設定されたアニメーションを表示
+
+Game_Temp.prototype.showSkillAnimation = function(skillId, characterId, waitMode) {
+	const animationId = $dataSkills[skillId].animationId;
+	this.showAnimation(animationId, characterId, waitMode);
+};
+
+Game_Temp.prototype.showItemAnimation = function(itemId, characterId, waitMode) {
+	const animationId = $dataItems[itemId].animationId;
+	this.showAnimation(animationId, characterId, waitMode);
+};
+
+Game_Temp.prototype.showAnimation = function(animationId, characterId, waitMode) {
+	const animeId = this.getAnimationId(animationId, characterId);
+	const param = [characterId, animeId, waitMode];
+	if (animeId > 0) {
+		$gameMap._interpreter.command212(param);
+	}
+};
+
+Game_Temp.prototype.getAnimationId = function(animationId, characterId) {
+	if (animationId >= 0) {
+		return animationId;
+	} else {
+		if (characterId >= 0) {
+			const weapon = $gameParty.leader().weapons()[0];
+			if (weapon && weapon.id > 0) {
+				return $dataWeapons[weapon.id].animationId;
+			} else {
+				return this.defaultAnimationId();
+			}
+		} else {
+			return this.defaultAnimationId();
+		}
+	}
+};
+
+Game_Temp.prototype.defaultAnimationId = function() {
+	if ($dataAnimations.length > 0) {
+		return DEFAULT_ANIMATION_ID;
 	} else {
 		return 0;
 	}

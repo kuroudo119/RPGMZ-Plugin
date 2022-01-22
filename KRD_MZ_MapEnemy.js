@@ -17,9 +17,129 @@
  * @default true
  * @type boolean
  * 
+ * @command clearInput
+ * @text 入力クリア
+ * @desc 入力バッファを空にします。押しっぱなし等の入力を一旦無しにします。
+ * 
+ * @command forceCritical
+ * @text 強制クリティカル
+ * @desc 次のダメージ処理を必ずクリティカルにします。
+ * 
+ * @command checkCollision
+ * @text 衝突チェック
+ * @desc プレイヤーと敵イベントの位置関係をチェックします。
+ * @arg varResult
+ * @text 結果変数
+ * @desc チェック結果を入れる変数番号を指定します。結果の値はプラグイン管理のヘルプ参照。
+ * @type variable
+ * 
+ * @command showSkillAnimation
+ * @text skillアニメーション表示
+ * @desc 使用したスキルに設定されたアニメーションを表示します。
+ * @arg varSkillId
+ * @text スキル番号変数
+ * @desc スキル番号が入っている変数を指定します。
+ * @type variable
+ * @arg varCharacterId
+ * @text キャラクター番号変数
+ * @desc イベント番号が入っている変数を指定します。プレイヤーを指定する場合は -1 が入っている変数です。
+ * @type variable
+ * @arg waitMode
+ * @text ウェイト
+ * @desc アニメーション表示中のウェイトあり:ON(true) ／ ウェイトなし:OFF(false)
+ * @type boolean
+ * 
+ * @command showItemAnimation
+ * @text itemアニメーション表示
+ * @desc 使用したアイテムに設定されたアニメーションを表示します。
+ * @arg varItemId
+ * @text アイテム番号変数
+ * @descアイテム番号が入っている変数を指定します。
+ * @type variable
+ * @arg varCharacterId
+ * @text キャラクター番号変数
+ * @desc イベント番号が入っている変数を指定します。プレイヤーを指定する場合は変数に -1 を入れます。
+ * @type variable
+ * @arg waitMode
+ * @text ウェイト
+ * @desc アニメーション表示中のウェイトあり:ON(true) ／ ウェイトなし:OFF(false)
+ * @type boolean
+ * 
+ * @command mapDamagePlayer
+ * @text Playerダメージ発生
+ * @desc スキル使用でプレイヤーにダメージを発生させます。
+ * @arg varEventId
+ * @text イベントID変数
+ * @desc イベントIDが入っている変数番号を指定します。
+ * @type variable
+ * @arg varSkillId
+ * @text スキルID変数
+ * @desc スキルIDが入っている変数番号を指定します。
+ * @type variable
+ * 
+ * @command mapDamageEnemy
+ * @text Enemyダメージ発生
+ * @desc スキル使用で敵キャラにダメージを発生させます。
+ * @arg varEventId
+ * @text イベントID変数
+ * @desc イベントIDが入っている変数番号を指定します。
+ * @type variable
+ * @arg varSkillId
+ * @text スキルID変数
+ * @desc スキルIDが入っている変数番号を指定します。
+ * @type variable
+ * 
+ * @command mapDamageTroop
+ * @text Troopダメージ発生
+ * @desc スキル使用で敵グループにダメージを発生させます。
+ * @arg varSkillId
+ * @text スキルID変数
+ * @desc スキルIDが入っている変数番号を指定します。
+ * @type variable
+ * 
+ * @command itemMapDamageEnemy
+ * @text Enemyダメージ発生item
+ * @desc アイテム使用で敵キャラにダメージを発生させます。
+ * @arg varEventId
+ * @text イベントID変数
+ * @desc イベントIDが入っている変数番号を指定します。
+ * @type variable
+ * @arg varSkillId
+ * @text スキルID変数
+ * @desc スキルIDが入っている変数番号を指定します。
+ * @type variable
+ * 
+ * @command itemMapDamageTroop
+ * @text Troopダメージ発生item
+ * @desc アイテム使用で敵グループにダメージを発生させます。
+ * @arg varSkillId
+ * @text スキルID変数
+ * @desc スキルIDが入っている変数番号を指定します。
+ * @type variable
+ * 
+ * @command mapPopupPlayer
+ * @text Playerダメージポップアップ
+ * @desc ダメージ発生後に使用することでプレイヤーのダメージポップアップします。
+ * 
+ * @command mapPopupTroop
+ * @text Enemyダメージポップアップ
+ * @desc ダメージ発生後に使用することで敵キャラのダメージポップアップします。
+ * 
+ * @command isDeadTroop
+ * @text 敵キャラKOチェック
+ * @desc 攻撃後に敵イベント全体の中に戦闘不能になった敵キャラが存在するかチェック。存在する:ON(true) ／ 存在しない:OFF(false)
+ * @arg swResult
+ * @text 結果スイッチ
+ * @desc チェック結果を入れるスイッチ番号を指定します。
+ * @type switch
+ * 
+ * @command eraseAllDeadEvent
+ * @text KO敵キャラ消去
+ * @desc 戦闘不能の敵キャラを「イベントの一時消去」します。
+ * 
  * @command processTroopCollapse
- * @text 敵キャラ撃破時報酬獲得
- * @desc 敵キャラ撃破時にこのコマンドを使うと経験値、お金、宝物を獲得します。
+ * @text 敵キャラ撃破報酬獲得
+ * @desc 敵キャラ戦闘不能時にこのコマンドを使うと経験値、お金、宝物を獲得します。
  * 
  * @help
 # KRD_MZ_MapEnemy.js
@@ -50,12 +170,27 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.0 (2022/01/21) 公開
 - ver.1.1.0 (2022/01/21) 報酬獲得関数を作成。
 - ver.1.1.1 (2022/01/22) ポップアップとゲージが出ないバグ修正。
+- ver.1.2.1 (2022/01/22) プラグインコマンド追加。
 
 ## 使い方
 
 マップイベントのメモ欄に <MapEnemy:敵キャラ番号> を記述します。
 (敵キャラ番号は数字を記述すること)
 そのマップイベントは記述した敵キャラ番号のデータを持ちます。
+
+## プラグインコマンド
+
+### checkCollision (衝突チェック)
+
+衝突チェックの結果は以下のとおり。
+
+0 : チェック対象外
+200 : 正面衝突
+400 : プレイヤーから敵イベントの左右に衝突
+800 : プレイヤーから敵イベントの背後に衝突
+1200 : 敵イベントからプレイヤーの背後に衝突
+1400 : 敵イベントからプレイヤーの左右に衝突
+1800 : 正面衝突
 
 ## 注意
 
@@ -88,6 +223,76 @@ const META_TAG = "MapEnemy";
 
 // -------------------------------------
 // プラグインコマンド
+
+PluginManager.registerCommand(PLUGIN_NAME, "clearInput", args => {
+	$gameTemp.clearInput();
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "forceCritical", args => {
+	$gameTemp.forceCritical();
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "checkCollision", args => {
+	$gameVariables.setValue(Number(args.varResult) , $gameTemp.checkCollision());
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "showSkillAnimation", args => {
+	const skillId = $gameVariables.value(Number(args.varSkillId));
+	const characterId = $gameVariables.value(Number(args.varCharacterId));
+	const waitMode = args.waitMode === "true";
+	$gameTemp.showSkillAnimation(skillId, characterId, waitMode);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "showItemAnimation", args => {
+	const itemId = $gameVariables.value(Number(args.varItemId));
+	const characterId = $gameVariables.value(Number(args.varCharacterId));
+	const waitMode = args.waitMode === "true";
+	$gameTemp.showItemAnimation(itemId, characterId, waitMode);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "mapDamagePlayer", args => {
+	const eventId = $gameVariables.value(Number(args.varEventId));
+	const skillId = $gameVariables.value(Number(args.varSkillId));
+	$gameTemp.mapDamagePlayer(eventId, skillId);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "mapDamageEnemy", args => {
+	const eventId = $gameVariables.value(Number(args.varEventId));
+	const skillId = $gameVariables.value(Number(args.varSkillId));
+	$gameTemp.mapDamageEnemy(eventId, skillId);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "mapDamageTroop", args => {
+	const skillId = $gameVariables.value(Number(args.varSkillId));
+	$gameTemp.mapDamageTroop(skillId);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "itemMapDamageEnemy", args => {
+	const eventId = $gameVariables.value(Number(args.varEventId));
+	const skillId = $gameVariables.value(Number(args.varSkillId));
+	$gameTemp.itemMapDamageEnemy(eventId, skillId);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "itemMapDamageTroop", args => {
+	const skillId = $gameVariables.value(Number(args.varSkillId));
+	$gameTemp.itemMapDamageTroop(skillId);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "mapPopupPlayer", args => {
+	$gameTemp.mapPopupPlayer();
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "mapPopupTroop", args => {
+	$gameTemp.mapPopupTroop();
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "isDeadTroop", args => {
+	$gameSwitches.setValue(Number(args.swResult) , $gameTemp.isDeadTroop());
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "eraseAllDeadEvent", args => {
+	$gameTemp.eraseAllDeadEvent();
+});
 
 PluginManager.registerCommand(PLUGIN_NAME, "processTroopCollapse", args => {
 	$gameTemp.processTroopCollapse();
@@ -531,6 +736,16 @@ Game_Temp.prototype.defaultAnimationId = function() {
 	} else {
 		return 0;
 	}
+};
+
+// -------------------------------------
+
+Game_Temp.prototype.clearInput = function() {
+	Input.clear();
+};
+
+Game_Temp.prototype.forceCritical = function() {
+	this._critical = true;
 };
 
 // -------------------------------------

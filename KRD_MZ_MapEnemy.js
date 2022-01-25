@@ -1,6 +1,6 @@
 /*:
  * @target MZ
- * @plugindesc マップイベント敵キャラ
+ * @plugindesc マップイベント敵キャラ (アクションRPG)
  * @url https://twitter.com/kuroudo119/
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
@@ -14,6 +14,18 @@
  * @param useHpGauge
  * @text HPゲージ
  * @desc 敵キャラにHPゲージを「true: 表示する ／ false: 表示しない」
+ * @default true
+ * @type boolean
+ * 
+ * @param useHpGaugePlayer
+ * @text HPゲージ(プレイヤー)
+ * @desc プレイヤーにHPゲージを「true: 表示する ／ false: 表示しない」
+ * @default true
+ * @type boolean
+ * 
+ * @param useStateIcon
+ * @text ステートアイコン
+ * @desc ステートアイコンを「true: 表示する ／ false: 表示しない」
  * @default true
  * @type boolean
  * 
@@ -141,6 +153,26 @@
  * @text 敵キャラ撃破報酬獲得
  * @desc 敵キャラ戦闘不能時にこのコマンドを使うと経験値、お金、宝物を獲得します。
  * 
+ * @command addStateEnemy
+ * @text Enemyステート付与
+ * @desc 敵キャラにステートを付与します。アイコン表示のみでステート効果は発揮しません。
+ * @arg varStateId
+ * @text ステートID変数
+ * @desc ステートIDが入っている変数番号を指定します。
+ * @type variable
+ * @arg varEventId
+ * @text イベントID変数
+ * @desc イベントIDが入っている変数番号を指定します。
+ * @type variable
+ * 
+ * @command addStatePlayer
+ * @text Playerステート付与
+ * @desc プレイヤーにステートを付与します。
+ * @arg varStateId
+ * @text ステートID変数
+ * @desc ステートIDが入っている変数番号を指定します。
+ * @type variable
+ * 
  * @help
 # KRD_MZ_MapEnemy.js
 
@@ -171,6 +203,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.1.0 (2022/01/21) 報酬獲得関数を作成。
 - ver.1.1.1 (2022/01/22) ポップアップとゲージが出ないバグ修正。
 - ver.1.2.0 (2022/01/22) プラグインコマンド追加。
+- ver.1.3.0 (2022/01/24) ステートアイコン表示を追加。
+- ver.1.4.0 (2022/01/25) ステート付与コマンドを追加。
 
 ## 使い方
 
@@ -203,8 +237,9 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 let KRD_Game_MapEnemy = null;
 let KRD_Sprite_MapGauge = null;
-let KRD_Sprite_Battler = null;
+let KRD_Sprite_MapBattler = null;
 let KRD_Game_MapAction = null;
+let KRD_Sprite_MapStateIcon = null;
 
 (() => {
 
@@ -215,6 +250,8 @@ const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
 const USE_DAMAGE_POPUP = PARAM["useDamagePopup"] === "true";
 const USE_HP_GAUGE = PARAM["useHpGauge"] === "true";
+const USE_HP_GAUGE_PLAYER = PARAM["useHpGaugePlayer"] === "true";
+const USE_STATE_ICON = PARAM["useStateIcon"] === "true";
 
 const USE_DISPLAY_REWARDS = false;
 const DEFAULT_ANIMATION_ID = 1;
@@ -298,6 +335,17 @@ PluginManager.registerCommand(PLUGIN_NAME, "processTroopCollapse", args => {
 	$gameTemp.processTroopCollapse();
 });
 
+PluginManager.registerCommand(PLUGIN_NAME, "addStateEnemy", args => {
+	const stateId = $gameVariables.value(Number(args.varStateId));
+	const eventId = $gameVariables.value(Number(args.varEventId));
+	$gameTemp.addStateEnemy(stateId, eventId);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "addStatePlayer", args => {
+	const stateId = $gameVariables.value(Number(args.varStateId));
+	$gameTemp.addStatePlayer(stateId);
+});
+
 // -------------------------------------
 // KRD_Game_MapEnemy クラス
 
@@ -346,15 +394,32 @@ KRD_Sprite_MapGauge = class extends Sprite_Gauge {
 
 	drawGaugeRect(x, y, width, height) {
 		super.drawGaugeRect(...arguments);
-		this.move(x - 20, y - 48);
+		this.move(x - 20, y - 44);
 	}
 };
 
 // -------------------------------------
-// KRD_Sprite_Battler クラス(ダメージポップアップ用)
+// KRD_Sprite_MapBattler クラス(ダメージポップアップ用)
 
-KRD_Sprite_Battler = class extends Sprite_Battler {
-};
+KRD_Sprite_MapBattler = class extends Sprite_Battler {
+}
+
+// -------------------------------------
+// 
+
+KRD_Sprite_MapStateIcon = class extends Sprite_StateIcon {
+	constructor(eventHeight = 0) {
+		super(...arguments);
+		this._eventHeight = eventHeight;
+	}
+
+	update() {
+		super.update(...arguments);
+		const x = 0;
+		const y = -this._eventHeight - 12;
+		this.move(x, y);
+	}
+}
 
 // -------------------------------------
 // KRD_Game_MapAction クラス (ダメージ計算用)
@@ -408,71 +473,86 @@ Game_Map.prototype.metaList = function(tag = META_TAG) {
 };
 
 // -------------------------------------
-// HPゲージ追加
-
-const KRD_Scene_Map_createDisplayObjects = Scene_Map.prototype.createDisplayObjects;
-Scene_Map.prototype.createDisplayObjects = function() {
-	KRD_Scene_Map_createDisplayObjects.apply(this, arguments);
-	if (USE_HP_GAUGE) {
-		this.createHpGauge();
-	}
-};
-
-Scene_Map.prototype.createHpGauge = function() {
-	const metaList = $gameMap.metaList(META_TAG);
-	const metaIdList = metaList.map(e => e.id);
-	$gameMap.events().forEach((event, i) => {
-		if (metaIdList.includes(event.eventId())) {
-			const characterSprites = SceneManager._scene._spriteset._characterSprites;
-			const gauge = new KRD_Sprite_MapGauge();
-			gauge.setup(event._enemy, "hp");
-			characterSprites[i].addChild(gauge);
-		}
-	});
-};
-
-// -------------------------------------
 // マップでのダメージポップアップ追加
+// HPゲージ追加
+// ステートアイコン追加
 
-const KRD_Scene_Map_createDisplayObjects2 = Scene_Map.prototype.createDisplayObjects;
-Scene_Map.prototype.createDisplayObjects = function() {
-	KRD_Scene_Map_createDisplayObjects2.apply(this, arguments);
-	if (USE_DAMAGE_POPUP) {
-		this.createDamagePopup();
-	}
+const KRD_Scene_Map_start = Scene_Map.prototype.start;
+Scene_Map.prototype.start = function() {
+	KRD_Scene_Map_start.apply(this, arguments);
+	this.createMapBattlerSprite();
 };
 
-Scene_Map.prototype.createDamagePopup = function() {
-	this.createDamagePopupPlayer();
-	this.createDamagePopupEnemy();
+Scene_Map.prototype.createMapBattlerSprite = function() {
+	this.createMapEnemySprite();
+	this.createMapPlayerSprite();
 };
 
-Scene_Map.prototype.createDamagePopupEnemy = function() {
+Scene_Map.prototype.createMapEnemySprite = function() {
 	const metaList = $gameMap.metaList(META_TAG);
 	const metaIdList = metaList.map(e => e.id);
-	$gameMap.events().forEach((event, i) => {
+	$gameMap.events().forEach((event, index) => {
 		if (metaIdList.includes(event.eventId())) {
 			const characterSprites = SceneManager._scene._spriteset._characterSprites;
-			const sprite = new KRD_Sprite_Battler(event._enemy);
-			characterSprites[i].addChild(sprite);
+			const cs = characterSprites[index];
+			const battler = event._enemy;
+			if (characterSprites && cs) {
+				if (USE_DAMAGE_POPUP) {
+					this.createDamagePopup(cs, battler);
+				}
+				if (USE_HP_GAUGE) {
+					this.createHpGauge(cs, battler);
+				}
+				if (USE_STATE_ICON) {
+					const h = event._size[1];
+					this.createStateIcon(cs, battler, h);
+				}
+			}
 		}
-	});
+	}, this);
 };
 
-Scene_Map.prototype.createDamagePopupPlayer = function() {
+Scene_Map.prototype.createMapPlayerSprite = function() {
 	const metaList = $gameMap.metaList(META_TAG);
 	if (metaList && metaList.length > 0) {
-		const sprite = new KRD_Sprite_Battler($gameParty.leader());
 		const characterSprites = SceneManager._scene._spriteset._characterSprites;
 		const index = characterSprites.findIndex(cs => cs._character.constructor.name === "Game_Player");
-		if (index > 0) {
-			characterSprites[index].addChild(sprite);
+		const cs = characterSprites[index];
+		const battler = $gameParty.leader();
+		if (characterSprites && cs) {
+			if (USE_DAMAGE_POPUP) {
+				this.createDamagePopup(cs, battler);
+			}
+			if (USE_HP_GAUGE_PLAYER) {
+				this.createHpGauge(cs, battler);
+			}
+			if (USE_STATE_ICON) {
+				const h = $gamePlayer._size[1];
+				this.createStateIcon(cs, battler, h);
+			}
 		}
 	}
+};
+
+Scene_Map.prototype.createDamagePopup = function(characterSprite, battler) {
+	const sprite = new KRD_Sprite_MapBattler(battler);
+	characterSprite.addChild(sprite);
+};
+
+Scene_Map.prototype.createHpGauge = function(characterSprite, battler) {
+	const gauge = new KRD_Sprite_MapGauge();
+	gauge.setup(battler, "hp");
+	characterSprite.addChild(gauge);
+};
+
+Scene_Map.prototype.createStateIcon = function(characterSprite, battler, h) {
+	const stateIcon = new KRD_Sprite_MapStateIcon(h);
+	stateIcon.setup(battler);
+	characterSprite.addChild(stateIcon);
 };
 
 //--------------------------------------
-// ダメージポップアップ
+// ダメージポップアップ表示
 // 
 // イベントコマンドでのダメージ後やHP回復後に、
 // 以下をスクリプトコマンドで実行する。
@@ -746,6 +826,14 @@ Game_Temp.prototype.clearInput = function() {
 
 Game_Temp.prototype.forceCritical = function() {
 	this._critical = true;
+};
+
+Game_Temp.prototype.addStateEnemy = function(stateId, eventId) {
+	$gameMap.event(eventId)._enemy.addState(stateId);
+};
+
+Game_Temp.prototype.addStatePlayer = function(stateId) {
+	$gameParty.leader().addState(stateId);
 };
 
 // -------------------------------------

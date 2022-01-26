@@ -4,6 +4,14 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_NoClearTouch （敵キャラ透明部分選択なし）
+
+敵グループで敵キャラを重ねた場合に、敵キャラ画像における透明部分のマウスやタッチパネルの選択判定をなくし、下の敵キャラ画像が選択されるようにします。
+
+[KRD_MZ_NoClearTouchをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_NoClearTouch.js)
+
+![敵キャラ透明部分選択なし](img/touch.png)
+
 ## KRD_MZ_MapEnemy （マップイベント敵キャラ）体当たりアクションRPGサンプル
 
 マップイベントにDBの敵キャラデータを持たせることが出来ます。

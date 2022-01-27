@@ -24,6 +24,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2022/01/25) 作成開始
 - ver.0.1.0 (2022/01/26) 非公開版完成
 - ver.1.0.0 (2022/01/26) 公開
+- ver.1.1.0 (2022/01/27) マウスホバー処理修正
 
  * 
  * 
@@ -45,9 +46,8 @@ Sprite_Enemy.prototype.hitTest = function(x, y) {
 		}
 		if (this._battler.isSelected()) {
 			if (this._bitmap) {
-				const centerX = this.anchor.x * this.width;
-				const bitmapX = x + centerX;
-				const bitmapY = y + this.height;
+				const bitmapX = x + this.anchor.x * this.width;
+				const bitmapY = y + this.anchor.y * this.height;
 				const alpha = Number(this._bitmap.getAlphaPixel(bitmapX, bitmapY));
 				if (alpha === 0) {
 					return false;
@@ -56,6 +56,33 @@ Sprite_Enemy.prototype.hitTest = function(x, y) {
 		}
 	}
 	return ret;
+};
+
+Sprite_Enemy.prototype.onMouseEnter = function() {
+	this.setSelect();
+};
+
+Sprite_Enemy.prototype.onMouseExit = function() {
+	this.setSelect();
+};
+
+Sprite_Enemy.prototype.setSelect = function() {
+	const enemy = this.selectTest();
+	if (enemy) {
+		$gameTemp.setTouchState(enemy, "select");
+	} else {
+		$gameTemp.clearTouchState();
+	}
+};
+
+Sprite_Enemy.prototype.selectTest = function() {
+	const sprites = SceneManager._scene._spriteset._enemySprites;
+	const stack = sprites.filter(sprite => sprite.isBeingTouched());
+	if (stack && stack.length > 0) {
+		return stack[stack.length - 1]._battler;
+	} else {
+		return null;
+	}
 };
 
 })();

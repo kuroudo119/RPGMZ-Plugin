@@ -25,6 +25,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2022/01/26) 非公開版完成
 - ver.1.0.0 (2022/01/26) 公開
 - ver.1.1.0 (2022/01/27) マウスホバー処理修正
+- ver.1.1.1 (2022/01/27) マウスホバー処理微修正
 
  * 
  * 
@@ -58,20 +59,23 @@ Sprite_Enemy.prototype.hitTest = function(x, y) {
 	return ret;
 };
 
+const KRD_Sprite_Enemy_onMouseEnter = Sprite_Enemy.prototype.onMouseEnter;
 Sprite_Enemy.prototype.onMouseEnter = function() {
-	this.setSelect();
-};
-
-Sprite_Enemy.prototype.onMouseExit = function() {
-	this.setSelect();
-};
-
-Sprite_Enemy.prototype.setSelect = function() {
 	const enemy = this.selectTest();
 	if (enemy) {
 		$gameTemp.setTouchState(enemy, "select");
 	} else {
-		$gameTemp.clearTouchState();
+		KRD_Sprite_Enemy_onMouseEnter.apply(this, arguments);
+	}
+};
+
+const KRD_Sprite_Enemy_onMouseExit = Sprite_Enemy.prototype.onMouseExit;
+Sprite_Enemy.prototype.onMouseExit = function() {
+	const enemy = this.selectTest();
+	if (enemy) {
+		$gameTemp.setTouchState(enemy, "select");
+	} else {
+		KRD_Sprite_Enemy_onMouseExit.apply(this, arguments);
 	}
 };
 

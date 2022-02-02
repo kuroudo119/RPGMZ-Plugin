@@ -242,6 +242,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.5.2 (2022/01/30) 衝突チェック処理を修正。非公開
 - ver.1.6.0 (2022/01/31) 全イベント衝突チェックを追加。非公開
 - ver.1.7.0 (2022/02/02) イベント発射サポート関数を作成。
+- ver.1.7.1 (2022/02/02) anyCollision関数をリファクタリング。
 
 ## 使い方
 
@@ -852,17 +853,16 @@ Game_Temp.prototype.checkCollisionAll = function(attackId) {
 	return {"eventId": 0, "collision": 0};
 };
 
-Game_Temp.prototype.anyCollision = function(attackId, collisionList) {
+Game_Temp.prototype.anyCollision = function(attackId, collisionCode) {
 	const attacker = $gameMap.event(attackId);
 	const metaIdList = $gameMap.metaIdList(META_ENEMY);
 
-	for (let i = 0; attacker && i < metaIdList.length; i++) {
-		const collision = this.checkCollisionMain(attacker, $gameMap.event(metaIdList[i]));
-		if (collisionList.includes(collision)) {
-			return metaIdList[i];
-		}
-	}
-	return 0;
+	const findId = metaIdList.find(id => {
+		const collision = this.checkCollisionMain(attacker, $gameMap.event(id));
+		return !!collisionCode.includes(collision);
+	}, this);
+
+	return findId;
 };
 
 // -------------------------------------
@@ -1036,7 +1036,8 @@ Game_Interpreter.prototype.moveForward = function(eventId, waitMode) {
 
 Game_Interpreter.prototype.anyCollision = function(skillId) {
 	const waitMode = true;
-	const targetId = $gameTemp.anyCollision(this.eventId(), [200, 400, 800, -800]);
+	const collisionCode = [200, 400, 800, -800];
+	const targetId = $gameTemp.anyCollision(this.eventId(), collisionCode);
 	if (targetId > 0) {
 		$gameTemp.showSkillAnimation(skillId, targetId, waitMode);
 		$gameTemp.mapDamageEnemy(targetId, skillId);

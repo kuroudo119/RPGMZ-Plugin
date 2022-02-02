@@ -45,6 +45,38 @@
  * @desc チェック結果を入れる変数番号を指定します。結果の値はプラグイン管理のヘルプ参照。
  * @type variable
  * 
+ * @command checkEventCollision
+ * @text イベント衝突チェック
+ * @desc イベントと敵イベントの位置関係をチェックします。
+ * @arg varResult
+ * @text 結果変数
+ * @desc チェック結果を入れる変数番号を指定します。結果の値はプラグイン管理のヘルプ参照。
+ * @type variable
+ * @arg varAttack
+ * @text 攻撃側イベント
+ * @desc 攻撃側のイベント番号が入っている変数を指定します。
+ * @type variable
+ * @arg varDefense
+ * @text 守備側イベント
+ * @desc 守備側のイベント番号が入っている変数を指定します。
+ * @type variable
+ * 
+ * @command checkCollisionAll
+ * @text 全衝突チェック
+ * @desc 移動する攻撃イベントと全イベントとの位置関係をチェックします。転がる岩などに使います。
+ * @arg varAttack
+ * @text 攻撃側イベント
+ * @desc 攻撃側のイベント番号が入っている変数を指定します。
+ * @type variable
+ * @arg varEventId
+ * @text 衝突EventID変数
+ * @desc 衝突したイベント番号を入れる変数番号を指定します。衝突なしは 0 です。
+ * @type variable
+ * @arg varCollision
+ * @text 衝突結果変数
+ * @desc 衝突チェック結果を入れる変数番号を指定します。値はプラグイン管理のヘルプ参照。
+ * @type variable
+ * 
  * @command showSkillAnimation
  * @text skillアニメーション表示
  * @desc 使用したスキルに設定されたアニメーションを表示します。
@@ -205,6 +237,11 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.2.0 (2022/01/22) プラグインコマンド追加。
 - ver.1.3.0 (2022/01/24) ステートアイコン表示を追加。
 - ver.1.4.0 (2022/01/25) ステート付与コマンドを追加。
+- ver.1.5.0 (2022/01/28) イベント同士の衝突チェック処理を追加。非公開
+- ver.1.5.1 (2022/01/29) playerAttackSet 仮作成。のちに削除。非公開
+- ver.1.5.2 (2022/01/30) 衝突チェック処理を修正。非公開
+- ver.1.6.0 (2022/01/31) 全イベント衝突チェックを追加。非公開
+- ver.1.7.0 (2022/02/02) イベント発射サポート関数を作成。
 
 ## 使い方
 
@@ -222,11 +259,22 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 200 : 正面衝突
 400 : プレイヤーから敵イベントの左右に衝突
 800 : プレイヤーから敵イベントの背後に衝突
-1200 : 敵イベントからプレイヤーの背後に衝突
-1400 : 敵イベントからプレイヤーの左右に衝突
-1800 : 正面衝突
+-200 : 敵イベントからプレイヤーの背後に衝突
+-400 : 敵イベントからプレイヤーの左右に衝突
+-800 : 正面衝突
 
-## 注意
+尚、KRD_MZ_DirectionFix プラグイン等を使わないと、
+接触したイベントがプレイヤー側を向くので、
+正面衝突しか発生しません。
+
+## 補足
+
+### 敵イベントID取得
+
+変数の操作コマンドの
+スクリプト欄に this.eventId() と記述することで取得できます。
+
+### ダメージポップアップ
 
 プレイヤーのダメージポップアップを表示するためには、
 データベース「システム1」の「戦闘画面」を「サイドビュー」にすること。
@@ -237,7 +285,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 let KRD_Game_MapEnemy = null;
 let KRD_Sprite_MapGauge = null;
-let KRD_Sprite_MapBattler = null;
+let KRD_Sprite_MapActor = null;
+let KRD_Sprite_MapEnemy = null;
 let KRD_Game_MapAction = null;
 let KRD_Sprite_MapStateIcon = null;
 
@@ -256,7 +305,9 @@ const USE_STATE_ICON = PARAM["useStateIcon"] === "true";
 const USE_DISPLAY_REWARDS = false;
 const DEFAULT_ANIMATION_ID = 1;
 
-const META_TAG = "MapEnemy";
+const META_ENEMY = "MapEnemy";
+const META_BALL = "Ball";
+const META_LAUNCH = "Launch";
 
 // -------------------------------------
 // プラグインコマンド
@@ -271,6 +322,19 @@ PluginManager.registerCommand(PLUGIN_NAME, "forceCritical", args => {
 
 PluginManager.registerCommand(PLUGIN_NAME, "checkCollision", args => {
 	$gameVariables.setValue(Number(args.varResult) , $gameTemp.checkCollision());
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "checkEventCollision", args => {
+	const attackId = $gameVariables.value(Number(args.varAttack));
+	const defenseId = $gameVariables.value(Number(args.varDefense));
+	$gameVariables.setValue(Number(args.varResult) , $gameTemp.checkCollision(attackId, defenseId));
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "checkCollisionAll", args => {
+	const attackId = $gameVariables.value(Number(args.varAttack));
+	const result = $gameTemp.checkCollisionAll(attackId);
+	$gameVariables.setValue(Number(args.varEventId), result.eventId);
+	$gameVariables.setValue(Number(args.varCollision), result.collision);
 });
 
 PluginManager.registerCommand(PLUGIN_NAME, "showSkillAnimation", args => {
@@ -399,13 +463,16 @@ KRD_Sprite_MapGauge = class extends Sprite_Gauge {
 };
 
 // -------------------------------------
-// KRD_Sprite_MapBattler クラス(ダメージポップアップ用)
+// KRD_Sprite_MapBattler クラス (ダメージポップアップ用)
 
-KRD_Sprite_MapBattler = class extends Sprite_Battler {
+KRD_Sprite_MapActor = class extends Sprite_Battler {
 }
 
+KRD_Sprite_MapEnemy = class extends Sprite_Battler {
+};
+
 // -------------------------------------
-// 
+// KRD_Sprite_MapStateIcon クラス (アイコン表示用)
 
 KRD_Sprite_MapStateIcon = class extends Sprite_StateIcon {
 	constructor(eventHeight = 0) {
@@ -442,6 +509,10 @@ KRD_Game_MapAction = class extends Game_Action {
 		}
 	}
 
+	testApply(target) {
+		return target.hp > 0;
+	}
+
 	makeDamageValue(target, critical) {
 		if ($gameTemp._critical) {
 			target.result().critical = true;
@@ -459,7 +530,11 @@ KRD_Game_MapAction = class extends Game_Action {
 const KRD_Game_Event_initialize = Game_Event.prototype.initialize;
 Game_Event.prototype.initialize = function(mapId, eventId) {
 	KRD_Game_Event_initialize.apply(this, arguments);
-	const mapEnemy = Number($dataMap.events[eventId].meta[META_TAG]);
+	this.createEnemy(eventId);
+};
+
+Game_Event.prototype.createEnemy = function(eventId) {
+	const mapEnemy = Number($dataMap.events[eventId].meta[META_ENEMY]);
 	if (mapEnemy) {
 		this._enemy = new KRD_Game_MapEnemy(mapEnemy, 0, 0, eventId);
 	}
@@ -468,8 +543,12 @@ Game_Event.prototype.initialize = function(mapId, eventId) {
 // -------------------------------------
 // meta リストを取得
 
-Game_Map.prototype.metaList = function(tag = META_TAG) {
+Game_Map.prototype.metaList = function(tag) {
 	return $dataMap.events.filter(event => event && !!event.meta[tag]);
+};
+
+Game_Map.prototype.metaIdList = function(tag) {
+	return this.metaList(tag).map(e => e.id);
 };
 
 // -------------------------------------
@@ -489,32 +568,32 @@ Scene_Map.prototype.createMapBattlerSprite = function() {
 };
 
 Scene_Map.prototype.createMapEnemySprite = function() {
-	const metaList = $gameMap.metaList(META_TAG);
-	const metaIdList = metaList.map(e => e.id);
-	$gameMap.events().forEach((event, index) => {
-		if (metaIdList.includes(event.eventId())) {
-			const characterSprites = SceneManager._scene._spriteset._characterSprites;
-			const cs = characterSprites[index];
-			const battler = event._enemy;
-			if (characterSprites && cs) {
-				if (USE_DAMAGE_POPUP) {
-					this.createDamagePopup(cs, battler);
-				}
-				if (USE_HP_GAUGE) {
-					this.createHpGauge(cs, battler);
-				}
-				if (USE_STATE_ICON) {
-					const h = event._size[1];
-					this.createStateIcon(cs, battler, h);
-				}
+	const metaIdList = $gameMap.metaIdList(META_ENEMY);
+
+	metaIdList.forEach(eventId => {
+		const characterSprites = SceneManager._scene._spriteset._characterSprites;
+		const index = $gameMap.characterSpritesIndex(eventId);
+		const cs = characterSprites[index];
+		const event = $gameMap.event(eventId);
+		const battler = event._enemy;
+		if (characterSprites && cs && event) {
+			if (USE_DAMAGE_POPUP) {
+				this.createDamagePopup(cs, battler);
+			}
+			if (USE_HP_GAUGE) {
+				this.createHpGauge(cs, battler);
+			}
+			if (USE_STATE_ICON) {
+				const h = event._size ? event._size[1] : 48;
+				this.createStateIcon(cs, battler, h);
 			}
 		}
 	}, this);
 };
 
 Scene_Map.prototype.createMapPlayerSprite = function() {
-	const metaList = $gameMap.metaList(META_TAG);
-	if (metaList && metaList.length > 0) {
+	const metaIdList = $gameMap.metaIdList(META_ENEMY);
+	if (metaIdList.length > 0) {
 		const characterSprites = SceneManager._scene._spriteset._characterSprites;
 		const index = characterSprites.findIndex(cs => cs._character.constructor.name === "Game_Player");
 		const cs = characterSprites[index];
@@ -527,7 +606,7 @@ Scene_Map.prototype.createMapPlayerSprite = function() {
 				this.createHpGauge(cs, battler);
 			}
 			if (USE_STATE_ICON) {
-				const h = $gamePlayer._size[1];
+				const h = $gamePlayer._size ? $gamePlayer._size[1] : 48;
 				this.createStateIcon(cs, battler, h);
 			}
 		}
@@ -535,8 +614,13 @@ Scene_Map.prototype.createMapPlayerSprite = function() {
 };
 
 Scene_Map.prototype.createDamagePopup = function(characterSprite, battler) {
-	const sprite = new KRD_Sprite_MapBattler(battler);
-	characterSprite.addChild(sprite);
+	if (battler.isActor()) {
+		const sprite = new KRD_Sprite_MapActor(battler);
+		characterSprite.addChild(sprite);
+	} else {
+		const sprite = new KRD_Sprite_MapEnemy(battler);
+		characterSprite.addChild(sprite);
+		}
 };
 
 Scene_Map.prototype.createHpGauge = function(characterSprite, battler) {
@@ -549,6 +633,10 @@ Scene_Map.prototype.createStateIcon = function(characterSprite, battler, h) {
 	const stateIcon = new KRD_Sprite_MapStateIcon(h);
 	stateIcon.setup(battler);
 	characterSprite.addChild(stateIcon);
+};
+
+Game_Map.prototype.characterSpritesIndex = function(eventId) {
+	return this.events().findIndex(event => event.eventId() === eventId);
 };
 
 //--------------------------------------
@@ -572,8 +660,8 @@ Game_Temp.prototype.mapPopupEnemy = function(eventId) {
 
 Game_Temp.prototype.mapPopupTroop = function() {
 	if (USE_DAMAGE_POPUP) {
-		$gameMap.metaList(META_TAG).forEach(event => {
-			this.mapPopupEnemy(event.id);
+		$gameMap.metaIdList(META_ENEMY).forEach(id => {
+			this.mapPopupEnemy(id);
 		}, this);
 	}
 };
@@ -589,13 +677,16 @@ Game_Temp.prototype.mapDamage = function(target, subject, skillId) {
 
 Game_Temp.prototype.mapDamageEnemy = function(eventId, skillId) {
 	const subject = $gameParty.leader();
-	const target = $gameMap.event(eventId)._enemy;
-	this.mapDamage(target, subject, skillId);
+	const event = $gameMap.event(eventId);
+	if (event) {
+		const target = event._enemy;
+		this.mapDamage(target, subject, skillId);
+	}
 };
 
 Game_Temp.prototype.mapDamageTroop = function(skillId) {
-	$gameMap.metaList(META_TAG).forEach(event => {
-		this.mapDamageEnemy(event.id, skillId);
+	$gameMap.metaIdList(META_ENEMY).forEach(id => {
+		this.mapDamageEnemy(id, skillId);
 	}, this);
 };
 
@@ -616,13 +707,16 @@ Game_Temp.prototype.itemMapDamage = function(target, subject, itemId) {
 
 Game_Temp.prototype.itemMapDamageEnemy = function(eventId, itemId) {
 	const subject = $gameParty.leader();
-	const target = $gameMap.event(eventId)._enemy;
-	this.itemMapDamage(target, subject, itemId);
+	const event = $gameMap.event(eventId);
+	if (event) {
+		const target = event._enemy;
+		this.itemMapDamage(target, subject, itemId);
+	}
 };
 
 Game_Temp.prototype.itemMapDamageTroop = function(itemId) {
-	$gameMap.metaList(META_TAG).forEach(event => {
-		this.itemMapDamageEnemy(event.id, itemId);
+	$gameMap.metaIdList(META_ENEMY).forEach(id => {
+		this.itemMapDamageEnemy(id, itemId);
 	}, this);
 };
 
@@ -635,8 +729,8 @@ Game_Temp.prototype.isDeadEnemy = function(eventId) {
 };
 
 Game_Temp.prototype.isDeadTroop = function() {
-	const metaList = $gameMap.metaList(META_TAG);
-	this._deadList = metaList.filter(event => this.isDeadEnemy(event.id), this);
+	const metaIdList = $gameMap.metaIdList(META_ENEMY);
+	this._deadList = metaIdList.filter(id => this.isDeadEnemy(id), this);
 	return !!this._deadList.length;
 };
 
@@ -645,8 +739,8 @@ Game_Temp.prototype.isDeadTroop = function() {
 
 Game_Temp.prototype.eraseAllDeadEvent = function() {
 	if (this._deadList) {
-		this._deadList.forEach(event => {
-			$gameMap.eraseEvent(event.id);
+		this._deadList.forEach(id => {
+			$gameMap.eraseEvent(id);
 		});
 	}
 };
@@ -654,21 +748,30 @@ Game_Temp.prototype.eraseAllDeadEvent = function() {
 // -------------------------------------
 // プレイヤーとイベントの接触時の位置関係判断
 
-Game_Temp.prototype.checkCollision = function() {
-	if (this.runningEventId() > 0) {
-		const player = $gamePlayer;
-		const playerDirection = player.direction();
-		const event = this.runningEvent();
-		const eventDirection = event.direction();
-		const eventPosition = this.eventPosition(player, event);
+Game_Temp.prototype.checkCollision = function(attackId, defenseId) {
+	if (this.runningEventId() > 0 || (attackId && defenseId)) {
+		const player = attackId && attackId > 0 ? $gameMap.event(attackId) : $gamePlayer;
+		const event = defenseId && defenseId > 0 ? $gameMap.event(defenseId) : this.runningEvent();
 
-		if (playerDirection === eventPosition) {
-			return this.attackByPlayer(eventPosition, eventDirection);
-		} else {
-			return this.attackByEvent(eventPosition, playerDirection);
-		}
+		return this.checkCollisionMain(player, event);
 	}
 	return 0;
+};
+
+Game_Temp.prototype.checkCollisionMain = function(player, event) {
+	if (event._erased) {
+		return 0;
+	} 
+
+	const playerDirection = player.direction();
+	const eventDirection = event.direction();
+	const eventPosition = this.eventPosition(player, event);
+
+	if (playerDirection === eventPosition) {
+		return this.attackByPlayer(eventPosition, eventDirection);
+	} else {
+		return this.attackByEvent(eventPosition, playerDirection);
+	}
 };
 
 Game_Temp.prototype.runningEventId = function() {
@@ -705,24 +808,24 @@ Game_Temp.prototype.attackByPlayer = function(position, direction) {
 };
 
 Game_Temp.prototype.attackByEvent = function(position, direction) {
-	// BACK_ATTACK = 1200;
-	// BATTLE      = 1400;
-	// COLLISION   = 1800;
-	return this.checkCollisionTable(position, direction) + 1000;
+	// BACK  = -200;
+	// SIDE  = -400;
+	// FRONT = -800;
+	return -this.checkCollisionTable(position, direction);
 };
 
 Game_Temp.prototype.checkCollisionTable = function(position, direction) {
-	const COLLISION = 200;
-	const BATTLE    = 400;
-	const CRITICAL  = 800;
+	const FRONT = 200;
+	const SIDE  = 400;
+	const BACK  = 800;
 	const positionIndex = position / 2 - 1;
 	const directionIndex = direction / 2 - 1;
 
 	const collisionTable = [
-		[CRITICAL, BATTLE, BATTLE, COLLISION],
-		[BATTLE, CRITICAL, COLLISION, BATTLE],
-		[BATTLE, COLLISION, CRITICAL, BATTLE],
-		[COLLISION, BATTLE, BATTLE, CRITICAL],
+		[BACK, SIDE, SIDE, FRONT],
+		[SIDE, BACK, FRONT, SIDE],
+		[SIDE, FRONT, BACK, SIDE],
+		[FRONT, SIDE, SIDE, BACK],
 	];
 
 	const range = [0, 1, 2, 3];
@@ -734,12 +837,41 @@ Game_Temp.prototype.checkCollisionTable = function(position, direction) {
 };
 
 // -------------------------------------
+// 移動する攻撃イベントと全イベントの衝突チェック
+
+Game_Temp.prototype.checkCollisionAll = function(attackId) {
+	const player = attackId && attackId > 0 ? $gameMap.event(attackId) : $gamePlayer;
+	const metaIdList = $gameMap.metaIdList(META_ENEMY);
+
+	for (let i = 0; i < metaIdList.length; i++) {
+		const collision = this.checkCollisionMain(player, $gameMap.event(metaIdList[i]));
+		if (collision > 0) {
+			return {"eventId": metaIdList[i], "collision": collision};
+		}
+	}
+	return {"eventId": 0, "collision": 0};
+};
+
+Game_Temp.prototype.anyCollision = function(attackId, collisionList) {
+	const attacker = $gameMap.event(attackId);
+	const metaIdList = $gameMap.metaIdList(META_ENEMY);
+
+	for (let i = 0; attacker && i < metaIdList.length; i++) {
+		const collision = this.checkCollisionMain(attacker, $gameMap.event(metaIdList[i]));
+		if (collisionList.includes(collision)) {
+			return metaIdList[i];
+		}
+	}
+	return 0;
+};
+
+// -------------------------------------
 // マップバトル報酬
 
 Game_Temp.prototype.processTroopCollapse = function() {
 	if (this._deadList) {
-		this._deadList.forEach(enemy => {
-			this.processEnemyCollapse(enemy.id);
+		this._deadList.forEach(id => {
+			this.processEnemyCollapse(id);
 		}, this);
 	}
 };
@@ -787,19 +919,29 @@ Game_Temp.prototype.showItemAnimation = function(itemId, characterId, waitMode) 
 
 Game_Temp.prototype.showAnimation = function(animationId, characterId, waitMode) {
 	const animeId = this.getAnimationId(animationId, characterId);
-	const param = [characterId, animeId, waitMode];
 	if (animeId > 0) {
-		$gameMap._interpreter.command212(param);
+		const params = [characterId, animeId, waitMode];
+		if (characterId > 0) {
+			const character = $gameMap.event(characterId);
+			if (character) {
+				 $gameTemp.requestAnimation([character], params[1]);
+				 if (params[2]) {
+					  $gameMap._interpreter.setWaitMode("animation");
+				 }
+			}
+		} else {
+			$gameMap._interpreter.command212(params);
+		}
 	}
 };
 
 Game_Temp.prototype.getAnimationId = function(animationId, characterId) {
-	if (animationId >= 0) {
+	if (animationId > 0) {
 		return animationId;
 	} else {
 		if (characterId >= 0) {
 			const weapon = $gameParty.leader().weapons()[0];
-			if (weapon && weapon.id > 0) {
+			if (weapon && (weapon.id > 0)) {
 				return $dataWeapons[weapon.id].animationId;
 			} else {
 				return this.defaultAnimationId();
@@ -834,6 +976,138 @@ Game_Temp.prototype.addStateEnemy = function(stateId, eventId) {
 
 Game_Temp.prototype.addStatePlayer = function(stateId) {
 	$gameParty.leader().addState(stateId);
+};
+
+// -------------------------------------
+// 指定イベントのセルフスイッチ変更
+
+Game_Temp.prototype.setSelfSwitch = function(mapId, eventId, alphabet, value) {
+	const key = [mapId, eventId, alphabet];
+	$gameSelfSwitches.setValue(key, value);
+};
+
+// -------------------------------------
+// 「イベントの位置変更」のイベントID指定
+
+Game_Temp.prototype.setEventLocation = function(eventId, x, y, direction) {
+	const event = $gameMap.event(eventId);
+	if (event) {
+		event.locate(x, y);
+		if (direction > 0) {
+			event.setDirection(direction);
+		}
+	}
+};
+
+// -------------------------------------
+// 「移動ルートの設定(プレイヤーの逆を向く)」のイベントID指定
+
+Game_Temp.prototype.turnAwayFromPlayer = function(eventId) {
+	const event = $gameMap.event(eventId);
+	if (event) {
+		event.turnAwayFromPlayer();
+	}
+};
+
+// -------------------------------------
+// 「移動ルートの設定(一歩前進)」のイベントID指定
+//
+// Game_Interpreter であることに注意！！
+
+Game_Interpreter.prototype.moveForward = function(eventId, waitMode) {
+	$gameMap.refreshIfNeeded();
+	const character = $gameMap.event(eventId);
+	if (character) {
+		const moveRoute = {
+			list: [
+				{code: Game_Character.ROUTE_MOVE_FORWARD, indent: null},
+				{code: 0}
+			],
+			repeat: false,
+			skippable: false,
+			wait: waitMode
+		};
+		character.forceMoveRoute(moveRoute);
+	}
+};
+
+// -------------------------------------
+// 玉がどれかの敵イベントに当たったチェック
+
+Game_Interpreter.prototype.anyCollision = function(skillId) {
+	const waitMode = true;
+	const targetId = $gameTemp.anyCollision(this.eventId(), [200, 400, 800, -800]);
+	if (targetId > 0) {
+		$gameTemp.showSkillAnimation(skillId, targetId, waitMode);
+		$gameTemp.mapDamageEnemy(targetId, skillId);
+		$gameTemp.mapPopupEnemy(targetId);
+		return true;
+	}
+	return false;
+}
+
+// -------------------------------------
+// 玉移動数チェック
+
+Game_Interpreter.prototype.checkOverStep = function(step) {
+	const event = $gameMap.event(this.eventId());
+	const launchId = this.launchEventId(this.eventId());
+	const launch = $gameMap.event(launchId);
+	const direction = event.direction();
+	const diffX = Math.abs(event.x - launch.x);
+	const diffY = Math.abs(event.y - launch.y);
+	const eventStep = this.eventStep(direction, diffX, diffY);
+
+	if (eventStep >= step) {
+		return true;
+	} else {
+		return false;
+	}
+};
+
+Game_Interpreter.prototype.eventStep = function(direction, diffX, diffY) {
+	switch(direction) {
+		case 2:
+		case 8:
+			return diffY;
+		case 4:
+		case 6:
+			return diffX;
+	}
+	return 0;
+};
+
+Game_Interpreter.prototype.ballIndex = function(ballId) {
+	const ballIdList = $gameMap.metaIdList(META_BALL);
+	const index = ballIdList.findIndex(id => id === ballId);
+	return index;
+};
+
+Game_Interpreter.prototype.launchEventId = function(ballId) {
+	const index = this.ballIndex(ballId);
+	const launchIdList = $gameMap.metaIdList(META_LAUNCH);
+	return launchIdList[index];
+};
+
+Game_Interpreter.prototype.launchIndex = function(launchId) {
+	const launchIdList = $gameMap.metaIdList(META_LAUNCH);
+	const index = launchIdList.findIndex(id => id === launchId);
+	return index;
+};
+
+Game_Interpreter.prototype.ballEventId = function(launchId) {
+	const index = this.launchIndex(launchId);
+	const ballIdList = $gameMap.metaIdList(META_BALL);
+	return ballIdList[index];
+};
+
+// -------------------------------------
+
+Game_Interpreter.prototype.resetBallSelfSwitches = function(alphabet) {
+	const ballIdList = $gameMap.metaIdList(META_BALL);
+	ballIdList.forEach(id => {
+		$gameTemp.setSelfSwitch($gameMap.mapId(), id, alphabet, false);
+	});
 };
 
 // -------------------------------------

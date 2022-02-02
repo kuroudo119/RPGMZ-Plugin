@@ -32,6 +32,7 @@
 [ソースコード単独：KRD_MZ_MapEnemyをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_MapEnemy.js)
 
 ![体当たりアクションRPGサンプル](img/ARPG.png)
+![体当たりアクションRPGサンプル2](img/ARPG_2.png)
 
 ## KRD_MZ_AlwaysImage （常時画像表示）
 

@@ -174,6 +174,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.3.0 (2021/10/25) プラグインコマンドを追加。
 - ver.1.4.0 (2021/11/19) 画像描画コマンドを追加。
 - ver.1.5.0 (2021/12/18) 前ページボタンは別パラメータにした。
+- ver.2.0.0 (2022/02/04) セーブデータのキーを変更した（旧との互換性なし）。
 
  * 
  * 
@@ -358,7 +359,7 @@ Game_System.prototype.clearSchedule = function() {
 };
 
 Game_System.prototype.setSchedule = function(year, month, date, flag) {
-	const strDate = this.stringDate(year, month, date);
+	const strDate = [year, month, date];
 	if (flag) {
 		this._schedule[strDate] = flag;
 	} else {
@@ -367,7 +368,7 @@ Game_System.prototype.setSchedule = function(year, month, date, flag) {
 };
 
 Game_System.prototype.getSchedule = function(year, month, date) {
-	const strDate = this.stringDate(year, month, date);
+	const strDate = [year, month, date];
 	return this._schedule[strDate];
 };
 
@@ -375,7 +376,7 @@ Game_System.prototype.makeScheduleMonth = function(year, month) {
 	const scheduleMonth = {};
 	for (let i = 1; i <= MONTH_END; i++) {
 		if (this.getSchedule(year, month, i)) {
-			const strDate = this.stringDate(year, month, i);
+			const strDate = [year, month, i];
 			scheduleMonth[strDate] = true;
 		}
 	}
@@ -383,7 +384,7 @@ Game_System.prototype.makeScheduleMonth = function(year, month) {
 };
 
 Game_System.prototype.getScheduleMonth = function(schedule, year, month, date) {
-	const strDate = this.stringDate(year, month, date);
+	const strDate = [year, month, date];
 	return schedule[strDate];
 };
 
@@ -391,8 +392,34 @@ Game_System.prototype.getAllSchedule = function() {
 	return this._schedule;
 };
 
-Game_System.prototype.stringDate = function(year, month, date) {
-	return year.toString().padStart(4, "0") + month.toString().padStart(2, "0") + date.toString().padStart(2, "0");
+Game_System.prototype.getSortedKeys = function() {
+	const padded = this.zeroPaddingSchedule(Object.keys(this._schedule));
+	const sorted = this.zeroSuppressSchedule(padded.sort());
+	return sorted;
+};
+
+Game_System.prototype.zeroPaddingSchedule = function(keys) {
+	return keys.map(day => {
+		if (day.length < 10) {
+			const split = day.split(",");
+			const year = split[0];
+			const month = split[1];
+			const date = split[2];
+			return year.padStart(4, "0") + "," + month.padStart(2, "0") + "," + date.padStart(2, "0");
+		} else {
+			return day;
+		}
+	});
+};
+
+Game_System.prototype.zeroSuppressSchedule = function(keys) {
+	return keys.map(day => {
+		const split = day.split(",");
+		const year = Number(split[0]);
+		const month = Number(split[1]);
+		const date = Number(split[2]);
+		return year + "," + month + "," + date;
+	});
 };
 
 Game_System.prototype.countSchedule = function() {
@@ -400,23 +427,23 @@ Game_System.prototype.countSchedule = function() {
 };
 
 Game_System.prototype.firstSchedule = function() {
-	const schedule = Object.keys(this._schedule);
+	const schedule = this.getSortedKeys();
 	const first = schedule[0];
 	return first;
 };
 
 Game_System.prototype.lastSchedule = function() {
-	const schedule = Object.keys(this._schedule);
-	const len = schedule.length;
-	const last = schedule[len - 1];
+	const schedule = this.getSortedKeys();
+	const last = schedule[schedule.length - 1];
 	return last;
 };
 
 Game_System.prototype.dateFromString = function(strDate) {
-	if (strDate && strDate.length === 8) {
-		const year = Number(strDate.slice(0, 4)) || 1;
-		const month = Number(strDate.slice(4, 6)) || 1;
-		const date = Number(strDate.slice(6, 8)) || 1;
+	if (strDate) {
+		const split = strDate.split(",");
+		const year = Number(split[0]);
+		const month = Number(split[1]);
+		const date = Number(split[2]);
 		return new Date(year, month - 1, date);
 	} else {
 		return null;
@@ -430,11 +457,12 @@ Game_System.prototype.diffToday = function(year, month, date) {
 	return diff;
 };
 
-Game_System.prototype.daysFromLast = function(strDate) {
-	if (strDate && strDate.length === 8) {
-		const year = Number(strDate.slice(0, 4)) || 1;
-		const month = Number(strDate.slice(4, 6)) || 1;
-		const date = Number(strDate.slice(6, 8)) || 1;
+Game_System.prototype.daysFromToday = function(strDate) {
+	if (strDate) {
+		const split = strDate.split(",");
+		const year = Number(split[0]);
+		const month = Number(split[1]);
+		const date = Number(split[2]);
 		const last = new Date(year, month - 1, date);
 
 		const today = getToday();

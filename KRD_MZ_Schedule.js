@@ -175,6 +175,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.4.0 (2021/11/19) 画像描画コマンドを追加。
 - ver.1.5.0 (2021/12/18) 前ページボタンは別パラメータにした。
 - ver.2.0.0 (2022/02/04) セーブデータのキーを変更した（旧との互換性なし）。
+- ver.2.1.0 (2022/02/04) diffToday の仕様変更。
 
  * 
  * 
@@ -451,23 +452,18 @@ Game_System.prototype.dateFromString = function(strDate) {
 };
 
 Game_System.prototype.diffToday = function(year, month, date) {
-	const arg = new Date(year, month - 1, date);
-	const today = getToday();
-	const diff = arg - today;
-	return diff;
+	const theDay = new Date(year, month - 1, date);
+	return this.daysFromToday(theDay);
 };
 
-Game_System.prototype.daysFromToday = function(strDate) {
-	if (strDate) {
-		const split = strDate.split(",");
-		const year = Number(split[0]);
-		const month = Number(split[1]);
-		const date = Number(split[2]);
-		const last = new Date(year, month - 1, date);
+Game_System.prototype.daysFromToday = function(theDay) {
+	const today = getToday();
+	return this.diffDays(today, theDay);
+};
 
-		const today = getToday();
-
-		const diff = last - today;
+Game_System.prototype.diffDays = function(past, future) {
+	if (past && future) {
+		const diff = future - past;
 		const oneDay = 24 * 60 * 60 * 1000;
 		const days = Math.floor(diff / oneDay);
 		return days;

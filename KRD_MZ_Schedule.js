@@ -176,6 +176,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.5.0 (2021/12/18) 前ページボタンは別パラメータにした。
 - ver.2.0.0 (2022/02/04) セーブデータのキーを変更した（旧との互換性なし）。
 - ver.2.1.0 (2022/02/04) diffToday の仕様変更。
+- ver.2.1.1 (2022/02/06) 不要な関数の削除。
 
  * 
  * 
@@ -374,19 +375,15 @@ Game_System.prototype.getSchedule = function(year, month, date) {
 };
 
 Game_System.prototype.makeScheduleMonth = function(year, month) {
-	const scheduleMonth = {};
+	const scheduleMonth = [];
 	for (let i = 1; i <= MONTH_END; i++) {
 		if (this.getSchedule(year, month, i)) {
-			const strDate = [year, month, i];
-			scheduleMonth[strDate] = true;
+			scheduleMonth.push(true);
+		} else {
+			scheduleMonth.push(false);
 		}
 	}
 	return scheduleMonth;
-};
-
-Game_System.prototype.getScheduleMonth = function(schedule, year, month, date) {
-	const strDate = [year, month, date];
-	return schedule[strDate];
 };
 
 Game_System.prototype.getAllSchedule = function() {
@@ -491,11 +488,11 @@ Game_System.prototype.drawCircles = function(pictureId, pictureName) {
 	const month = SceneManager._scene._calendarWindow.getMonth();
 	const scheduleMonth = this.makeScheduleMonth(year, month);
 
-	for (let i = 1; i <= MONTH_END; i++) {
-		if (this.getScheduleMonth(scheduleMonth, year, month, i)) {
-			SceneManager._scene.drawCircle(i, pictureId, pictureName);
+	scheduleMonth.forEach((e, i) => {
+		if (e) {
+			SceneManager._scene.drawCircle(i + 1, pictureId, pictureName);
 		}
-	}
+	});
 };
 
 Game_System.prototype.eraseCircles = function(pictureId) {

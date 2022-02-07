@@ -243,6 +243,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.6.0 (2022/01/31) 全イベント衝突チェックを追加。非公開
 - ver.1.7.0 (2022/02/02) イベント発射サポート関数を作成。
 - ver.1.7.1 (2022/02/02) anyCollision関数をリファクタリング。
+- ver.1.7.2 (2022/02/06) anyCollision関数に引数を追加。
+- ver.1.8.0 (2022/02/07) イベント移動可能チェックを追加。
 
 ## 使い方
 
@@ -1034,10 +1036,11 @@ Game_Interpreter.prototype.moveForward = function(eventId, waitMode) {
 // -------------------------------------
 // 玉がどれかの敵イベントに当たったチェック
 
-Game_Interpreter.prototype.anyCollision = function(skillId) {
+Game_Interpreter.prototype.anyCollision = function(skillId, eventId) {
+	const evId = eventId ? eventId : this.eventId();
 	const waitMode = true;
 	const collisionCode = [200, 400, 800, -800];
-	const targetId = $gameTemp.anyCollision(this.eventId(), collisionCode);
+	const targetId = $gameTemp.anyCollision(evId, collisionCode);
 	if (targetId > 0) {
 		$gameTemp.showSkillAnimation(skillId, targetId, waitMode);
 		$gameTemp.mapDamageEnemy(targetId, skillId);
@@ -1045,7 +1048,15 @@ Game_Interpreter.prototype.anyCollision = function(skillId) {
 		return true;
 	}
 	return false;
-}
+};
+
+// -------------------------------------
+// イベント移動可能チェック
+
+Game_Interpreter.prototype.canPass = function(eventId) {
+	const event = $gameMap.event(eventId);
+	return event.canPass(event.x, event.y, event.direction());
+};
 
 // -------------------------------------
 // 玉移動数チェック
@@ -1077,6 +1088,9 @@ Game_Interpreter.prototype.eventStep = function(direction, diffX, diffY) {
 	}
 	return 0;
 };
+
+// -------------------------------------
+// 玉と発射装置のIDを紐付け
 
 Game_Interpreter.prototype.ballIndex = function(ballId) {
 	const ballIdList = $gameMap.metaIdList(META_BALL);

@@ -223,12 +223,12 @@ https://game.nicovideo.jp/atsumaru/games/gm21290
 
 ![ダメージゲージ](img/DamageGauge.png)
 
-## KRD_MZ_Speech （音声入力）
+## KRD_MZ_VoiceInput （音声入力）
 
 ブラウザのマイク機能（Web Speech API）を使って音声入力（音声認識）します。  
 以下の画像はイベントコマンドの設定例です。
 
-[KRD_MZ_Speechをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Speech.js)
+[KRD_MZ_VoiceInputをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_VoiceInput.js)
 
 ![音声入力](img/speechEvent.png)
 

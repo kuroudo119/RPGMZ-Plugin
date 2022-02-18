@@ -230,6 +230,9 @@ https://game.nicovideo.jp/atsumaru/games/gm21290
 
 [KRD_MZ_VoiceInputをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_VoiceInput.js)
 
+動作サンプル (ゲームアツマール)
+https://game.nicovideo.jp/atsumaru/games/gm18946
+
 ![音声入力](img/speechEvent.png)
 
 ## KRD_MZ_Motion （スキルモーション変更）

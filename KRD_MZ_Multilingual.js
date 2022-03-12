@@ -92,7 +92,7 @@
  * 
  * @param fileSection
  * @text 外部ファイル読込設定
- * @desc UniqueDataLoaderプラグインを使用してjsonファイルを用意してください。制御文字は \LANGF[文章プロパティ] です。
+ * @desc UniqueDataLoaderプラグインを使用してjsonファイルを用意してください。制御文字は \LANGF[msg_言語番号] です。
  * 
  * @param globalName
  * @text グローバル変数名
@@ -101,22 +101,12 @@
  * @type string
  * @parent fileSection
  * 
- * @param propertyName
- * @text プロパティ名
- * @desc UniqueDataLoaderプラグインで指定したプロパティ名の前部分です。後ろに言語番号が追加されます。
- * @default msg_
- * @type string
- * @parent fileSection
- * 
- * @param extraSection
- * @text 追加設定
- * 
- * @param useId
- * @text ID取得機能
- * @desc DBメモ欄で制御文字 \ID をその項目の id に置換。名前と説明のみ有効。この処理は少し重いのでfalse推奨。
- * @default false
+ * @param useExternal
+ * @text 外部DB取得機能
+ * @desc jsonファイルから文字列を取得する。DBの名前と説明のみ有効。
+ * @default true
  * @type boolean
- * @parent extraSection
+ * @parent fileSection
  * 
  * @command setLanguage
  * @text 言語切替コマンド
@@ -154,19 +144,6 @@
 このプラグインはMITライセンスです。
 https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
-## 更新履歴
-
-- ver.0 (2021/01/26) 初版（希望者に期間限定配布）
-- ver.0.0.1 (2021/03/17) 非公開版完成
-- ver.1.0.0 (2021/06/02) 公開開始
-- ver.1.1.0 (2021/06/04) 外部ファイル読込機能を追加
-- ver.2.0.0 (2021/06/04) プロパティをゲッターに差し替え
-- ver.2.0.1 (2021/06/18) コメント部分修正
-- ver.2.1.0 (2021/08/25) 内部データ修正、useId追加
-- ver.2.1.1 (2021/09/28) KRD_MULTILINGUAL の宣言を即時関数外に移動
-- ver.2.1.2 (2021/12/05) 使い方に追記。
-- ver.2.1.3 (2021/12/07) 使い方に追記。
-
 ## 使い方
 
 ### プラグインコマンド
@@ -180,7 +157,6 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 <nickname_1:二つ名>
 <profile_1:プロフィール>
 <desc_1:説明>
-<description_1:説明>
 <message1_1:スキルのメッセージ1行目、ステートのメッセージ（アクター）>
 <message2_1:スキルのメッセージ2行目、ステートのメッセージ（敵キャラ）>
 <message3_1:ステートのメッセージ（継続）>
@@ -202,16 +178,34 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 制御文字 \LANG[0] が使えます。0 の部分は言語番号です。
 デフォルト値として \LANG[0] を使用します。
-次の \LANG[1] までを 言語番号 0 の文字列として使用します。
+\LANGEND までを 言語番号 0 の文字列として使用します。
 
 以下のように設定します。
-\LANG[0]はい\LANG[1]Yes\LANG[2]ええで
+\LANG[0]はい\LANGEND\LANG[1]Yes\LANGEND\LANG[2]ええで\LANGEND
 
 #### LANGF
 
 制御文字 \LANGF[データ名] が使えます。
 公式プラグイン UniqueDataLoader を併用し、
 文章を外部jsonファイルに記述します。
+
+## 更新履歴
+
+- ver.0 (2021/01/26) 初版（希望者に期間限定配布）
+- ver.0.0.1 (2021/03/17) 非公開版完成
+- ver.1.0.0 (2021/06/02) 公開開始
+- ver.1.1.0 (2021/06/04) 外部ファイル読込機能を追加
+- ver.2.0.0 (2021/06/04) プロパティをゲッターに差し替え
+- ver.2.0.1 (2021/06/18) コメント部分修正
+- ver.2.1.0 (2021/08/25) 内部データ修正、useId 追加
+- ver.2.1.1 (2021/09/28) KRD_MULTILINGUAL の宣言を即時関数外に移動
+- ver.2.1.2 (2021/12/05) 使い方に追記。
+- ver.2.1.3 (2021/12/07) 使い方に追記。
+- ver.2.1.4 (2022/02/09) テストプレイ用の処理を追加。
+- ver.2.2.0 (2022/03/06) getUseLanguage を languageText に変更。
+- ver.2.2.1 (2022/03/07) LANG[0]をデフォルト値になるようにした。
+- ver.3.0.0 (2022/03/11) useId を廃止して useExternal 処理を追加。
+- ver.3.1.0 (2022/03/12) 全ての getData の外部データ対応した。
 
  * 
  * 
@@ -687,9 +681,10 @@ const COMMANDS = JSON.parse(PARAM["argCommands"] || null);
 const MESSAGES = JSON.parse(PARAM["argMessages"] || null);
 
 const GLOBAL_NAME = PARAM["globalName"] || "$dataUniques";
-const PROPERTY_NAME = PARAM["propertyName"] || "msg_";
+const MSG_NAME = "msg_";
 
-const USE_ID = PARAM["useId"] === "true";
+const USE_EXTERNAL = PARAM["useExternal"] === "true";
+const EXTERNAL_NAME = "db_";
 
 const OPTION_DEFAULT = 0
 ConfigManager.multilingual = OPTION_DEFAULT;
@@ -1068,13 +1063,13 @@ Window_Base.prototype.processEscapeCharacter = function(code, textState) {
 	}
 };
 
-Window_Base.prototype.getUseLanguage = function(text, language) {
-	return KRD_MULTILINGUAL.getUseLanguage(text, language);
+Window_Base.prototype.languageText = function(text) {
+	return KRD_MULTILINGUAL.languageText(text);
 };
 
 Window_Base.prototype.processLanguage = function(textState) {
-	const language = ConfigManager.multilingual;
-	textState.text = this.getUseLanguage(textState.text, language);
+	textState.text = this.languageText(textState.text);
+	textState.index = 0;
 };
 
 //--------------------------------------
@@ -1099,9 +1094,9 @@ Window_Base.prototype.changeText = function(code, textState) {
 	const name = textState.text.slice(start + plus, end);
 
 	if (window[GLOBAL_NAME] &&
-		window[GLOBAL_NAME][PROPERTY_NAME + language] &&
-		window[GLOBAL_NAME][PROPERTY_NAME + language][name]) {
-			textState.text = window[GLOBAL_NAME][PROPERTY_NAME + language][name];
+		window[GLOBAL_NAME][MSG_NAME + language] &&
+		window[GLOBAL_NAME][MSG_NAME + language][name]) {
+			textState.text = window[GLOBAL_NAME][MSG_NAME + language][name];
 			textState.text = this.convertEscapeCharacters(textState.text);
 			textState.text = textState.text.replace(/\x1bn/g, "\n");
 			textState.index = 0;
@@ -1288,51 +1283,44 @@ Game_System.prototype.resetDataStates = function() {
 };
 
 //--------------------------------------
+// テストプレイ用の処理
+
+const KRD_Scene_Boot_start = Scene_Boot.prototype.start;
+Scene_Boot.prototype.start = function() {
+	KRD_Scene_Boot_start.apply(this, arguments);
+	if (DataManager.isBattleTest() || DataManager.isEventTest()) {
+		$gameSystem.resetDataActors();
+	}
+};
+
+//--------------------------------------
 // 共通関数 : 他のプラグインから使用可能
 
 KRD_MULTILINGUAL.getData = function(data) {
 	return {
 		get name() {
-			const text = data.meta["name_" + ConfigManager.multilingual];
-			if (USE_ID) {
-				if (text) {
-					return text.replace(/\\ID/g, data.id);
-				} else {
-					return data.name_0 || "";
-				}
-			} else {
-				return text || data.name_0 || "";
-			}
+			return KRD_MULTILINGUAL.getReturnData(data, "name_", "name");
 		},
 		get nickname() {
-			return data.meta["nickname_" + ConfigManager.multilingual] || data.nickname_0 || "";
+			return KRD_MULTILINGUAL.getReturnData(data, "nickname_", "nickname");
 		},
 		get profile() {
-			return data.meta["profile_" + ConfigManager.multilingual] || data.profile_0 || "";
+			return KRD_MULTILINGUAL.getReturnData(data, "profile_", "profile_1st", "profile_2nd");
 		},
 		get description() {
-			const text = data.meta["desc_" + ConfigManager.multilingual] || data.meta["description_" + ConfigManager.multilingual];
-			if (USE_ID) {
-				if (text) {
-					return text.replace(/\\ID/g, data.id);
-				} else {
-					return data.desc_0 || "";
-				}
-			} else {
-				return text || data.desc_0 || "";
-			}
+			return KRD_MULTILINGUAL.getReturnData(data, "desc_", "desc_1st", "desc_2nd");
 		},
 		get message1() {
-			return data.meta["message1_" + ConfigManager.multilingual] || data.message1_0 || "";
+			return KRD_MULTILINGUAL.getReturnData(data, "message1_", "message1");
 		},
 		get message2() {
-			return data.meta["message2_" + ConfigManager.multilingual] || data.message2_0 || "";
+			return KRD_MULTILINGUAL.getReturnData(data, "message2_", "message2");
 		},
 		get message3() {
-			return data.meta["message3_" + ConfigManager.multilingual] || data.message3_0 || "";
+			return KRD_MULTILINGUAL.getReturnData(data, "message3_", "message3");
 		},
 		get message4() {
-			return data.meta["message4_" + ConfigManager.multilingual] || data.message4_0 || "";
+			return KRD_MULTILINGUAL.getReturnData(data, "message4_", "message4");
 		},
 		get iconIndex() {
 			return data.iconIndex;
@@ -1343,26 +1331,90 @@ KRD_MULTILINGUAL.getData = function(data) {
 	};
 };
 
-KRD_MULTILINGUAL.getUseLanguage = function(text, language, escape) {
-	escape = escape ? escape : "\x1b";
-	const check = escape + "LANG[" + language + "]";
-	const start = text.indexOf(check);
-	if (language > 0 && start < 0) {
-		// 再帰
-		return KRD_MULTILINGUAL.getUseLanguage(text, 0, escape);
+KRD_MULTILINGUAL.getReturnData = function(data, key, exKey1, exKey2) {
+	if (USE_EXTERNAL && ConfigManager.multilingual > 0 && exKey1) {
+		const find = KRD_MULTILINGUAL.getExternalData(data, exKey1, exKey2);
+		if (find) {
+			return find;
+		}
 	}
-	if (start < 0) {
-		// 再帰の終端
+	return data.meta[key + ConfigManager.multilingual] || data[key + "0"] || "";
+};
+
+KRD_MULTILINGUAL.getExternalData = function(data, key, key2) {
+	const type = KRD_MULTILINGUAL.getType(data);
+	if (!type) {
+		return null;
+	}
+	const find = window[GLOBAL_NAME][EXTERNAL_NAME + ConfigManager.multilingual].find(ex => ex.type === type && ex.id === data.id);
+	if (find) {
+		if (key2) {
+			const text1 = find[key] || "";
+			const text2 = find[key2] || "";
+			return text1 + "\n" + text2;
+		} else {
+			const text1 = find[key] || "";
+			return text1;
+		}
+	}
+	return null;
+};
+
+KRD_MULTILINGUAL.getType = function(data) {
+	if (data) {
+		if (data.itypeId !== undefined) {
+			return "item";
+		} else if (data.wtypeId !== undefined) {
+			return "weapon";
+		} else if (data.atypeId !== undefined) {
+			return "armor";
+		} else if (data.stypeId !== undefined) {
+			return "skill";
+		} else if (data.initialLevel !== undefined) {
+			return "actor";
+		} else if (data.expParams !== undefined) {
+			return "class"
+		} else if (data.exp !== undefined) {
+			return "enemy";
+		} else if (data.stepsToRemove !== undefined) {
+			return "state";
+		}
+	}
+	return null;
+};
+
+KRD_MULTILINGUAL.languageText = function(text) {
+	if (!KRD_MULTILINGUAL.isLanguageText(text)) {
 		return text;
 	}
-	const end = text.indexOf(escape + "LANG[", start + check.length);
-	// なぜか \x1b があると check.length だと長さがおかしい。
-	const plus = escape === "\x1b" ? ("["+ language + "]").length : check.length;
-	if (end >= 0) {
-		return text.slice(start + plus, end);
-	} else {
-		return text.slice(start + plus);
+
+	const language = ConfigManager.multilingual;
+	const regex1 = /\\LANG\[(?<language>\d+?)\](?<text>.*?)\\LANGEND/;
+	const regex2 = /\x1bLANG\[(?<language>\d+?)\](?<text>.*?)\x1bLANGEND/;
+	const regexList = [regex1, regex2];
+	
+	let tmpText = text.toString();
+	let match = null;
+	let result = "";
+	for (const regex of regexList) {
+		while ((match = regex.exec(tmpText)) !== null) {
+			tmpText = tmpText.replace(regex, "");
+			if (Number(match.groups.language) === language) {
+				result = match.groups.text;
+				break;
+			}
+			if (Number(match.groups.language) === 0) {
+				result = match.groups.text;
+			}
+		}
 	}
+	return result;
+};
+
+KRD_MULTILINGUAL.isLanguageText = function(text) {
+	const regex1 = /\\LANG\[/;
+	const regex2 = /\x1bLANG\[/;
+	return !!(text.toString().match(regex1) || text.toString().match(regex2));
 };
 
 //--------------------------------------

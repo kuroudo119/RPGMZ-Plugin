@@ -4,6 +4,15 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_LevelValue （価格にレベルを反映）
+
+ショップの価格を設定価格にレベルをかけた値にします。
+
+[KRD_MZ_LevelValueをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_LevelValue.js)
+
+![ショップ価格レベル30](img/value_Lv30.png)
+![ショップ価格レベル55](img/value_Lv55.png)
+
 ## KRD_MZ_EnemyLevel （敵レベル）
 
 敵キャラにレベルを設定し、ダメージ計算式で使えるようにします。

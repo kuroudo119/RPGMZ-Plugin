@@ -4,6 +4,12 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_EnemyLevel （敵レベル）
+
+敵キャラにレベルを設定し、ダメージ計算式で使えるようにします。
+
+[KRD_MZ_EnemyLevelをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_EnemyLevel.js)
+
 ## KRD_MZ_DualWield （同じ武器タイプのみ二刀流）
 
 二刀流の時、一番上の装備枠と同じ武器タイプの武器のみ装備可能になります。

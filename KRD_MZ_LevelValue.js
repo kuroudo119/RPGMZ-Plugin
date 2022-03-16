@@ -30,6 +30,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2022/03/16) 作成開始
 - ver.0.1.0 (2022/03/16) 非公開版完成
 - ver.1.0.0 (2022/03/16) 公開
+- ver.1.0.1 (2022/03/16) 微修正
 
  * 
  * 
@@ -44,7 +45,7 @@ Window_ShopBuy.prototype.price = function(item) {
 	if (item.meta.levelValue) {
 		const actorsLevel = $gameParty.members().map(actor => actor._level);
 		const partyMaxLevel = Math.max(...actorsLevel);
-		const base = this._price[this._data.indexOf(item)] || 0;
+		const base = KRD_Window_ShopBuy_price.apply(this, arguments);
 		return base * partyMaxLevel;
 	} else {
 		return KRD_Window_ShopBuy_price.apply(this, arguments);

@@ -10,6 +10,8 @@
 
 [KRD_MZ_EnemyLevelをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_EnemyLevel.js)
 
+![ダメージ計算式](img/enemyLevel.png)
+
 ## KRD_MZ_DualWield （同じ武器タイプのみ二刀流）
 
 二刀流の時、一番上の装備枠と同じ武器タイプの武器のみ装備可能になります。

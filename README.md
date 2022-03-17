@@ -4,6 +4,12 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_ItemSort （アイテム・スキル一覧ソート）
+
+アイテム・スキル一覧のソートを変更します。並び順は固定です。
+
+[KRD_MZ_ItemSortをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_ItemSort.js)
+
 ## KRD_MZ_LevelValue （価格にレベルを反映）
 
 ショップの価格を設定価格にレベルをかけた値にします。

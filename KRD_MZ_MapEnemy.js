@@ -23,9 +23,44 @@
  * @default true
  * @type boolean
  * 
+ * @param useHpGaugeFollower
+ * @text HPゲージ(フォロワー)
+ * @desc 隊列の仲間にHPゲージを「true: 表示する ／ false: 表示しない」
+ * @default true
+ * @type boolean
+ * 
  * @param useStateIcon
  * @text ステートアイコン
  * @desc ステートアイコンを「true: 表示する ／ false: 表示しない」
+ * @default true
+ * @type boolean
+ * 
+ * @param alwaysPlayerHp
+ * @text プレイヤーHP常時表示
+ * @desc プレイヤーHPを常時「true: 表示する ／ false: 表示しない」
+ * @default true
+ * @type boolean
+ * 
+ * @param alwaysFollowerHp
+ * @text フォロワーHP常時表示
+ * @desc 隊列の仲間のHPを常時「true: 表示する ／ false: 表示しない」
+ * @default true
+ * @type boolean
+ * 
+ * @param useDisplayRewards
+ * @text バトル報酬表示
+ * @desc バトル報酬ウィンドウを「true: 表示する ／ false: 表示しない」
+ * @default false
+ * @type boolean
+ * 
+ * @param cmnGameOver
+ * @text ゲームオーバーイベント
+ * @desc マップバトルのゲームオーバー時に呼び出すコモンイベント。プラグインコマンド「ゲームオーバー状態初期化」と併用。
+ * @type common_event
+ * 
+ * @param alwaysMapGameover
+ * @text 常時ゲームオーバーイベント
+ * @desc ゲームオーバーコモンイベントをマップバトル以外でも「true: 呼ぶ ／ false: 呼ばない」
  * @default true
  * @type boolean
  * 
@@ -205,6 +240,28 @@
  * @desc ステートIDが入っている変数番号を指定します。
  * @type variable
  * 
+ * @command resetBallSelfSwitches
+ * @text 一括玉セルフスイッチOFF
+ * @desc 全ての「玉」のセルフスイッチをOFFにします。
+ * @arg alphabet
+ * @text アルファベット
+ * @desc セルフスイッチのアルファベット A ～ D を指定します。
+ * 
+ * @command resetEnemyBallSelfSwitches
+ * @text 一括敵玉セルフスイッチOFF
+ * @desc 全ての「敵玉」のセルフスイッチをOFFにします。
+ * @arg alphabet
+ * @text アルファベット
+ * @desc セルフスイッチのアルファベット A ～ D を指定します。
+ * 
+ * @command eraseMapEnemy
+ * @text 全敵イベント消去
+ * @desc 全ての敵イベントを一時消去します。
+ * 
+ * @command clearGameOver
+ * @text ゲームオーバー状態初期化
+ * @desc ゲームオーバーイベントの中で使ってください。
+ * 
  * @help
 # KRD_MZ_MapEnemy.js
 
@@ -219,38 +276,38 @@
 このプラグインはMITライセンスです。
 https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
-## 更新履歴
-
-- ver.0.0.1 (2022/01/04) 作成開始
-- ver.0.0.2 (2022/01/11) HPゲージとダメージポップアップ追加
-- ver.0.0.3 (2022/01/12) ダメージ処理をプラグイン化
-- ver.0.0.4 (2022/01/15) 衝突処理をプラグイン化
-- ver.0.0.5 (2022/01/17) セーブ不可を解決、ロード不可はまだある。
-- ver.0.0.6 (2022/01/17) ロード不可マップでセーブ不可にする一時的な対処。
-- ver.0.0.7 (2022/01/18) プラグインパラメータを追加。
-- ver.0.0.8 (2022/01/19) ロード不可を解決した。
-- ver.0.0.9 (2022/01/20) KRD_Game_MapAction クラスを追加。
-- ver.0.1.0 (2022/01/21) 非公開版完成
-- ver.1.0.0 (2022/01/21) 公開
-- ver.1.1.0 (2022/01/21) 報酬獲得関数を作成。
-- ver.1.1.1 (2022/01/22) ポップアップとゲージが出ないバグ修正。
-- ver.1.2.0 (2022/01/22) プラグインコマンド追加。
-- ver.1.3.0 (2022/01/24) ステートアイコン表示を追加。
-- ver.1.4.0 (2022/01/25) ステート付与コマンドを追加。
-- ver.1.5.0 (2022/01/28) イベント同士の衝突チェック処理を追加。非公開
-- ver.1.5.1 (2022/01/29) playerAttackSet 仮作成。のちに削除。非公開
-- ver.1.5.2 (2022/01/30) 衝突チェック処理を修正。非公開
-- ver.1.6.0 (2022/01/31) 全イベント衝突チェックを追加。非公開
-- ver.1.7.0 (2022/02/02) イベント発射サポート関数を作成。
-- ver.1.7.1 (2022/02/02) anyCollision関数をリファクタリング。
-- ver.1.7.2 (2022/02/06) anyCollision関数に引数を追加。
-- ver.1.8.0 (2022/02/07) イベント移動可能チェックを追加。
-
 ## 使い方
 
-マップイベントのメモ欄に <MapEnemy:敵キャラ番号> を記述します。
+マップイベントのメモ欄に <MapEnemy:敵キャラ番号> タグを記述します。
 (敵キャラ番号は数字を記述すること)
 そのマップイベントは記述した敵キャラ番号のデータを持ちます。
+
+## 用語
+
+- 敵イベント
+  メモ欄に <MapEnemy:敵キャラ番号> タグを記述したマップイベント。
+  イベント内に敵キャラデータを持っている。
+
+- マップバトル
+  敵イベントが存在するマップ。
+  先頭キャラが戦闘不能になるとゲームオーバーになる。
+
+- 玉
+  メモ欄に <Ball> タグを記述したマップイベント。
+  発射装置から発射し、敵イベントにダメージを与えられる。
+
+- 発射装置
+  メモ欄に <Launch> タグを記述したマップイベント。
+  プレイヤー操作で玉を発射できる。
+  （という作り方を想定している）
+
+- 敵玉
+  メモ欄に <EnemyBall> タグを記述したマップイベント。
+  敵玉発射装置から発射され、プレイヤーが当たるとダメージを受ける。
+
+- 敵玉発射装置
+  メモ欄に <EnemyLaunch> タグを記述したマップイベント。
+  敵玉を発射できる。
 
 ## プラグインコマンド
 
@@ -274,13 +331,47 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 ### 敵イベントID取得
 
-変数の操作コマンドの
 スクリプト欄に this.eventId() と記述することで取得できます。
 
 ### ダメージポップアップ
 
 プレイヤーのダメージポップアップを表示するためには、
 データベース「システム1」の「戦闘画面」を「サイドビュー」にすること。
+
+## 更新履歴
+
+- ver.0.0.1 (2022/01/04) 作成開始
+- ver.0.0.2 (2022/01/11) HPゲージとダメージポップアップ追加
+- ver.0.0.3 (2022/01/12) ダメージ処理をプラグイン化
+- ver.0.0.4 (2022/01/15) 衝突処理をプラグイン化
+- ver.0.0.5 (2022/01/17) セーブ不可を解決、ロード不可はまだある。
+- ver.0.0.6 (2022/01/17) ロード不可マップでセーブ不可にする一時的対処。
+- ver.0.0.7 (2022/01/18) プラグインパラメータを追加。
+- ver.0.0.8 (2022/01/19) ロード不可を解決した。
+- ver.0.0.9 (2022/01/20) KRD_Game_MapAction クラスを追加。
+- ver.0.1.0 (2022/01/21) 非公開版完成
+- ver.1.0.0 (2022/01/21) 公開
+- ver.1.1.0 (2022/01/21) 報酬獲得関数を作成。
+- ver.1.1.1 (2022/01/22) ポップアップとゲージが出ないバグ修正。
+- ver.1.2.0 (2022/01/22) プラグインコマンド追加。
+- ver.1.3.0 (2022/01/24) ステートアイコン表示を追加。
+- ver.1.4.0 (2022/01/25) ステート付与コマンドを追加。
+- ver.1.5.0 (2022/01/28) イベント同士の衝突チェック処理を追加。
+- ver.1.5.1 (2022/01/29) playerAttackSet 仮作成。のちに削除。
+- ver.1.5.2 (2022/01/30) 衝突チェック処理を修正。
+- ver.1.6.0 (2022/01/31) 全イベント衝突チェックを追加。
+- ver.1.7.0 (2022/02/02) イベント発射サポート関数を作成。
+- ver.1.7.1 (2022/02/02) anyCollision関数をリファクタリング。
+- ver.1.7.2 (2022/02/06) anyCollision関数に引数を追加。
+- ver.1.8.0 (2022/02/07) イベント移動可能チェックを追加。
+- ver.1.9.0 (2022/02/09) 自分用 TinyGetInfoWndMZ 併用処理を追加。
+- ver.1.10.0 (2022/02/10) ステート効果を反映。ゲームオーバー処理追加。
+- ver.1.10.1 (2022/02/11) ダメージ表示位置をリセットするようにした。
+- ver.1.11.0 (2022/02/27) 敵玉の処理を追加。
+- ver.1.11.1 (2022/03/03) 玉のリファクタリング。
+- ver.1.11.2 (2022/03/15) 一部数値の定数化。
+- ver.1.12.0 (2022/03/21) 常時プレイヤーHPゲージ表示追加。
+- ver.1.13.0 (2022/03/23) フォロワーのHPゲージ表示追加。
 
  * 
  * 
@@ -304,13 +395,34 @@ const USE_DAMAGE_POPUP = PARAM["useDamagePopup"] === "true";
 const USE_HP_GAUGE = PARAM["useHpGauge"] === "true";
 const USE_HP_GAUGE_PLAYER = PARAM["useHpGaugePlayer"] === "true";
 const USE_STATE_ICON = PARAM["useStateIcon"] === "true";
+const USE_HP_GAUGE_FOLLOWER = PARAM["useHpGaugeFollower"] === "true";
 
-const USE_DISPLAY_REWARDS = false;
+const CMN_GAME_OVER = Number(PARAM["cmnGameOver"]) || 0;
+
+const ALWAYS_PLAYER_HP = PARAM["alwaysPlayerHp"] === "true";
+const ALWAYS_FOLLOWER_HP = PARAM["alwaysFollowerHp"] === "true";
+const ALWAYS_MAP_GAMEOVER = PARAM["alwaysMapGameover"] === "true";
+
+const USE_DISPLAY_REWARDS = PARAM["useDisplayRewards"] === "true";
 const DEFAULT_ANIMATION_ID = 1;
+const DAMAGE_POPUP_COUNT = 5;
 
 const META_ENEMY = "MapEnemy";
 const META_BALL = "Ball";
 const META_LAUNCH = "Launch";
+const META_ENEMY_BALL = "EnemyBall";
+const META_ENEMY_LAUNCH = "EnemyLaunch";
+const META_BOSS = "MapBoss";
+
+const FRONT = 200;
+const SIDE = 400;
+const BACK = 800;
+const E_BACK = -200;
+const E_SIDE = -400;
+const E_FRONT = -800;
+
+const GAUGE_WIDTH = 40;
+const GAUGE_HEIGHT = 6;
 
 // -------------------------------------
 // プラグインコマンド
@@ -413,6 +525,22 @@ PluginManager.registerCommand(PLUGIN_NAME, "addStatePlayer", args => {
 	$gameTemp.addStatePlayer(stateId);
 });
 
+PluginManager.registerCommand(PLUGIN_NAME, "resetBallSelfSwitches", args => {
+	$gameTemp.resetBallSelfSwitches(args.alphabet, META_BALL);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "resetEnemyBallSelfSwitches", args => {
+	$gameTemp.resetBallSelfSwitches(args.alphabet, META_ENEMY_BALL);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "eraseMapEnemy", args => {
+	$gameMap.eraseMapEnemy();
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "clearGameOver", args => {
+	$gameMap._gameOver = false;
+});
+
 // -------------------------------------
 // KRD_Game_MapEnemy クラス
 
@@ -440,11 +568,11 @@ window[KRD_Game_MapEnemy.name] = KRD_Game_MapEnemy;
 
 KRD_Sprite_MapGauge = class extends Sprite_Gauge {
 	bitmapWidth() {
-		return 40;
+		return GAUGE_WIDTH;
 	}
 	
 	gaugeHeight() {
-		return 6;
+		return GAUGE_HEIGHT;
 	}
 	
 	gaugeX() {
@@ -461,7 +589,11 @@ KRD_Sprite_MapGauge = class extends Sprite_Gauge {
 
 	drawGaugeRect(x, y, width, height) {
 		super.drawGaugeRect(...arguments);
-		this.move(x - 20, y - 44);
+		const halfWidth = Math.floor(this.bitmapWidth() / 2);
+		const eventHeight = 48;
+		const diffHeight = eventHeight - this.bitmapWidth();
+		const bottom = eventHeight - Math.floor(diffHeight / 2);
+		this.move(x - halfWidth, y - bottom);
 	}
 };
 
@@ -508,7 +640,7 @@ KRD_Game_MapAction = class extends Game_Action {
 		if (this._subjectActorId > 0) {
 			return super.subject(...arguments);
 		} else {
-			return $gameMap.event(this._subjectEnemyIndex)._enemy;
+			return $gameMap.enemy(this._subjectEnemyIndex);
 		}
 	}
 
@@ -537,9 +669,9 @@ Game_Event.prototype.initialize = function(mapId, eventId) {
 };
 
 Game_Event.prototype.createEnemy = function(eventId) {
-	const mapEnemy = Number($dataMap.events[eventId].meta[META_ENEMY]);
-	if (mapEnemy) {
-		this._enemy = new KRD_Game_MapEnemy(mapEnemy, 0, 0, eventId);
+	const enemyId = Number($dataMap.events[eventId].meta[META_ENEMY]);
+	if (enemyId) {
+		this._enemy = new KRD_Game_MapEnemy(enemyId, 0, 0, eventId);
 	}
 };
 
@@ -552,6 +684,17 @@ Game_Map.prototype.metaList = function(tag) {
 
 Game_Map.prototype.metaIdList = function(tag) {
 	return this.metaList(tag).map(e => e.id);
+};
+
+// -------------------------------------
+// enemy を取得
+
+Game_Map.prototype.enemy = function(eventId) {
+	return this.event(eventId) ? this.event(eventId).enemy() : null;
+};
+
+Game_Event.prototype.enemy = function() {
+	return this._enemy;
 };
 
 // -------------------------------------
@@ -568,6 +711,7 @@ Scene_Map.prototype.start = function() {
 Scene_Map.prototype.createMapBattlerSprite = function() {
 	this.createMapEnemySprite();
 	this.createMapPlayerSprite();
+	this.createMapFollowerSprite();
 };
 
 Scene_Map.prototype.createMapEnemySprite = function() {
@@ -578,7 +722,7 @@ Scene_Map.prototype.createMapEnemySprite = function() {
 		const index = $gameMap.characterSpritesIndex(eventId);
 		const cs = characterSprites[index];
 		const event = $gameMap.event(eventId);
-		const battler = event._enemy;
+		const battler = $gameMap.enemy(eventId);
 		if (characterSprites && cs && event) {
 			if (USE_DAMAGE_POPUP) {
 				this.createDamagePopup(cs, battler);
@@ -595,8 +739,7 @@ Scene_Map.prototype.createMapEnemySprite = function() {
 };
 
 Scene_Map.prototype.createMapPlayerSprite = function() {
-	const metaIdList = $gameMap.metaIdList(META_ENEMY);
-	if (metaIdList.length > 0) {
+	if (ALWAYS_PLAYER_HP || $gameParty.inMapBattle()) {
 		const characterSprites = SceneManager._scene._spriteset._characterSprites;
 		const index = characterSprites.findIndex(cs => cs._character.constructor.name === "Game_Player");
 		const cs = characterSprites[index];
@@ -616,6 +759,37 @@ Scene_Map.prototype.createMapPlayerSprite = function() {
 	}
 };
 
+Scene_Map.prototype.createMapFollowerSprite = function() {
+	if ($gamePlayer.followers().isVisible()) {
+		if (ALWAYS_FOLLOWER_HP || $gameParty.inMapBattle()) {
+			const characterSprites = SceneManager._scene._spriteset._characterSprites;
+			const csIndexList = characterSprites.map((cs, index) => {
+				if (cs._character.constructor.name === "Game_Follower") {
+					return index;
+				}
+			}).filter(i => !isNaN(i));
+			const followers = $gameParty.battleMembers().filter((e, index) => index > 0);
+
+			followers.forEach((battler, index) => {
+				const cs = characterSprites[csIndexList[csIndexList.length - index - 1]];
+
+				if (characterSprites && cs) {
+					if (USE_DAMAGE_POPUP) {
+						this.createDamagePopup(cs, battler);
+					}
+					if (USE_HP_GAUGE_FOLLOWER) {
+						this.createHpGauge(cs, battler);
+					}
+					if (USE_STATE_ICON) {
+						const h = $gamePlayer._size ? $gamePlayer._size[1] : 48;
+						this.createStateIcon(cs, battler, h);
+					}
+				}
+			}, this);
+		}
+	}
+};
+
 Scene_Map.prototype.createDamagePopup = function(characterSprite, battler) {
 	if (battler.isActor()) {
 		const sprite = new KRD_Sprite_MapActor(battler);
@@ -623,7 +797,7 @@ Scene_Map.prototype.createDamagePopup = function(characterSprite, battler) {
 	} else {
 		const sprite = new KRD_Sprite_MapEnemy(battler);
 		characterSprite.addChild(sprite);
-		}
+	}
 };
 
 Scene_Map.prototype.createHpGauge = function(characterSprite, battler) {
@@ -656,8 +830,7 @@ Game_Temp.prototype.mapPopupPlayer = function() {
 
 Game_Temp.prototype.mapPopupEnemy = function(eventId) {
 	if (USE_DAMAGE_POPUP) {
-		const ev = $gameMap.event(eventId);
-		ev._enemy.startDamagePopup();
+		$gameMap.enemy(eventId).startDamagePopup();
 	}
 };
 
@@ -680,9 +853,8 @@ Game_Temp.prototype.mapDamage = function(target, subject, skillId) {
 
 Game_Temp.prototype.mapDamageEnemy = function(eventId, skillId) {
 	const subject = $gameParty.leader();
-	const event = $gameMap.event(eventId);
-	if (event) {
-		const target = event._enemy;
+	const target = $gameMap.enemy(eventId);
+	if (target) {
 		this.mapDamage(target, subject, skillId);
 	}
 };
@@ -694,7 +866,7 @@ Game_Temp.prototype.mapDamageTroop = function(skillId) {
 };
 
 Game_Temp.prototype.mapDamagePlayer = function(eventId, skillId) {
-	const subject = $gameMap.event(eventId)._enemy;
+	const subject = $gameMap.enemy(eventId);
 	const target = $gameParty.leader();
 	this.mapDamage(target, subject, skillId);
 };
@@ -710,9 +882,8 @@ Game_Temp.prototype.itemMapDamage = function(target, subject, itemId) {
 
 Game_Temp.prototype.itemMapDamageEnemy = function(eventId, itemId) {
 	const subject = $gameParty.leader();
-	const event = $gameMap.event(eventId);
-	if (event) {
-		const target = event._enemy;
+	const target = $gameMap.enemy(eventId);
+	if (target) {
 		this.itemMapDamage(target, subject, itemId);
 	}
 };
@@ -728,7 +899,7 @@ Game_Temp.prototype.itemMapDamageTroop = function(itemId) {
 
 Game_Temp.prototype.isDeadEnemy = function(eventId) {
 	const event = $gameMap.event(eventId);
-	return !event._erased && event._enemy.isDead();
+	return event && !event._erased && $gameMap.enemy(eventId).isDead();
 };
 
 Game_Temp.prototype.isDeadTroop = function() {
@@ -738,11 +909,12 @@ Game_Temp.prototype.isDeadTroop = function() {
 };
 
 // -------------------------------------
-// イベントの一時消去
+// 戦闘不能の敵イベントの一時消去
 
 Game_Temp.prototype.eraseAllDeadEvent = function() {
 	if (this._deadList) {
 		this._deadList.forEach(id => {
+			$gameMap.enemy(id).performCollapse();
 			$gameMap.eraseEvent(id);
 		});
 	}
@@ -811,16 +983,10 @@ Game_Temp.prototype.attackByPlayer = function(position, direction) {
 };
 
 Game_Temp.prototype.attackByEvent = function(position, direction) {
-	// BACK  = -200;
-	// SIDE  = -400;
-	// FRONT = -800;
 	return -this.checkCollisionTable(position, direction);
 };
 
 Game_Temp.prototype.checkCollisionTable = function(position, direction) {
-	const FRONT = 200;
-	const SIDE  = 400;
-	const BACK  = 800;
 	const positionIndex = position / 2 - 1;
 	const directionIndex = direction / 2 - 1;
 
@@ -882,12 +1048,34 @@ Game_Temp.prototype.processEnemyCollapse = function(eventId) {
 	BattleManager.makeMapEnemyRewards(eventId);
 	if (USE_DISPLAY_REWARDS) {
 		BattleManager.displayRewards();
+		BattleManager.gainRewards();
+	} else if (typeof KRD_TINY_GET_INFO !== "undefined") {
+		KRD_TINY_GET_INFO.addGetRewardsWindow(BattleManager._rewards.exp, BattleManager._rewards.gold);
+		BattleManager.gainExp();
+		BattleManager.gainGold();
+
+		// item は addGetItemWindow の中で gainItem してる。
+		BattleManager._rewards.items.forEach(item => {
+			KRD_TINY_GET_INFO.addGetItemWindow(this.typeName(item), item.id, 1, false);
+		}, this);
+	} else {
+		BattleManager.gainRewards();
 	}
-	BattleManager.gainRewards();
 };
 
+Game_Temp.prototype.typeName = function(item) {
+	if (item.itypeId) {
+		return "item";
+	} else if (item.wtypeId) {
+		return "weapon";
+	} else if (item.atypeId) {
+		return "armor";
+	}
+	return null;
+}
+
 BattleManager.makeMapEnemyRewards = function(eventId) {
-	const enemy = $gameMap.event(eventId)._enemy;
+	const enemy = $gameMap.enemy(eventId);
 	const goldRate = Game_Troop.prototype.goldRate.call(this);
 	this._rewards = {
 		 gold: enemy.gold() * goldRate,
@@ -902,8 +1090,17 @@ Game_Actor.prototype.gainExp = function(exp) {
 		KRD_Game_Actor_gainExp.apply(this, arguments);
 	} else {
 		const newExp = this.currentExp() + Math.round(exp * this.finalExpRate());
-		this.changeExp(newExp, USE_DISPLAY_REWARDS);
+		this.changeExp(newExp, USE_DISPLAY_REWARDS || typeof KRD_TINY_GET_INFO !== "undefined");
 	}
+};
+
+const KRD_Game_Actor_displayLevelUp = Game_Actor.prototype.displayLevelUp;
+Game_Actor.prototype.displayLevelUp = function(newSkills) {
+	if (!$gameParty.inBattle() && typeof KRD_TINY_GET_INFO !== "undefined") {
+		KRD_TINY_GET_INFO.addLevelUpWindow(this.name(), this._level);
+		return;
+	}
+	KRD_Game_Actor_displayLevelUp.apply(this, arguments);
 };
 
 // -------------------------------------
@@ -973,7 +1170,7 @@ Game_Temp.prototype.forceCritical = function() {
 };
 
 Game_Temp.prototype.addStateEnemy = function(stateId, eventId) {
-	$gameMap.event(eventId)._enemy.addState(stateId);
+	$gameMap.enemy(eventId).addState(stateId);
 };
 
 Game_Temp.prototype.addStatePlayer = function(stateId) {
@@ -1012,6 +1209,16 @@ Game_Temp.prototype.turnAwayFromPlayer = function(eventId) {
 };
 
 // -------------------------------------
+// 「移動ルートの設定(プレイヤーの方を向く)」のイベントID指定
+
+Game_Temp.prototype.turnTowardPlayer = function(eventId) {
+	const event = $gameMap.event(eventId);
+	if (event) {
+		event.turnTowardPlayer();
+	}
+};
+
+// -------------------------------------
 // 「移動ルートの設定(一歩前進)」のイベントID指定
 //
 // Game_Interpreter であることに注意！！
@@ -1039,7 +1246,7 @@ Game_Interpreter.prototype.moveForward = function(eventId, waitMode) {
 Game_Interpreter.prototype.anyCollision = function(skillId, eventId) {
 	const evId = eventId ? eventId : this.eventId();
 	const waitMode = true;
-	const collisionCode = [200, 400, 800, -800];
+	const collisionCode = [FRONT, SIDE, BACK, E_FRONT];
 	const targetId = $gameTemp.anyCollision(evId, collisionCode);
 	if (targetId > 0) {
 		$gameTemp.showSkillAnimation(skillId, targetId, waitMode);
@@ -1090,39 +1297,229 @@ Game_Interpreter.prototype.eventStep = function(direction, diffX, diffY) {
 };
 
 // -------------------------------------
-// 玉と発射装置のIDを紐付け
+// 玉と発射装置のIDを紐付け（共通処理）
 
-Game_Interpreter.prototype.ballIndex = function(ballId) {
-	const ballIdList = $gameMap.metaIdList(META_BALL);
+Game_Interpreter.prototype.metaBallIndex = function(ballId, ballTag) {
+	const ballIdList = $gameMap.metaIdList(ballTag);
 	const index = ballIdList.findIndex(id => id === ballId);
 	return index;
 };
 
-Game_Interpreter.prototype.launchEventId = function(ballId) {
-	const index = this.ballIndex(ballId);
-	const launchIdList = $gameMap.metaIdList(META_LAUNCH);
+Game_Interpreter.prototype.metaLaunchEventId = function(ballId, launchTag, ballTag) {
+	const index = this.metaBallIndex(ballId, ballTag);
+	const launchIdList = $gameMap.metaIdList(launchTag);
 	return launchIdList[index];
 };
 
-Game_Interpreter.prototype.launchIndex = function(launchId) {
-	const launchIdList = $gameMap.metaIdList(META_LAUNCH);
+Game_Interpreter.prototype.metaLaunchIndex = function(launchId, launchTag) {
+	const launchIdList = $gameMap.metaIdList(launchTag);
 	const index = launchIdList.findIndex(id => id === launchId);
 	return index;
 };
 
-Game_Interpreter.prototype.ballEventId = function(launchId) {
-	const index = this.launchIndex(launchId);
-	const ballIdList = $gameMap.metaIdList(META_BALL);
+Game_Interpreter.prototype.metaBallEventId = function(launchId, ballTag, launchTag) {
+	const index = this.metaLaunchIndex(launchId, launchTag);
+	const ballIdList = $gameMap.metaIdList(ballTag);
 	return ballIdList[index];
 };
 
 // -------------------------------------
+// 玉と発射装置のIDを紐付け
 
-Game_Interpreter.prototype.resetBallSelfSwitches = function(alphabet) {
-	const ballIdList = $gameMap.metaIdList(META_BALL);
+Game_Interpreter.prototype.ballIndex = function(ballId) {
+	return this.metaBallIndex(ballId, META_BALL);
+};
+
+Game_Interpreter.prototype.launchEventId = function(ballId) {
+	return this.metaLaunchEventId(ballId, META_LAUNCH, META_BALL);
+};
+
+Game_Interpreter.prototype.launchIndex = function(launchId) {
+	return this.metaLaunchIndex(launchId, META_LAUNCH);
+};
+
+Game_Interpreter.prototype.ballEventId = function(launchId) {
+	return this.metaBallEventId(launchId, META_BALL, META_LAUNCH);
+};
+
+// -------------------------------------
+// 敵玉と敵玉発射装置のIDを紐付け
+
+Game_Interpreter.prototype.enemyBallIndex = function(ballId) {
+	return this.metaBallIndex(ballId, META_ENEMY_BALL);
+};
+
+Game_Interpreter.prototype.enemyLaunchEventId = function(ballId) {
+	return this.metaLaunchEventId(ballId, META_ENEMY_LAUNCH, META_ENEMY_BALL);
+};
+
+Game_Interpreter.prototype.enemyLaunchIndex = function(launchId) {
+	return this.metaLaunchIndex(launchId, META_ENEMY_LAUNCH);
+};
+
+Game_Interpreter.prototype.enemyBallEventId = function(launchId) {
+	return this.metaBallEventId(launchId, META_ENEMY_BALL, META_ENEMY_LAUNCH);
+};
+
+// -------------------------------------
+// すべての玉のセルフスイッチをOFF
+
+Game_Temp.prototype.resetBallSelfSwitches = function(alphabet, tag = META_BALL) {
+	const ballIdList = $gameMap.metaIdList(tag);
 	ballIdList.forEach(id => {
-		$gameTemp.setSelfSwitch($gameMap.mapId(), id, alphabet, false);
-	});
+		this.setSelfSwitch($gameMap.mapId(), id, alphabet, false);
+	}, this);
+};
+
+// -------------------------------------
+// 行動不可ステート効果の反映
+
+const KRD_Game_Event_updateSelfMovement = Game_Event.prototype.updateSelfMovement;
+Game_Event.prototype.updateSelfMovement = function() {
+	if (!this.enemy()) {
+		KRD_Game_Event_updateSelfMovement.apply(this, arguments);
+	} else if (this.enemy().canMove()) {
+		KRD_Game_Event_updateSelfMovement.apply(this, arguments);
+	}
+};
+
+// -------------------------------------
+// マップでのターン終了処理
+
+const KRD_Game_Party_onPlayerWalk = Game_Party.prototype.onPlayerWalk;
+Game_Party.prototype.onPlayerWalk = function() {
+	KRD_Game_Party_onPlayerWalk.apply(this, arguments);
+	$gameMap.onPlayerWalk();
+};
+
+Game_Map.prototype.onPlayerWalk = function() {
+	const metaIdList = this.metaIdList(META_ENEMY);
+	metaIdList.forEach(id => {
+		this.enemy(id).turnEndOnMap();
+	}, this);
+};
+
+Game_Party.prototype.inMapBattle = function() {
+	const inBattle = $gameParty.inBattle();
+	const enemies = $gameMap.metaIdList(META_ENEMY).length > 0;
+	return !inBattle && enemies;
+};
+
+Game_Party.prototype.isAlwaysPlayerHp = function() {
+	const inBattle = $gameParty.inBattle();
+	const playerHp = ALWAYS_PLAYER_HP && USE_DAMAGE_POPUP;
+	return !inBattle && playerHp;
+};
+
+Game_Party.prototype.canMapDamagePopup = function() {
+	return (this.inMapBattle() && USE_DAMAGE_POPUP) || this.isAlwaysPlayerHp();
+};
+
+const KRD_Game_Actor_turnEndOnMap = Game_Actor.prototype.turnEndOnMap;
+Game_Actor.prototype.turnEndOnMap = function() {
+	KRD_Game_Actor_turnEndOnMap.apply(this, arguments);
+	if ($gameParty.steps() % this.stepsForTurn() === 0) {
+		if (this.result().hpDamage < 0) {
+			this.performMapRecover();
+		}
+	}
+};
+
+const KRD_Game_Actor_performMapDamage = Game_Actor.prototype.performMapDamage;
+Game_Actor.prototype.performMapDamage = function() {
+	if ($gameParty.canMapDamagePopup()) {
+		this.startDamagePopup();
+	} else {
+		KRD_Game_Actor_performMapDamage.apply(this, arguments);
+	}
+};
+
+Game_Actor.prototype.performMapRecover = function() {
+	if ($gameParty.canMapDamagePopup()) {
+		this.startDamagePopup();
+	}
+};
+
+Game_Enemy.prototype.turnEndOnMap = function() {
+	if ($gameParty.steps() % $gameParty.leader().stepsForTurn() === 0) {
+		this.onTurnEnd();
+		if (this.result().hpDamage !== 0) {
+			this.startDamagePopup();
+		}
+	}
+};
+
+// -------------------------------------
+// ゲームオーバー処理
+
+const KRD_Scene_Map_checkGameover = Scene_Map.prototype.checkGameover;
+Scene_Map.prototype.checkGameover = function() {
+	if (this.isMapGameOver()) {
+		$gameMap._gameOver = true;
+		$gameTemp.reserveCommonEvent(CMN_GAME_OVER);
+	} else {
+		KRD_Scene_Map_checkGameover.apply(this, arguments);
+	}
+};
+
+Game_Party.prototype.isAlwaysMapGameover = function() {
+	return (ALWAYS_MAP_GAMEOVER || !this.inBattle())
+};
+
+Scene_Map.prototype.isMapGameOver = function() {
+	if (!$gameMap._gameOver) {
+		if ($gameParty.inMapBattle() && $gameParty.leader().isDead()) {
+			return true;
+		}
+		if ($gameParty.isAlwaysMapGameover() && $gameParty.isAllDead()) {
+			return true;
+		}
+	}
+	return false;
+};
+
+// -------------------------------------
+// ダメージスプライトの表示位置をリセット
+
+const KRD_Sprite_Battler_createDamageSprite = Sprite_Battler.prototype.createDamageSprite;
+Sprite_Battler.prototype.createDamageSprite = function() {
+	KRD_Sprite_Battler_createDamageSprite.apply(this, arguments);
+
+	if ($gameParty.canMapDamagePopup()) {
+		const sprite = this._damages[this._damages.length - 1];
+		sprite.x = sprite.x < (8 * DAMAGE_POPUP_COUNT) ? sprite.x : 0;
+		sprite.y = sprite.y > (-16 * DAMAGE_POPUP_COUNT) ? sprite.y : 0;
+	}
+};
+
+// -------------------------------------
+// ボス
+
+Game_Temp.prototype.bossId = function() {
+	const metaIdList = $gameMap.metaIdList(META_BOSS);
+	return metaIdList[0];
+};
+
+Game_Temp.prototype.isDeadBoss = function() {
+	return !!this.isDeadEnemy(this.bossId());
+};
+
+// -------------------------------------
+// 敵イベントの強制一時消去
+
+Game_Map.prototype.eraseMapEnemy = function() {
+	this.eraseAllMetaEvent(META_ENEMY);
+};
+
+Game_Map.prototype.eraseAllMetaEvent = function(tag) {
+	const metaIdList = this.metaIdList(tag);
+	this.eraseAllListEvent(metaIdList);
+};
+
+Game_Map.prototype.eraseAllListEvent = function(idList) {
+	for (const id of idList) {
+		this.eraseEvent(id);
+	}
 };
 
 // -------------------------------------

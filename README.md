@@ -227,12 +227,15 @@ https://game.nicovideo.jp/atsumaru/games/gm21290
 独自の内部タイマーの時間経過を確認し、経過している場合スイッチがONになります。
 時間経過をチェックするイベントに使用可能です。
 
+また、指定した時刻でスイッチON／OFFがリセットされる方式も可能です。
+
 尚、このプラグインにはロード時に自動実行する機能はありません。
 あくまで、ログインボーナス「支援」です。
 
 [KRD_MZ_LoginBonusをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_LoginBonus.js)
 
 ![ログインボーナス支援](img/LoginBonus.png)
+![ログインボーナス支援2](img/LoginBonus2.png)
 
 ## CastingTimeGauge.js （キャストタイムゲージ）
 

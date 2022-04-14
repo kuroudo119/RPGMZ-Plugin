@@ -4,6 +4,14 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_SpeedParam （速度補正能力値加算）
+
+速度補正に能力値を加算します。
+TPBの場合、負の速度補正（キャストタイム）に有効です。
+能力値が高いとキャストタイムが短くなります。
+
+[KRD_MZ_SpeedParamをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_SpeedParam.js)
+
 ## KRD_MZ_ItemSort （アイテム・スキル一覧ソート）
 
 アイテム・スキル一覧のソートを変更します。並び順は固定です。

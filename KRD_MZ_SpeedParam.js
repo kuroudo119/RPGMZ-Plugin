@@ -19,13 +19,25 @@
 このプラグインはMITライセンスです。
 https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
-## 使い方
+## 使い方（メモ欄タグ）
+
+### speedParam
 
 速度補正に能力値を加算したいスキルのメモ欄に、
 <speedParam:luk>
 のように記述します。
 
 上記 luk の部分には atk, def などが使えます。
+
+### speedParamPercent
+
+speedParam に対するパーセントを適用したい場合、
+同じメモ欄に、
+<speedParamPercent:100>
+のように記述します。
+
+数値はパーセントです。
+省略すると 100%（つまり等倍）です。
 
 ## 補足
 
@@ -38,6 +50,7 @@ TPBの場合、負の速度補正（キャストタイム）に加算します�
 - ver.0.1.0 (2022/04/13) 非公開版完成
 - ver.0.2.0 (2022/04/14) タグ版に変更して、TPBにも対応。
 - ver.1.0.0 (2022/04/14) 公開
+- ver.1.1.0 (2022/04/15) 負の delay バグ修正。speedParamPercent タグ追加。
 
  * 
  * 
@@ -57,7 +70,8 @@ Game_Battler.prototype.tpbRequiredCastTime = function() {
 		(r, item) => {
 			const defaultDelay = r + Math.max(0, -item.speed);
 			const plusSpeed = this.plusSpeed(item);
-			return defaultDelay - plusSpeed;
+			const delay = Math.max(defaultDelay - plusSpeed, 0);
+			return delay;
 		}, 0
 	);
 	return Math.sqrt(delay) / this.tpbSpeed();
@@ -82,8 +96,11 @@ Game_Battler.prototype.makeSpeed = function() {
 // 共通
 
 Game_BattlerBase.prototype.plusSpeed = function(item) {
-	const tag = item.meta.speedParam;
-	return tag !== undefined ? Math.floor(this[tag]) || 0 : 0;
+	const paramName = item.meta.speedParam;
+	const param = Number(this[paramName]) || 0;
+	const percent = (Number(item.meta.speedParamPercent) || 100) / 100;
+	const plusSpeed = Math.floor(param * percent);
+	return plusSpeed;
 };
 
 //--------------------------------------

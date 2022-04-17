@@ -4,6 +4,14 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_UI_Substitute （身代わり表示）
+
+サイドビュー戦闘で身代わり時にかばわれる対象の前にかばう対象が移動して、かばってるっぽくします。
+
+[KRD_MZ_UI_Substituteをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_UI_Substitute.js)
+
+https://user-images.githubusercontent.com/43639887/163723238-6cb98bd4-fcfc-4cde-bd49-928ef4d51152.mp4
+
 ## KRD_MZ_SpeedParam （速度補正能力値加算）
 
 速度補正に能力値を加算します。

@@ -51,6 +51,7 @@ TPBの場合、負の速度補正（キャストタイム）に加算します�
 - ver.0.2.0 (2022/04/14) タグ版に変更して、TPBにも対応。
 - ver.1.0.0 (2022/04/14) 公開
 - ver.1.1.0 (2022/04/15) 負の delay バグ修正。speedParamPercent タグ追加。
+- ver.1.1.1 (2022/04/23) 内部処理変更。
 
  * 
  * 
@@ -66,14 +67,12 @@ TPBの場合、負の速度補正（キャストタイム）に加算します�
 Game_Battler.prototype.tpbRequiredCastTime = function() {
 	const actions = this._actions.filter(action => action.isValid());
 	const items = actions.map(action => action.item());
-	const delay = items.reduce(
-		(r, item) => {
-			const defaultDelay = r + Math.max(0, -item.speed);
-			const plusSpeed = this.plusSpeed(item);
-			const delay = Math.max(defaultDelay - plusSpeed, 0);
-			return delay;
-		}, 0
-	);
+	const delay = items.reduce((r, item) => {
+		const defaultDelay = r + Math.max(0, -item.speed);
+		const plusSpeed = this.plusSpeed(item);
+		const itemDelay = Math.max(defaultDelay - plusSpeed, 0);
+		return itemDelay;
+	}, 0);
 	return Math.sqrt(delay) / this.tpbSpeed();
 };
 
@@ -83,13 +82,11 @@ Game_Battler.prototype.tpbRequiredCastTime = function() {
 // 行動不可の時は action が無く Infinity が入るが、
 // これは元々の仕様。
 Game_Battler.prototype.makeSpeed = function() {
-	this._speed = Math.min(...this._actions.map(
-		action => {
-			const speed = action.speed();
-			const plusSpeed = this.plusSpeed(action.item());
-			return speed + plusSpeed;
-		}
-	)) || 0;
+	this._speed = Math.min(...this._actions.map(action => {
+		const speed = action.speed();
+		const plusSpeed = this.plusSpeed(action.item());
+		return speed + plusSpeed;
+	})) || 0;
 };
 
 //--------------------------------------
@@ -98,9 +95,13 @@ Game_Battler.prototype.makeSpeed = function() {
 Game_BattlerBase.prototype.plusSpeed = function(item) {
 	const paramName = item.meta.speedParam;
 	const param = Number(this[paramName]) || 0;
-	const percent = (Number(item.meta.speedParamPercent) || 100) / 100;
-	const plusSpeed = Math.floor(param * percent);
-	return plusSpeed;
+	const speedParamPercent = Number(item.meta.speedParamPercent);
+	if (isNaN(speedParamPercent)) {
+		return param;
+	} else {
+		const percent = (speedParamPercent || 100) / 100;
+		return Math.floor(param * percent);
+	}
 };
 
 //--------------------------------------

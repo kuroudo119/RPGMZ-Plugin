@@ -4,6 +4,14 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_StateByLuck （運によるステート有効度を変更）
+
+ステート有効度への運の影響度を変更します。  
+
+[KRD_MZ_StateByLuckをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_StateByLuck.js)
+
+![運の影響](img/stateLuck.png)
+
 ## KRD_MZ_UI_Substitute （身代わり表示）
 
 サイドビュー戦闘で身代わり時にかばわれる対象の前にかばう対象が移動して、かばってるっぽくします。

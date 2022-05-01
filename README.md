@@ -4,6 +4,15 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_Volume （音量オプション）
+
+音量オプションを変更します。  
+BGS、MEをSEに統合。音量デフォルト値変更。音量Window分割。
+
+[KRD_MZ_Volumeをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Volume.js)
+
+![音量オプション](img/volume.png)
+
 ## KRD_MZ_StateByLuck （運によるステート有効度を変更）
 
 ステート有効度への運の影響度を変更します。  

@@ -72,16 +72,11 @@ Window_ActorCommand.prototype.addGuardCommand = function() {
 };
 
 Game_Actor.prototype.hasMetaTag = function(tag) {
-	const actorId = this.actorId();
-	const actorTag = !!$dataActors[actorId].meta[tag];
-	const classId = this._classId;
-	const classTag = !!$dataClasses[classId].meta[tag];
-	const weapons = this.weapons();
-	const weaponTag = weapons.some(weapon => !!weapon.meta[tag]);
-	const armors = this.armors();
-	const armorTag = armors.some(armor => !!armor.meta[tag]);
-	const states = this.states();
-	const stateTag = states.some(state => !!state.meta[tag]);
+	const actorTag = !!$dataActors[this.actorId()].meta[tag];
+	const classTag = !!$dataClasses[this._classId].meta[tag];
+	const weaponTag = this.weapons().some(weapon => !!weapon.meta[tag]);
+	const armorTag = this.armors().some(armor => !!armor.meta[tag]);
+	const stateTag = this.states().some(state => !!state.meta[tag]);
 
 	return actorTag || classTag || weaponTag || armorTag || stateTag;
 };

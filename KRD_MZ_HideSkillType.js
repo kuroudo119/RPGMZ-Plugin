@@ -30,7 +30,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 ### <hideGuard>
 
 バトル時に防御コマンドを非表示にする。
-アクター or 職業のメモ欄に記述可能。
+アクター、職業、武器、防具、ステートのメモ欄に記述可能。
 
 ## 更新履歴
 
@@ -38,6 +38,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2021/09/29) 非公開版完成
 - ver.1.0.0 (2021/09/29) 公開
 - ver.1.1.0 (2022/04/06) 防御コマンド非表示タグ追加。
+- ver.1.2.0 (2022/05/02) 防御コマンド非表示タグを武器防具ステートにも適用。
 
  * 
  * 
@@ -65,15 +66,24 @@ Window_ActorCommand.prototype.addSkillCommands = function() {
 
 const KRD_Window_ActorCommand_addGuardCommand = Window_ActorCommand.prototype.addGuardCommand;
 Window_ActorCommand.prototype.addGuardCommand = function() {
-	const actorId = this._actor.actorId();
-	const classId = this._actor._classId;
-	const actorTag = !!$dataActors[actorId].meta.hideGuard;
-	const classTag = !!$dataClasses[classId].meta.hideGuard;
-	const hideGuard = actorTag || classTag;
-
-	if (!hideGuard) {
+	if (!this._actor.hasMetaTag("hideGuard")) {
 		KRD_Window_ActorCommand_addGuardCommand.apply(this, arguments);
 	}
+};
+
+Game_Actor.prototype.hasMetaTag = function(tag) {
+	const actorId = this.actorId();
+	const actorTag = !!$dataActors[actorId].meta[tag];
+	const classId = this._classId;
+	const classTag = !!$dataClasses[classId].meta[tag];
+	const weapons = this.weapons();
+	const weaponTag = weapons.some(weapon => !!weapon.meta[tag]);
+	const armors = this.armors();
+	const armorTag = armors.some(armor => !!armor.meta[tag]);
+	const states = this.states();
+	const stateTag = states.some(state => !!state.meta[tag]);
+
+	return actorTag || classTag || weaponTag || armorTag || stateTag;
 };
 
 })();

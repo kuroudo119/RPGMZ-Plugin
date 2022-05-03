@@ -4,6 +4,14 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_Reflection （魔法反射アニメーション表示）
+
+魔法反射時に反射アニメーションを表示します。
+
+[KRD_MZ_Reflectionをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Reflection.js)
+
+![魔法反射](img/reflection.png)
+
 ## KRD_MZ_Volume （音量オプション）
 
 音量オプションを変更します。  

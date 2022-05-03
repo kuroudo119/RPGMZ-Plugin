@@ -113,6 +113,12 @@ TPBの場合、負の速度補正（キャストタイム）に有効です。
 ![体当たりアクションRPGサンプル](img/ARPG.png)
 ![体当たりアクションRPGサンプル2](img/ARPG_2.png)
 
+### KRD_MZ_ActionRPG （アクションRPG）
+
+MapEnemyプラグインの更新版です（ファイル名変更しました）。
+
+[KRD_MZ_ActionRPGをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_ActionRPG.js)
+
 ## KRD_MZ_AlwaysImage （常時画像表示）
 
 ブラウザのWindowの右下に常時画像表示します。ウォーターマーク等に使用できます。

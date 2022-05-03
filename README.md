@@ -6,7 +6,8 @@
 
 ## KRD_MZ_Reflection （魔法反射アニメーション表示）
 
-魔法反射時に反射アニメーションを表示します。
+魔法反射時に反射アニメーションを表示します。  
+尚、ダメージポップアップが先に表示されます。
 
 [KRD_MZ_Reflectionをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Reflection.js)
 

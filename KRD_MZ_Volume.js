@@ -56,6 +56,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.6.1 (2022/04/26) 音量Window処理を修正。
 - ver.0.6.2 (2022/04/30) 音量Window処理を修正。
 - ver.1.0.0 (2022/05/01) 公開
+- ver.1.0.1 (2022/05/15) メソッドがfunctionになっていたので修正。
 
  * 
  * 
@@ -230,7 +231,7 @@ Window_VolumeOptions = class extends Window_Options {
 		return value ? "↑" : "↓";
 	}
 
-	processOk = function() {
+	processOk() {
 		const index = this.index();
 		const baseSymbol = this.commandSymbol(index);
 		const cutUpSymbol = baseSymbol.replace("Up", "");

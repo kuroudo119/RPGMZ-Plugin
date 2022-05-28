@@ -4,6 +4,14 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_SkillOnOff （スキルON／OFF）
+
+バトル時に使えるスキル数を制限し、使いたいスキルを選択するコマンドをメニュー画面に追加します。
+
+[KRD_MZ_SkillOnOffをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_SkillOnOff.js)
+
+![スキルONOFF](img/SkillSelect.png)
+
 ## KRD_MZ_Reflection （魔法反射アニメーション表示）
 
 魔法反射時に反射アニメーションを表示します。  

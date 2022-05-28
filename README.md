@@ -8,7 +8,7 @@
 
 バトル時に使えるスキル数を制限し、使いたいスキルを選択するコマンドをメニュー画面に追加します。
 
-装備品の特徴でのスキル習得など、スキル削除される状況には未対応です。
+装備品の特徴でのスキル習得など、スキル削除される状況に一応対応しました。
 
 [KRD_MZ_SkillOnOffをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_SkillOnOff.js)
 

@@ -29,16 +29,21 @@
  * @default 2
  * @type number
  * 
- * @param commandName
- * @text コマンド名
- * @desc メニュー画面のコマンド名です。初期値「習得」
- * @default 習得
- * 
  * @param showCount
  * @text カウンタ表示
  * @desc 選択数カウンタを表示する: true ／ しない: false
  * @default true
  * @type boolean
+ * 
+ * @param commandName
+ * @text メニューコマンド名
+ * @desc メニュー画面のコマンド名です。初期値「習得」
+ * @default 習得
+ * 
+ * @param clearName
+ * @text 初期化コマンド名
+ * @desc 選択をリセットする選択肢名。初期値「全て外す」
+ * @default 全て外す
  * 
  * @help
 # KRD_MZ_SkillOnOff.js
@@ -60,6 +65,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2022/05/27) 非公開版完成
 - ver.0.2.0 (2022/05/28) 選択数カウンタ追加
 - ver.1.0.0 (2022/05/28) 公開
+- ver.1.1.0 (2022/05/28) スキルが減る状況に対応
 
  * 
  * 
@@ -67,7 +73,6 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 let Scene_SkillSelect = null;
 
-//--------------------------------------
 (() => {
 
 "use strict";
@@ -81,14 +86,25 @@ const OFF_ICON = Number(PARAM["offIcon"]) || 0;
 
 const ICON_Y = Number(PARAM["iconY"]) || 0;
 
-const COMMAND_NAME = PARAM["commandName"];
 const SHOW_COUNT = PARAM["showCount"] === "true";
+const COMMAND_NAME = PARAM["commandName"];
+const CLEAR_NAME = PARAM["clearName"];
 
 //--------------------------------------
 // スキル選択クラス
 
 Scene_SkillSelect = class extends Scene_Skill {
 	onItemOk() {
+		const index = this._itemWindow.index();
+		const max = this._itemWindow.maxItems();
+		if (index < max - 1) {
+			this.onItemOkMain();
+		} else {
+			this.onItemClear();
+		}
+	}
+
+	onItemOkMain() {
 		const actor = this.actor();
 		const id = this.item().id;
 		const typeId = this.item().stypeId;
@@ -96,6 +112,18 @@ Scene_SkillSelect = class extends Scene_Skill {
 			actor.onUseSkill(id, typeId);
 		} else {
 			actor.offUseSkill(id, typeId);
+		}
+		this._itemWindow.refresh();
+		this._statusWindow.refresh();
+		this._itemWindow.activate();
+	}
+
+	onItemClear() {
+		const skillTypeWindow = SceneManager._scene._skillTypeWindow;
+		const index = skillTypeWindow.index();
+		const stypeId = index >= 0 ? skillTypeWindow._list[index].ext : null;
+		if (stypeId !== null) {
+			this.actor().clearUseSkills(stypeId);
 		}
 		this._itemWindow.refresh();
 		this._statusWindow.refresh();
@@ -114,6 +142,10 @@ Game_Actor.prototype.initMembers = function() {
 
 Game_Actor.prototype.maxUseSkills = function() {
 	return MAX_SKILLS;
+};
+
+Game_Actor.prototype.clearUseSkills = function(typeId) {
+	this._useSkills[typeId] = [];
 };
 
 Game_Actor.prototype.onUseSkill = function(id, typeId) {
@@ -139,6 +171,14 @@ Game_Actor.prototype.isOnSkill = function(id, typeId) {
 //--------------------------------------
 // スキルリスト画面
 
+const KRD_Window_SkillList_makeItemList = Window_SkillList.prototype.makeItemList;
+Window_SkillList.prototype.makeItemList = function() {
+	KRD_Window_SkillList_makeItemList.apply(this, arguments);
+	if (SceneManager._scene.constructor.name === "Scene_SkillSelect") {
+		this._data.push(null);
+	}
+};
+
 const KRD_Window_SkillList_isEnabled = Window_SkillList.prototype.isEnabled;
 Window_SkillList.prototype.isEnabled = function(item) {
 	if (SceneManager._scene.constructor.name === "Scene_SkillSelect") {
@@ -149,10 +189,14 @@ Window_SkillList.prototype.isEnabled = function(item) {
 };
 
 Window_SkillList.prototype.drawItem = function(index) {
-	if (this.drawDescription) {
-		this.drawItemDesc(index);
+	if (this.itemAt(index)) {
+		if (this.drawDescription) {
+			this.drawItemDesc(index);
+		} else {
+			this.drawItemDefault(index);
+		}
 	} else {
-		this.drawItemDefault(index);
+		this.drawItemNull(index);
 	}
 };
 
@@ -186,6 +230,15 @@ Window_SkillList.prototype.drawItemDesc = function(index) {
 	}
 };
 
+Window_SkillList.prototype.drawItemNull = function(index) {
+	const skill = this.itemAt(index);
+	if (skill === null) {
+		const rect = this.itemLineRect(index);
+		this.changePaintOpacity(true);
+		this.drawTextEx(CLEAR_NAME, rect.x, rect.y, rect.width);
+	}
+};
+
 Window_SkillList.prototype.drawCheck = function(skill, x, y) {
 	if (this.isOnSkill(skill)) {
 		this.drawIcon(ON_ICON, x, y);
@@ -209,8 +262,8 @@ Window_SkillStatus.prototype.refresh = function() {
 		const skillTypeWindow = SceneManager._scene._skillTypeWindow;
 		const index = skillTypeWindow.index();
 		const stypeId = index >= 0 ? skillTypeWindow._list[index].ext : null;
-		const useSkills = this._actor._useSkills;
-		const count = stypeId && useSkills[stypeId] ? useSkills[stypeId].length : 0;
+		const useSkills = this._actor.useSkills ? this._actor._useSkills[stypeId] : null;
+		const count = stypeId && useSkills ? useSkills.length : 0;
 		const max = MAX_SKILLS;
 		const text = `${count} / ${max}`;
 		const x = 0;
@@ -282,9 +335,9 @@ Scene_Menu.prototype.onPersonalOk = function() {
 
 Window_BattleSkill.prototype.makeItemList = function() {
 	if (this._actor) {
-		 this._data = this._actor.useSkills().filter(item => this.includes(item));
+		this._data = this._actor.useSkills().filter(item => this.includes(item));
 	} else {
-		 this._data = [];
+		this._data = [];
 	}
 
 	if (this.sortList) {
@@ -301,7 +354,8 @@ Game_Actor.prototype.useSkills = function() {
 		});
 
 		for (const id of this._useSkills[stype]) {
-			if (!list.includes($dataSkills[id])) {
+			const skills = this._skills.concat(this.addedSkills());
+			if (skills.includes(id) && !list.includes($dataSkills[id])) {
 				list.push($dataSkills[id]);
 			}
 		}

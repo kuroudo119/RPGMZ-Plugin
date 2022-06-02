@@ -45,6 +45,38 @@
  * @desc 選択をリセットする選択肢名。初期値「全て外す」
  * @default 全て外す
  * 
+ * @command onUseSkill
+ * @text スキルON
+ * @desc 指定したスキルをONにします。
+ * @arg actorId
+ * @text アクターID
+ * @desc スキルをONにするアクターIDを指定します。
+ * @type actor
+ * @arg skillId
+ * @text スキルID
+ * @desc ONにするスキルIDを指定します。
+ * @type skill
+ * @arg stypeId
+ * @text スキルタイプID
+ * @desc ONにするスキルのスキルタイプIDを指定します。
+ * @type number
+ * 
+ * @command offUseSkill
+ * @text スキルOFF
+ * @desc 指定したスキルをOFFにします。
+ * @arg actorId
+ * @text アクターID
+ * @desc スキルをOFFにするアクターIDを指定します。
+ * @type actor
+ * @arg skillId
+ * @text スキルID
+ * @desc OFFにするスキルIDを指定します。
+ * @type skill
+ * @arg stypeId
+ * @text スキルタイプID
+ * @desc OFFにするスキルのスキルタイプIDを指定します。
+ * @type number
+ * 
  * @help
 # KRD_MZ_SkillOnOff.js
 
@@ -66,6 +98,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.2.0 (2022/05/28) 選択数カウンタ追加
 - ver.1.0.0 (2022/05/28) 公開
 - ver.1.1.0 (2022/05/28) スキルが減る状況に対応
+- ver.1.1.1 (2022/06/03) 初期カーソル位置を修正。
+- ver.1.2.0 (2022/06/03) プラグインコマンド追加。
 
  * 
  * 
@@ -89,6 +123,29 @@ const ICON_Y = Number(PARAM["iconY"]) || 0;
 const SHOW_COUNT = PARAM["showCount"] === "true";
 const COMMAND_NAME = PARAM["commandName"];
 const CLEAR_NAME = PARAM["clearName"];
+
+// -------------------------------------
+// プラグインコマンド
+
+PluginManager.registerCommand(PLUGIN_NAME, "onUseSkill", args => {
+	const actorId = Number(args.actorId) || 0;
+	const actor = $gameActors.actor(actorId);
+	const skillId = Number(args.skillId) || 0;
+	const stypeId = Number(args.stypeId) || 0;
+	if (actor) {
+		actor.onUseSkill(skillId, stypeId);
+	}
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "offUseSkill", args => {
+	const actorId = Number(args.actorId) || 0;
+	const actor = $gameActors.actor(actorId);
+	const skillId = Number(args.skillId) || 0;
+	const stypeId = Number(args.stypeId) || 0;
+	if (actor) {
+		actor.offUseSkill(skillId, stypeId);
+	}
+});
 
 //--------------------------------------
 // スキル選択クラス
@@ -145,10 +202,17 @@ Game_Actor.prototype.maxUseSkills = function() {
 };
 
 Game_Actor.prototype.clearUseSkills = function(typeId) {
-	this._useSkills[typeId] = [];
+	if (typeId !== undefined) {
+		this._useSkills[typeId] = [];
+	} else {
+		this._useSkills = {};
+	}
 };
 
 Game_Actor.prototype.onUseSkill = function(id, typeId) {
+	if (!this._useSkills[typeId]) {
+		this._useSkills[typeId] = [];
+	}
 	if (this._useSkills[typeId].length < this.maxUseSkills() && !this.isOnSkill(id, typeId)) {
 		this._useSkills[typeId].push(id);
 	}
@@ -176,6 +240,16 @@ Window_SkillList.prototype.makeItemList = function() {
 	KRD_Window_SkillList_makeItemList.apply(this, arguments);
 	if (SceneManager._scene.constructor.name === "Scene_SkillSelect") {
 		this._data.push(null);
+	}
+};
+
+const KRD_Window_SkillList_selectLast = Window_SkillList.prototype.selectLast;
+Window_SkillList.prototype.selectLast = function() {
+	// null を push したことで indexOf で null が引っかかるので別処理。
+	if (this._actor.lastSkill() === null) {
+		this.forceSelect(0);
+	} else {
+		KRD_Window_SkillList_selectLast.apply(this, arguments);
 	}
 };
 

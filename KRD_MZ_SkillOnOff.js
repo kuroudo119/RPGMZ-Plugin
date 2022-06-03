@@ -77,6 +77,18 @@
  * @desc OFFにするスキルのスキルタイプIDを指定します。
  * @type number
  * 
+ * @command onAllSkillActor
+ * @text アクターの全スキルON
+ * @desc 指定したアクターの全スキルをONにします。スキルID昇順に最大スキル数まで。
+ * @arg actorId
+ * @text アクターID
+ * @desc スキルをONにするアクターIDを指定します。
+ * @type actor
+ * 
+ * @command onAllSkillParty
+ * @text パーティ全体の全スキルON
+ * @desc パーティ全体の全スキルをONにします。スキルID昇順に最大スキル数まで。
+ * 
  * @help
 # KRD_MZ_SkillOnOff.js
 
@@ -100,6 +112,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.1.0 (2022/05/28) スキルが減る状況に対応
 - ver.1.1.1 (2022/06/03) 初期カーソル位置を修正。
 - ver.1.2.0 (2022/06/03) プラグインコマンド追加。
+- ver.1.3.0 (2022/06/04) プラグインコマンド追加。
 
  * 
  * 
@@ -145,6 +158,18 @@ PluginManager.registerCommand(PLUGIN_NAME, "offUseSkill", args => {
 	if (actor) {
 		actor.offUseSkill(skillId, stypeId);
 	}
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "onAllSkillActor", args => {
+	const actorId = Number(args.actorId) || 0;
+	const actor = $gameActors.actor(actorId);
+	if (actor) {
+		actor.onAllSkill();
+	}
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "onAllSkillParty", args => {
+	$gameParty.onAllSkill();
 });
 
 //--------------------------------------
@@ -231,6 +256,17 @@ Game_Actor.prototype.isOnSkill = function(id, typeId) {
 	}
 	return this._useSkills[typeId].includes(id);
 };
+
+Game_Actor.prototype.onAllSkill = function() {
+	this._skills.forEach(id => {
+		const stypeId = $dataSkills[id].stypeId;
+		this.onUseSkill(id, stypeId);
+	}, this);
+};
+
+Game_Party.prototype.onAllSkill = function() {
+	this.members().forEach(actor => actor.onAllSkill());
+}
 
 //--------------------------------------
 // スキルリスト画面

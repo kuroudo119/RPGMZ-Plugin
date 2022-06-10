@@ -13,6 +13,7 @@
 [KRD_MZ_DivideEquipをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_DivideEquip.js)
 
 ![装備コマンド分割](img/equip.png)
+![装備コマンド分割2](img/equip2.png)
 
 ## KRD_MZ_SkillOnOff （スキルON／OFF）
 

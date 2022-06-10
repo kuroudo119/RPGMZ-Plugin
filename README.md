@@ -4,6 +4,16 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+ ## KRD_MZ_DivideEquip （装備コマンド分割）
+
+装備タイプを分割し、それぞれにコマンドを用意します。
+
+武器防具と装飾品でコマンドを分けたり、スキル習得防具のためのコマンドを分けたり出来ます。
+
+[KRD_MZ_DivideEquipをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_DivideEquip.js)
+
+![装備コマンド分割](img/equip.png)
+
 ## KRD_MZ_SkillOnOff （スキルON／OFF）
 
 バトル時に使えるスキル数を制限し、使いたいスキルを選択するコマンドをメニュー画面に追加します。

@@ -4,7 +4,15 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
- ## KRD_MZ_DivideEquip （装備コマンド分割）
+## KRD_MZ_DoubleAutoSave （オートセーブ2個）
+
+マップ切替時と戦闘後にオートセーブされるが、これを別ファイルにセーブする。
+
+[KRD_MZ_DoubleAutoSaveをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_DoubleAutoSave.js)
+
+![オートセーブ2個](img/wAutoSave.png)
+
+## KRD_MZ_DivideEquip （装備コマンド分割）
 
 装備タイプを分割し、それぞれにコマンドを用意します。
 

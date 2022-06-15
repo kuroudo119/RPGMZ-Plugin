@@ -24,6 +24,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2022/06/14) 作成開始
 - ver.0.1.0 (2022/06/14) 非公開版完成
 - ver.1.0.0 (2022/06/15) 公開
+- ver.1.1.0 (2022/06/15) 不要なコードを削除
 
  * 
  * 
@@ -48,14 +49,6 @@ Scene_Battle.prototype.executeAutosave = function() {
 
 //--------------------------------------
 // 表示修正
-
-Window_SavefileList.prototype.indexToSavefileId = function(index) {
-	return index + (this._autosave ? 0 : INIT_FILE_ID);
-};
-
-Window_SavefileList.prototype.savefileIdToIndex = function(savefileId) {
-	return savefileId - (this._autosave ? 0 : INIT_FILE_ID);
-};
 
 Window_SavefileList.prototype.isEnabled = function(savefileId) {
 	if (this._mode === "save") {

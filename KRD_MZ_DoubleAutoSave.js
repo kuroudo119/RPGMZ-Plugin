@@ -5,6 +5,16 @@
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
  * 
+ * @param saveFileMap
+ * @text マップ切替データ名
+ * @desc マップ切替時のオートセーブ表示名です。初期値「マップ」
+ * @default マップ
+ * 
+ * @param saveFileBattle
+ * @text バトル後データ名
+ * @desc バトル後のオートセーブ表示名です。初期値「バトル」
+ * @default バトル
+ * 
  * @help
 # KRD_MZ_DoubleAutoSave.js
 
@@ -25,6 +35,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2022/06/14) 非公開版完成
 - ver.1.0.0 (2022/06/15) 公開
 - ver.1.1.0 (2022/06/15) 不要なコードを削除
+- ver.1.2.0 (2022/06/15) セーブデータ名を設定可能にした
 
  * 
  * 
@@ -33,6 +44,12 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 (() => {
 
 "use strict";
+
+const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
+const PARAM = PluginManager.parameters(PLUGIN_NAME);
+
+const SAVE_NAME_MAP = PARAM["saveFileMap"];
+const SAVE_NAME_BATTLE = PARAM["saveFileBattle"];
 
 const BATTLE_FILE_ID = 1;
 const INIT_FILE_ID = 2;
@@ -60,11 +77,30 @@ Window_SavefileList.prototype.isEnabled = function(savefileId) {
 
 Window_SavefileList.prototype.drawTitle = function(savefileId, x, y) {
 	if (savefileId < INIT_FILE_ID) {
-		const fileId = savefileId + 1;
-		this.drawText(TextManager.autosave + " " + fileId, x, y, 180);
+		if (SAVE_NAME_MAP && SAVE_NAME_BATTLE) {
+			if (savefileId === 0) {
+				const name = this.getName(SAVE_NAME_MAP);
+				this.drawText(name, x, y, 180);
+			} else if (savefileId === 1) {
+				const name = this.getName(SAVE_NAME_BATTLE);
+				this.drawText(name, x, y, 180);
+			}
+		} else {
+			const fileId = savefileId + 1;
+			this.drawText(TextManager.autosave + " " + fileId, x, y, 180);
+		}
 	} else {
 		const fileId = savefileId - 1;
 		this.drawText(TextManager.file + " " + fileId, x, y, 180);
+	}
+};
+
+// 多言語プラグイン対応
+Window_SavefileList.prototype.getName = function(savefileName) {
+	if (typeof KRD_MULTILINGUAL !== "undefined") {
+		return KRD_MULTILINGUAL.getLangText(savefileName);
+	} else {
+		return savefileName;
 	}
 };
 

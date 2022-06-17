@@ -36,6 +36,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.0 (2022/06/15) 公開
 - ver.1.1.0 (2022/06/15) 不要なコードを削除
 - ver.1.2.0 (2022/06/15) セーブデータ名を設定可能にした
+- ver.1.2.1 (2022/06/16) リファクタリングした
+- ver.1.2.2 (2022/06/17) 多言語プラグイン対応を不要にしたので削除
 
  * 
  * 
@@ -79,11 +81,9 @@ Window_SavefileList.prototype.drawTitle = function(savefileId, x, y) {
 	if (savefileId < INIT_FILE_ID) {
 		if (SAVE_NAME_MAP && SAVE_NAME_BATTLE) {
 			if (savefileId === 0) {
-				const name = this.getName(SAVE_NAME_MAP);
-				this.drawText(name, x, y, 180);
+				this.drawText(SAVE_NAME_MAP, x, y, 180);
 			} else if (savefileId === 1) {
-				const name = this.getName(SAVE_NAME_BATTLE);
-				this.drawText(name, x, y, 180);
+				this.drawText(SAVE_NAME_BATTLE, x, y, 180);
 			}
 		} else {
 			const fileId = savefileId + 1;
@@ -95,20 +95,11 @@ Window_SavefileList.prototype.drawTitle = function(savefileId, x, y) {
 	}
 };
 
-// 多言語プラグイン対応
-Window_SavefileList.prototype.getName = function(savefileName) {
-	if (typeof KRD_MULTILINGUAL !== "undefined") {
-		return KRD_MULTILINGUAL.getLangText(savefileName);
-	} else {
-		return savefileName;
-	}
-};
-
 //--------------------------------------
 const KRD_Scene_Save_initialize = Scene_Save.prototype.initialize;
 Scene_Save.prototype.initialize = function() {
 	KRD_Scene_Save_initialize.apply(this, arguments);
-	this._initFileId = this._initFileId ? this._initFileId : INIT_FILE_ID;
+	this._initFileId = this._initFileId || INIT_FILE_ID;
 };
 
 //--------------------------------------

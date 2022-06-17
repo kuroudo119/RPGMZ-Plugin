@@ -103,7 +103,7 @@
  * 
  * @param useExternal
  * @text 外部DB取得機能
- * @desc jsonファイルから文字列を取得する。DBの名前と説明のみ有効。
+ * @desc jsonファイルから文字列を取得する。
  * @default true
  * @type boolean
  * @parent fileSection
@@ -177,8 +177,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 #### LANG
 
 制御文字 \LANG[0] が使えます。0 の部分は言語番号です。
-デフォルト値として \LANG[0] を使用します。
-\LANGEND までを 言語番号 0 の文字列として使用します。
+\LANG[0] から \LANGEND までを言語番号 0 の文字列として使用します。
+\LANG[0] はデフォルト値として使用されます。
 
 以下のように設定します。
 \LANG[0]はい\LANGEND\LANG[1]Yes\LANGEND\LANG[2]ええで\LANGEND
@@ -206,6 +206,11 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.2.2.1 (2022/03/07) LANG[0]をデフォルト値になるようにした。
 - ver.3.0.0 (2022/03/11) useId を廃止して useExternal 処理を追加。
 - ver.3.1.0 (2022/03/12) 全ての getData の外部データ対応した。
+- ver.3.1.1 (2022/03/15) 一部関数名を変更した。
+- ver.3.1.2 (2022/03/25) LANG の処理変更。
+- ver.3.1.3 (2022/06/04) F9時にエラー出たので修正。
+- ver.3.1.4 (2022/06/10) LANGENDがない場合の無限ループを防止。
+- ver.3.2.0 (2022/06/17) drawText に制御文字 LANG の処理を入れた。
 
  * 
  * 
@@ -686,7 +691,7 @@ const MSG_NAME = "msg_";
 const USE_EXTERNAL = PARAM["useExternal"] === "true";
 const EXTERNAL_NAME = "db_";
 
-const OPTION_DEFAULT = 0
+const OPTION_DEFAULT = 0;
 ConfigManager.multilingual = OPTION_DEFAULT;
 
 //--------------------------------------
@@ -1063,13 +1068,25 @@ Window_Base.prototype.processEscapeCharacter = function(code, textState) {
 	}
 };
 
-Window_Base.prototype.languageText = function(text) {
-	return KRD_MULTILINGUAL.languageText(text);
+Window_Base.prototype.getLangText = function(text) {
+	return KRD_MULTILINGUAL.getLangText(text);
 };
 
 Window_Base.prototype.processLanguage = function(textState) {
-	textState.text = this.languageText(textState.text);
+	textState.text = this.getLangText(textState.text);
 	textState.index = 0;
+};
+
+const KRD_Window_Base_drawText = Window_Base.prototype.drawText;
+Window_Base.prototype.drawText = function(text, x, y, maxWidth, align) {
+	const langText = this.getLangText(text);
+	KRD_Window_Base_drawText.call(this, langText, x, y, maxWidth, align);
+};
+
+const KRD_Window_Base_drawTextEx = Window_Base.prototype.drawTextEx ;
+Window_Base.prototype.drawTextEx = function(text, x, y, width) {
+	const langText = this.getLangText(text);
+	return KRD_Window_Base_drawTextEx.call(this, langText, x, y, width);
 };
 
 //--------------------------------------
@@ -1097,7 +1114,6 @@ Window_Base.prototype.changeText = function(code, textState) {
 		window[GLOBAL_NAME][MSG_NAME + language] &&
 		window[GLOBAL_NAME][MSG_NAME + language][name]) {
 			textState.text = window[GLOBAL_NAME][MSG_NAME + language][name];
-			textState.text = this.convertEscapeCharacters(textState.text);
 			textState.text = textState.text.replace(/\x1bn/g, "\n");
 			textState.index = 0;
 	} else {
@@ -1383,35 +1399,52 @@ KRD_MULTILINGUAL.getType = function(data) {
 	return null;
 };
 
-KRD_MULTILINGUAL.languageText = function(text) {
-	if (!KRD_MULTILINGUAL.isLanguageText(text)) {
-		return text;
-	}
-
-	const language = ConfigManager.multilingual;
-	const regex1 = /\\LANG\[(?<language>\d+?)\](?<text>.*?)\\LANGEND/;
-	const regex2 = /\x1bLANG\[(?<language>\d+?)\](?<text>.*?)\x1bLANGEND/;
-	const regexList = [regex1, regex2];
+KRD_MULTILINGUAL.getLangText = function(text) {
+	const regex1 = /\\LANG\[(?<language>\d+?)\](?<text>.*?)\\LANGEND/g;
+	const regex2 = /\x1bLANG\[(?<language>\d+?)\](?<text>.*?)\x1bLANGEND/g;
 	
-	let tmpText = text.toString();
-	let match = null;
-	let result = "";
-	for (const regex of regexList) {
-		while ((match = regex.exec(tmpText)) !== null) {
-			tmpText = tmpText.replace(regex, "");
-			if (Number(match.groups.language) === language) {
-				result = match.groups.text;
-				break;
-			}
-			if (Number(match.groups.language) === 0) {
-				result = match.groups.text;
-			}
-		}
+	const result1 = text?.toString().replace(regex1, languageReplacer);
+	const result2 = result1?.toString().replace(regex2, languageReplacer);
+
+	if (result2?.length > 0) {
+		return KRD_MULTILINGUAL.cutEscapeLang(result2);
+	} else {
+		return KRD_MULTILINGUAL.cutEscapeLang(KRD_MULTILINGUAL.getDefaultLangText(text));
 	}
-	return result;
 };
 
-KRD_MULTILINGUAL.isLanguageText = function(text) {
+function languageReplacer(match, p1, p2, offset, string, groups) {
+	const language = ConfigManager.multilingual;
+	if (Number(groups.language) === language) {
+		return groups.text;
+	} else {
+		return "";
+	}
+}
+
+KRD_MULTILINGUAL.getDefaultLangText = function(text) {
+	const regex1 = /\\LANG\[0\](?<text>.*?)\\LANGEND.*/;
+	const regex2 = /\x1bLANG\[0\](?<text>.*?)\x1bLANGEND.*/;
+
+	const result1 = text?.toString().replace(regex1, defaultReplacer);
+	const result2 = result1?.toString().replace(regex2, defaultReplacer);
+
+	return text?.length !== result2?.length ? result2 : "";
+};
+
+function defaultReplacer(match, p1, offset, string, groups) {
+	return groups.text;
+}
+
+KRD_MULTILINGUAL.cutEscapeLang = function(text) {
+	// 制御文字LANGに対応するLANGENDがない場合に、
+	// 無限ループするためLANGを削除する。
+	const cutText1 = text?.toString().replace(/\\LANG/g, "");
+	const cutText2 = cutText1?.toString().replace(/\x1bLANG/g, "");
+	return cutText2;
+};
+
+KRD_MULTILINGUAL.isLangText = function(text) {
 	const regex1 = /\\LANG\[/;
 	const regex2 = /\x1bLANG\[/;
 	return !!(text.toString().match(regex1) || text.toString().match(regex2));

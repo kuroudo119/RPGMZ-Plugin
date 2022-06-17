@@ -1089,6 +1089,11 @@ Window_Base.prototype.drawTextEx = function(text, x, y, width) {
 	return KRD_Window_Base_drawTextEx.call(this, langText, x, y, width);
 };
 
+const KRD_Window_Command_commandName = Window_Command.prototype.commandName;
+Window_Command.prototype.commandName = function(index) {
+	return KRD_MULTILINGUAL.getLangText(KRD_Window_Command_commandName.apply(this, arguments));
+};
+
 //--------------------------------------
 // 外部ファイル読込：制御文字追加
 

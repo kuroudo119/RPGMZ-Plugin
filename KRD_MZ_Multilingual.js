@@ -211,6 +211,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.3.1.3 (2022/06/04) F9時にエラー出たので修正。
 - ver.3.1.4 (2022/06/10) LANGENDがない場合の無限ループを防止。
 - ver.3.2.0 (2022/06/17) drawText に制御文字 LANG の処理を入れた。
+- ver.3.2.1 (2022/06/21) 制御文字 LANG を修正。
 
  * 
  * 
@@ -1074,7 +1075,7 @@ Window_Base.prototype.getLangText = function(text) {
 
 Window_Base.prototype.processLanguage = function(textState) {
 	textState.text = this.getLangText(textState.text);
-	textState.index = 0;
+	textState.index -= "\\LANG".length;
 };
 
 const KRD_Window_Base_drawText = Window_Base.prototype.drawText;
@@ -1091,7 +1092,8 @@ Window_Base.prototype.drawTextEx = function(text, x, y, width) {
 
 const KRD_Window_Command_commandName = Window_Command.prototype.commandName;
 Window_Command.prototype.commandName = function(index) {
-	return KRD_MULTILINGUAL.getLangText(KRD_Window_Command_commandName.apply(this, arguments));
+	const base = KRD_Window_Command_commandName.apply(this, arguments);
+	return KRD_MULTILINGUAL.getLangText(base);
 };
 
 //--------------------------------------

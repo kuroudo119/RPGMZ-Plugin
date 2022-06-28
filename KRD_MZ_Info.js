@@ -239,6 +239,13 @@
  * @type number
  * @parent layoutSection
  * 
+ * @param descFontSize
+ * @text 説明文フォントサイズ
+ * @desc 説明文のフォントサイズです。0 の場合システム値 -2 となります。
+ * @default 0
+ * @type number
+ * @parent layoutSection
+ * 
  * @param textOver
  * @text 画像に説明文をかぶせる
  * @desc 画像に説明文をかぶせます。デフォルトは OFF(false) です。敵キャラ画像が対象です。
@@ -366,6 +373,18 @@
 このプラグインはMITライセンスです。
 https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
+## メモ欄タグ (meta)
+
+- <KRD_notData> 非表示
+- <KRD_showData> 必ず表示
+- <KRD_picture:画像ファイル名> 画像を表示
+- <KRD_text:追加テキスト> 追加テキストを表示
+- <KRD_text_9:Message> 追加テキストを表示(9は言語番号)
+
+- <KRD_alphabet> アルファベットモードにする。
+- <KRD_fontSize:フォントサイズ> アルファベットモード時のフォントサイズ。
+- <KRD_lineHeight:行の高さ> アルファベットモード時の行の高さ。
+
 ## 更新履歴
 
 - ver.0.0.1 (2021/05/24) 非公開版完成
@@ -374,14 +393,14 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.0 (2021/09/27) 公開
 - ver.1.1.0 (2021/11/19) 実績をクエストに変更
 - ver.1.2.0 (2022/01/02) リファクタリング
-
-## メモ欄タグ (meta)
-
-- <KRD_notData> 非表示
-- <KRD_showData> 必ず表示
-- <KRD_picture:画像ファイル名> 画像を表示
-- <KRD_text:追加テキスト> 追加テキストを表示
-- <KRD_text_9:Message> 追加テキストを表示(9は言語番号)
+- ver.1.2.1 (2022/01/04) 説明文フォントサイズ設定追加
+- ver.1.3.0 (2022/03/15) コマンド名の制御文字対応
+- ver.1.3.1 (2022/04/02) 説明文フォントサイズ既定値変更
+- ver.1.4.0 (2022/04/24) プロフィールの改行対応
+- ver.1.5.0 (2022/06/10) 敵キャラ能力値の取得方法を変更
+- ver.1.6.0 (2022/06/15) 敵キャラ画像に色調を反映
+- ver.1.6.1 (2022/06/17) 多言語プラグインでやるべき処理をそちらに移動
+- ver.1.7.0 (2022/06/29) 敵キャラ画像の内部処理を修正
 
  * 
  * 
@@ -446,29 +465,29 @@ const PARAM = PluginManager.parameters(PLUGIN_NAME);
 const INFO_NAME = PARAM["nameInfo"] || "";
 
 const GAME_INFO = PARAM["nameGameInfo"];
-const HELP      = PARAM["nameHelp"];
-const GLOSSARY  = PARAM["nameGlossary"];
-const QUEST     = PARAM["nameQuest"];
-const ACTORS    = PARAM["nameActors"];
-const CLASSES   = PARAM["nameClasses"];
-const SKILLS    = PARAM["nameSkills"];
-const ITEMS     = PARAM["nameItems"];
-const WEAPONS   = PARAM["nameWeapons"];
-const ARMORS    = PARAM["nameArmors"];
-const ENEMIES   = PARAM["nameEnemies"];
+const HELP = PARAM["nameHelp"];
+const GLOSSARY = PARAM["nameGlossary"];
+const QUEST = PARAM["nameQuest"];
+const ACTORS = PARAM["nameActors"];
+const CLASSES = PARAM["nameClasses"];
+const SKILLS = PARAM["nameSkills"];
+const ITEMS = PARAM["nameItems"];
+const WEAPONS = PARAM["nameWeapons"];
+const ARMORS = PARAM["nameArmors"];
+const ENEMIES = PARAM["nameEnemies"];
 
-const AUTO_ACTORS  = PARAM["autoActors"] === "true";
+const AUTO_ACTORS = PARAM["autoActors"] === "true";
 const AUTO_CLASSES = PARAM["autoClasses"] === "true";
-const AUTO_SKILLS  = PARAM["autoSkills"] === "true";
-const AUTO_ITEMS   = PARAM["autoItems"] === "true";
+const AUTO_SKILLS = PARAM["autoSkills"] === "true";
+const AUTO_ITEMS = PARAM["autoItems"] === "true";
 const AUTO_WEAPONS = PARAM["autoWeapons"] === "true";
-const AUTO_ARMORS  = PARAM["autoArmors"] === "true";
+const AUTO_ARMORS = PARAM["autoArmors"] === "true";
 const AUTO_ENEMIES = PARAM["autoEnemies"] === "true";
 
 const AUTO_SKILLS_IN_BATTLE = false;
 
 const INFO_SYMBOL = "information";
-const CMD_SYMBOL  = "command";
+const CMD_SYMBOL = "command";
 
 const GAME_INFO_DATA = parseJson2Data(PARAM["dataGameInfo"] || "[]");
 const GAME_INFO_BASE = {
@@ -499,30 +518,32 @@ const QUEST_BASE = {
 };
 
 const TITLE_COMMAND = PARAM["titleCommand"] === "true";
-const MENU_COMMAND  = PARAM["menuCommand"] === "true";
+const MENU_COMMAND = PARAM["menuCommand"] === "true";
 
-const TITLE_ROWS      = Number(PARAM["titleRows"]) || 4;
-const TITLE_HEIGTH    = (Number(PARAM["titleHeight"]) || 400) / 100;
-const LINE_HEIGHT     = Number(PARAM["lineHeight"]);
-const TEXT_OVER       = PARAM["textOver"] === "true";
+const TITLE_ROWS = Number(PARAM["titleRows"]) || 4;
+const TITLE_HEIGTH = (Number(PARAM["titleHeight"]) || 400) / 100;
+const LINE_HEIGHT = Number(PARAM["lineHeight"]);
+const TEXT_OVER = PARAM["textOver"] === "true";
 
 const CMD_RIGHT = PARAM["commandRight"] === "true";
 
-const CMD_HORIZON   = PARAM["commandHorizon"] === "true";
+const CMD_HORIZON = PARAM["commandHorizon"] === "true";
 const CMD_ROWS_BASE = CMD_HORIZON ? 3 : 11;
 const CMD_COLS_BASE = CMD_HORIZON ? 4 : 1;
-const CMD_ROWS      = Number(PARAM["commandRows"]) || CMD_ROWS_BASE;
-const CMD_COLS      = Number(PARAM["commandCols"]) || CMD_COLS_BASE;
-const CMD_HEIGHT    = CMD_ROWS * 2;
+const CMD_ROWS = Number(PARAM["commandRows"]) || CMD_ROWS_BASE;
+const CMD_COLS = Number(PARAM["commandCols"]) || CMD_COLS_BASE;
+const CMD_HEIGHT = CMD_ROWS * 2;
 const SUB_CMD_COLS_BASE = CMD_HORIZON ? 3 : 1;
-const SUB_CMD_COLS  = Number(PARAM["subCommandCols"]) || SUB_CMD_COLS_BASE;
+const SUB_CMD_COLS = Number(PARAM["subCommandCols"]) || SUB_CMD_COLS_BASE;
 
-const PARAMS_COLS  = PARAM["paramsCols"] === "true";
+const PARAMS_COLS = PARAM["paramsCols"] === "true";
 const ENEMY_PARAMS = JSON.parse(`[${PARAM["enemyParams"]}]`) || [];
 
 const DOWN_LETTER = 8;
+const DESC_FONT_SIZE = Number(PARAM["descFontSize"]) || 0;
 
-let COMMAND = [];
+const KRD_INFO = {};
+KRD_INFO.command = [];
 
 const portraitPluginName = "KRD_MZ_UI_Portrait";
 const PORTRAIT = $plugins.some(plugin => plugin.name.match(portraitPluginName) && plugin.status === true);
@@ -555,7 +576,9 @@ const KRD_Window_TitleCommand_makeCommandList = Window_TitleCommand.prototype.ma
 Window_TitleCommand.prototype.makeCommandList = function() {
 	KRD_Window_TitleCommand_makeCommandList.apply(this, arguments);
 	if (TITLE_COMMAND) {
-		this.addCommand(INFO_NAME, INFO_SYMBOL);
+		const commandName = INFO_NAME;
+		const name = this.convertEscapeCharacters(commandName) || "";
+		this.addCommand(name, INFO_SYMBOL);
 	}
 };
 
@@ -606,7 +629,9 @@ const KRD_Window_MenuCommand_addOriginalCommands = Window_MenuCommand.prototype.
 Window_MenuCommand.prototype.addOriginalCommands = function() {
 	KRD_Window_MenuCommand_addOriginalCommands.apply(this, arguments);
 	if (MENU_COMMAND) {
-		this.addCommand(INFO_NAME, INFO_SYMBOL);
+		const commandName = INFO_NAME;
+		const name = this.convertEscapeCharacters(commandName) || "";
+		this.addCommand(name, INFO_SYMBOL);
 	}
 };
 
@@ -863,7 +888,7 @@ class Scene_InfoBase extends Scene_MenuBase {
 			name: name,
 			data: info,
 		};
-		COMMAND.push(command);
+		KRD_INFO.command.push(command);
 	}
 
 	command(index) {
@@ -876,7 +901,7 @@ class Scene_InfoBase extends Scene_MenuBase {
 	}
 
 	backToCommand() {
-		this._infoWindow.contents.clear();
+		this._infoWindow.clear();
 		this._subCommandWindow.forEach(sub => {
 			sub.deactivate();
 			sub.hide();
@@ -892,7 +917,7 @@ class Scene_InfoBase extends Scene_MenuBase {
 	update() {
 		super.update();
 		if (this._subCommandWindow[this._i].isOpenAndActive()) {
-			this._infoWindow.contents.clear();
+			this._infoWindow.clear();
 			const index = this._subCommandWindow[this._i]._index;
 			const symbol = this._subCommandWindow[this._i]._symbol + index;
 			const i = this._subCommandWindow[this._i]._i;
@@ -912,7 +937,7 @@ class Scene_Info extends Scene_InfoBase {
 
 		this.setShowList();
 
-		COMMAND = [];
+		KRD_INFO.command = [];
 		this.createAllInfo();
 
 		this.createCommandWindow();
@@ -963,7 +988,7 @@ class Scene_Info extends Scene_InfoBase {
 	createCommandWindow() {
 		const rect = this.commandWindowRect();
 		const commandWindow = new Window_InfoCommand(rect);
-		COMMAND.forEach((command, index) => {
+		KRD_INFO.command.forEach((command, index) => {
 			commandWindow.setHandler(CMD_SYMBOL + index, this.command.bind(this, index));
 		}, this);
 		commandWindow.setHandler("cancel", this.popScene.bind(this));
@@ -1028,7 +1053,7 @@ class Scene_Info extends Scene_InfoBase {
 	}
 
 	createSubCommandWindow() {
-		COMMAND.forEach((sub, i) => {
+		KRD_INFO.command.forEach((sub, i) => {
 			this.createSubCommandWindowIn(sub, i);
 		}, this);
 		this._subCommandWindow.forEach(sub => {
@@ -1064,8 +1089,9 @@ class Window_InfoCommand extends Window_Command {
 	}
 
 	makeCommandList() {
-		COMMAND.forEach((command, index) => {
-			const name = this.convertEscapeCharacters(command.name) || "";
+		KRD_INFO.command.forEach((command, index) => {
+			const commandName = command.name;
+			const name = this.convertEscapeCharacters(commandName) || "";
 			this.addCommand(name, CMD_SYMBOL + index);
 		}, this);
 	}
@@ -1075,7 +1101,7 @@ class Window_InfoCommand extends Window_Command {
 	}
 
 	maxItems() {
-		return COMMAND.length;
+		return KRD_INFO.command.length;
 	}
 
 	itemHeight() {
@@ -1097,9 +1123,10 @@ class Window_InfoSubCommand extends Window_Command {
 
 	makeCommandList() {
 		if (this._i >= 0) {
-			const subSymbol = COMMAND[this._i].subSymbol;
-			COMMAND[this._i].data.forEach((data, index) => {
-				const name = this.convertEscapeCharacters(data.name) || "";
+			const subSymbol = KRD_INFO.command[this._i].subSymbol;
+			KRD_INFO.command[this._i].data.forEach((data, index) => {
+				const commandName = data.name;
+				const name = this.convertEscapeCharacters(commandName) || "";
 				this.addCommand(name, subSymbol + index);
 			}, this);
 			this._symbol = subSymbol;
@@ -1112,7 +1139,7 @@ class Window_InfoSubCommand extends Window_Command {
 
 	maxItems() {
 		if (this._i >= 0) {
-			return COMMAND[this._i].data.length;
+			return KRD_INFO.command[this._i].data.length;
 		} else {
 			return 0;
 		}
@@ -1127,6 +1154,13 @@ class Window_InfoSubCommand extends Window_Command {
 // 情報ウィンドウ基礎：メッセージ部（新規）
 
 class Window_InfoTextBase extends Window_Base {
+	initialize(rect) {
+		super.initialize(...arguments);
+
+		this._sprite = new Sprite();
+		this._container.addChild(this._sprite);
+	}
+
 	lineHeight() {
 		return LINE_HEIGHT || super.lineHeight();
 	}
@@ -1186,6 +1220,11 @@ class Window_InfoTextBase extends Window_Base {
 			this._bitmap.addLoadListener(this.drawTextWithImage.bind(this, found));
 		}
 	}
+
+	drawTextExFontSize(text, x, y) {
+		const fontSize = DESC_FONT_SIZE ? DESC_FONT_SIZE : $gameSystem.mainFontSize() - 2;
+		this.drawTextEx("\\FS[" + fontSize +"]" + text, x, y);
+	}
 }
 
 //--------------------------------------
@@ -1193,11 +1232,10 @@ class Window_InfoTextBase extends Window_Base {
 
 class Window_InfoText extends Window_InfoTextBase {
 	drawInfo(symbol, i) {
-		const subSymbol = COMMAND[i].subSymbol;
-		const found = COMMAND[i].data.find((data, index) => symbol === subSymbol + index);
+		const subSymbol = KRD_INFO.command[i].subSymbol;
+		const found = KRD_INFO.command[i].data.find((data, index) => symbol === subSymbol + index);
 
-		this._bitmap = null;
-		this.contents.clear();
+		this.clear();
 		if (found) {
 			if (this.havePicture(found)) {
 				this.drawPicture(found);
@@ -1209,6 +1247,12 @@ class Window_InfoText extends Window_InfoTextBase {
 				this.drawInfoText(found);
 			}
 		}
+	}
+
+	clear() {
+		this._bitmap = null;
+		this._sprite?.hide();
+		this.contents.clear();
 	}
 
 	drawInfoText(found, x = 0, y = DOWN_LETTER) {
@@ -1231,9 +1275,9 @@ class Window_InfoText extends Window_InfoTextBase {
 				this.drawTextSeparate(text4draw, x, y, this.innerWidth, alphabet[0], alphabet[1]);
 			} else if (name4draw) {
 				this.drawTextEx(name4draw, x, y);
-				this.drawTextEx(text4draw, x, y + this.lineHeight());
+				this.drawTextExFontSize(text4draw, x, y + this.lineHeight());
 			} else {
-				this.drawTextEx(text4draw, x, y);
+				this.drawTextExFontSize(text4draw, x, y);
 			}
 		}
 	}
@@ -1295,13 +1339,58 @@ class Window_InfoText extends Window_InfoTextBase {
 		}
 	}
 
+	drawSprite(found) {
+		if (this._bitmap) {
+			this._sprite.bitmap = this._bitmap;
+
+			const pw = this._bitmap.width;
+			const ph = this._bitmap.height;
+			const larger = pw > this.innerWidth;
+
+			const rate = this.scaleRate();
+			this._sprite.scale.x = rate;
+			this._sprite.scale.y = rate;
+
+			const margin = 8;
+			const x = larger ? margin : Math.floor((this.innerWidth - (pw * rate)) / 2);
+			const y = margin;
+			
+			this._sprite.setFrame(0, 0, pw, ph);
+			this._sprite.move(x, y);
+			this._sprite.setHue(found.battlerHue);
+
+			this._sprite.show();
+		}
+	}
+
+	scaleRate() {
+		if (this._bitmap) {
+			const pw = this._bitmap.width;
+			const ph = this._bitmap.height;
+			const larger = pw > this.innerWidth;
+			const maxHeight = TEXT_OVER ? this.innerHeight : Math.floor(this.innerHeight * 0.3);
+			const higher = ph > maxHeight;
+	
+			if (larger) {
+				return this.innerWidth / pw;
+			} else if (higher) {
+				return maxHeight / ph;
+			} else {
+				return 1;
+			}
+		}
+		return 1;
+	}
+
 	drawTextWithImage(found) {
-		this.drawImage();
 		if (this.isActor(found)) {
+			this.drawImage();
 			this.drawActorText(found);
 		} else if (this.isEnemy(found)) {
+			this.drawSprite(found);
 			this.drawEnemyText(found);
 		} else {
+			this.drawImage();
 			this.drawInfoText(found);
 		}
 	}
@@ -1311,13 +1400,17 @@ class Window_InfoText extends Window_InfoTextBase {
 			const pw = this._bitmap.width;
 			const ph = this._bitmap.height;
 			const dh = pw > this.innerWidth ? ph * (this.innerWidth / pw) : ph;
-			this.drawEnemyText2(found, 0, TEXT_OVER ? 0 : dh);
+			const y1 = (TEXT_OVER ? 0 : dh) + DOWN_LETTER;
+			const rate = this._sprite.scale.y;
+			const y2 = Math.floor(ph * rate);
+			const y = Math.min(y1, y2);
+			this.drawEnemyText2(found, 0, y);
 		} else {
 			this.drawEnemyText2(found);
 		}
 	}
 
-	drawEnemyText2(found, x = 0, y = 0) {
+	drawEnemyText2(found, x = 0, y = DOWN_LETTER) {
 		if (found) {
 			const name = found.name || "";
 			const text = this.text(found);
@@ -1326,36 +1419,33 @@ class Window_InfoText extends Window_InfoTextBase {
 				this.drawTextEx(name, x, y);
 				y += this.lineHeight();
 			}
-			y = this.drawEnemyData(found, x, y);
-			this.drawTextEx(text, x, y);
+			const yy = this.drawEnemyData(found, x, y);
+			this.drawTextExFontSize(text, x, yy);
 		}
 	}
 
-	drawEnemyData(found, x = 0, y = 0) {
+	drawEnemyData(found, x = 0, y = DOWN_LETTER) {
 		if (PARAMS_COLS || !PORTRAIT) {
-			// 能力値の表示を2列にする場合
-			ENEMY_PARAMS.forEach((paramIndex, i) => {
-				if (i % 2 === 0) {
-					this.drawTextEx(TextManager.param(paramIndex) + " " + found.params[paramIndex], x, y);
-				} else {
-					this.drawTextEx(TextManager.param(paramIndex) + " " + found.params[paramIndex], x + Math.floor(this.innerWidth / 2), y);
-					y += this.lineHeight();
-				}
-			}, this);
-			if (ENEMY_PARAMS.length % 2 === 1) {
-				y += this.lineHeight();
-			}
+			return this.drawEnemyData2Cols(...arguments);
 		} else {
-			ENEMY_PARAMS.forEach(paramIndex => {
-				this.drawTextEx(TextManager.param(paramIndex) + " " + found.params[paramIndex], x, y);
-				y += this.lineHeight();
-			}, this);
+			return this.drawEnemyData1Col(...arguments);
 		}
+	}
 
-		this.drawTextEx(TextManager.exp + " " + found.exp, x, y);
-		y += this.lineHeight();
-		this.drawTextEx(TextManager.currencyUnit + " " + found.gold, x, y);
-		y += this.lineHeight();
+	drawEnemyData1Col(found, x = 0, y = DOWN_LETTER) {
+		const enemy = new Game_Enemy(found.id, 0, 0);
+		const lineHeight = this.lineHeight();
+
+		ENEMY_PARAMS.forEach(paramIndex => {
+			this.drawTextExFontSize(TextManager.param(paramIndex) + " " + enemy.param(paramIndex), x, y);
+			y += lineHeight;
+		}, this);
+
+		const xx = PARAMS_COLS ? Math.floor(this.innerWidth / 2) : 0;
+		this.drawTextExFontSize(TextManager.exp + " " + found.exp, x, y);
+		y += PARAMS_COLS ? 0 : lineHeight;
+		this.drawTextExFontSize(TextManager.currencyUnit + " " + found.gold, x + xx, y);
+		y += lineHeight;
 
 		found.dropItems.forEach(drop => {
 			if (drop.kind > 0 && drop.dataId > 0) {
@@ -1363,14 +1453,69 @@ class Window_InfoText extends Window_InfoTextBase {
 				if (data) {
 					if (data[drop.dataId].iconIndex > 0) {
 						this.drawIcon(data[drop.dataId].iconIndex, x, y);
-						this.drawTextEx(data[drop.dataId].name, x + ImageManager.iconWidth, y);
+						this.drawTextExFontSize(data[drop.dataId].name, x + ImageManager.iconWidth, y);
 					} else {
-						this.drawTextEx(data[drop.dataId].name, x, y);
+						this.drawTextExFontSize(data[drop.dataId].name, x, y);
 					}
-					y += this.lineHeight();
+					y += lineHeight;
 				}
 			}
 		}, this);
+		return y;
+	}
+
+	drawEnemyData2Cols(found, x = 0, y = DOWN_LETTER) {
+		const enemy = new Game_Enemy(found.id, 0, 0);
+		const lineHeight = this.lineHeight();
+
+		// 能力値の表示を2列にする場合
+		const xx = Math.floor(this.innerWidth / 2);
+		ENEMY_PARAMS.forEach((paramIndex, i) => {
+			if (i % 2 === 0) {
+				this.drawTextExFontSize(TextManager.param(paramIndex) + " " + enemy.param(paramIndex), x, y);
+			} else {
+				this.drawTextExFontSize(TextManager.param(paramIndex) + " " + enemy.param(paramIndex), x + xx, y);
+				y += lineHeight;
+			}
+		}, this);
+		if (ENEMY_PARAMS.length % 2 === 1) {
+			y += lineHeight;
+		}
+
+		this.drawTextExFontSize(TextManager.exp + " " + found.exp, x, y);
+		this.drawTextExFontSize(TextManager.currencyUnit + " " + found.gold, x + xx, y);
+		y += lineHeight + 4;
+
+		const dropItems = found.dropItems.filter(drop => drop.kind > 0 && drop.dataId > 0);
+		dropItems.forEach((drop, i) => {
+			if (drop.kind > 0 && drop.dataId > 0) {
+				const data = this.getData(drop.kind);
+				if (data) {
+					const iconPlusX = 2;
+					const iconPlusY = 4;
+					if (i % 2 === 0) {
+						if (data[drop.dataId].iconIndex > 0) {
+							this.drawIcon(data[drop.dataId].iconIndex, x + iconPlusX, y + iconPlusY);
+							this.drawTextExFontSize(data[drop.dataId].name, x + iconPlusX + ImageManager.iconWidth, y);
+						} else {
+							this.drawTextExFontSize(data[drop.dataId].name, x, y);
+						}
+					} else {
+						if (data[drop.dataId].iconIndex > 0) {
+							this.drawIcon(data[drop.dataId].iconIndex, x + xx + iconPlusX, y + iconPlusY);
+							this.drawTextExFontSize(data[drop.dataId].name, x + xx + iconPlusX + ImageManager.iconWidth, y);
+						} else {
+							this.drawTextExFontSize(data[drop.dataId].name, x + xx, y);
+						}
+						y += lineHeight;
+					}
+				}
+			}
+		}, this);
+		if (dropItems.length % 2 === 1) {
+			y += lineHeight;
+		}
+
 		return y;
 	}
 
@@ -1385,19 +1530,20 @@ class Window_InfoText extends Window_InfoTextBase {
 		}
 	}
 
-	drawActorText(found, x = 0, y = 0) {
+	drawActorText(found, x = 0, y = DOWN_LETTER) {
 		if (found) {
 			const data = $gameActors._data[found.id];
 			if (data) {
 				const name = data.name() ? data.name() + "\n" : "";
 				const nickname = data.nickname() ? data.nickname() + "\n" : "";
-				const profile = data.profile() ? data.profile() + "\n" : "";
-				const description = name + nickname + profile;
+				const profile = data.profile() ? data.profile().replace(/\\n/g, "\n") + "\n" : "";
+				const description = nickname + profile;
 
 				const text = this.text(found);
 				const text4draw = description ? description + text: text;
 
-				this.drawTextEx(text4draw, x, y);
+				this.drawTextEx(name, x, y);
+				this.drawTextExFontSize(text4draw, x, y + this.lineHeight());
 			}
 		}
 	}
@@ -1413,7 +1559,7 @@ class Window_InfoText extends Window_InfoTextBase {
 
 	drawActorWithFace2(found, name, faceIndex) {
 		this.drawFace(name, faceIndex, 0, 0, ImageManager.faceWidth, ImageManager.faceHeight);
-		this.drawActorText(found, 0, ImageManager.faceHeight);
+		this.drawActorText(found, 0, ImageManager.faceHeight + DOWN_LETTER);
 	}
 }
 

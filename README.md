@@ -119,7 +119,7 @@ TPBの場合、負の速度補正（キャストタイム）に有効です。
 
 ![敵キャラ透明部分選択なし](img/touch.png)
 
-### KRD_MZ_ActionRPG （アクションRPG）
+## KRD_MZ_ActionRPG （アクションRPG）
 
 MapEnemyプラグインの更新版です（ファイル名変更しました）。
 

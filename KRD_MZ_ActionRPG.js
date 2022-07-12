@@ -7,7 +7,7 @@
  * 
  * @param useDamagePopup
  * @text ダメージポップアップ
- * @desc 別途スクリプト必要。ダメージポップアップを「true: 表示する ／ false: 表示しない」
+ * @desc プラグインコマンド使用により表示。ダメージポップアップを「true: 表示する ／ false: 表示しない」
  * @default true
  * @type boolean
  * 
@@ -15,7 +15,7 @@
  * @text マップゲージ
  * 
  * @param useHpGauge
- * @text HPゲージ
+ * @text HPゲージ(敵キャラ)
  * @desc 敵キャラにHPゲージを「true: 表示する ／ false: 表示しない」
  * @default true
  * @type boolean
@@ -35,10 +35,24 @@
  * @type boolean
  * @parent mapGauge
  * 
+ * @param gaugeWidth
+ * @text ゲージ幅
+ * @desc ゲージの幅。デフォルト: 40
+ * @default 40
+ * @type number
+ * @parent mapGauge
+ * 
  * @param gaugeHeight
  * @text ゲージ高さ
  * @desc ゲージの高さ。デフォルト: 6
  * @default 6
+ * @type number
+ * @parent mapGauge
+ * 
+ * @param gaugeBottom
+ * @text ゲージ下余白
+ * @desc キャラクターの下からの余白。デフォルト: 2
+ * @default 2
  * @type number
  * @parent mapGauge
  * 
@@ -48,17 +62,36 @@
  * @default true
  * @type boolean
  * 
+ * @param always
+ * @text 常時表示
+ * 
  * @param alwaysPlayerHp
  * @text プレイヤーHP常時表示
  * @desc プレイヤーHPを常時「true: 表示する ／ false: 表示しない」
  * @default true
  * @type boolean
+ * @parent always
  * 
  * @param alwaysFollowerHp
  * @text フォロワーHP常時表示
  * @desc 隊列の仲間のHPを常時「true: 表示する ／ false: 表示しない」
  * @default true
  * @type boolean
+ * @parent always
+ * 
+ * @param alwaysDamagePopup
+ * @text ポップアップ常時表示
+ * @desc 床ダメージ等でもダメージポップアップを常時「true: 表示する ／ false: 表示しない」
+ * @default true
+ * @type boolean
+ * @parent always
+ * 
+ * @param alwaysStateIcon
+ * @text アイコン常時表示
+ * @desc ステートアイコンを常時「true: 表示する ／ false: 表示しない」
+ * @default true
+ * @type boolean
+ * @parent always
  * 
  * @param useDisplayRewards
  * @text バトル報酬表示
@@ -397,6 +430,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.14.0 (2022/04/12) KRD_MZ_DirectionFix を内蔵した。
 - ver.1.15.0 (2022/04/12) checkRangeCollision を追加した。
 - ver.1.15.1 (2022/05/02) パラメータ初期値変更。
+- ver.1.15.2 (2022/06/02) ゲージ幅をパラメータ化。
+- ver.1.16.0 (2022/06/25) パラメータ常時ポップアップ追加。
 
  * 
  * 
@@ -427,6 +462,8 @@ const CMN_GAME_OVER = Number(PARAM["cmnGameOver"]) || 0;
 const ALWAYS_PLAYER_HP = PARAM["alwaysPlayerHp"] === "true";
 const ALWAYS_FOLLOWER_HP = PARAM["alwaysFollowerHp"] === "true";
 const ALWAYS_MAP_GAMEOVER = PARAM["alwaysMapGameover"] === "true";
+const ALWAYS_DAMAGE_POPUP = PARAM["alwaysDamagePopup"] === "true";
+const ALWAYS_STATE_ICON = PARAM["alwaysStateIcon"] === "true";
 
 const USE_DISPLAY_REWARDS = PARAM["useDisplayRewards"] === "true";
 const DEFAULT_ANIMATION_ID = 1;
@@ -446,8 +483,9 @@ const E_BACK = -200;
 const E_SIDE = -400;
 const E_FRONT = -800;
 
-const GAUGE_WIDTH = 40;
+const GAUGE_WIDTH = Number(PARAM["gaugeWidth"]) || 40;
 const GAUGE_HEIGHT = Number(PARAM["gaugeHeight"]) || 6;
+const GAUGE_BOTTOM = Number(PARAM["gaugeBottom"]) || 0;
 
 // -------------------------------------
 // プラグインコマンド
@@ -604,6 +642,10 @@ KRD_Sprite_MapGauge = class extends Sprite_Gauge {
 		return GAUGE_HEIGHT;
 	}
 	
+	gaugeBottom() {
+		return GAUGE_BOTTOM;
+	}
+	
 	gaugeX() {
 		return 0;
 	}
@@ -619,10 +661,8 @@ KRD_Sprite_MapGauge = class extends Sprite_Gauge {
 	drawGaugeRect(x, y, width, height) {
 		super.drawGaugeRect(...arguments);
 		const halfWidth = Math.floor(this.bitmapWidth() / 2);
-		const eventHeight = 48;
-		const diffHeight = eventHeight - this.bitmapWidth();
-		const bottom = eventHeight - Math.floor(diffHeight / 2);
-		this.move(x - halfWidth, y - bottom);
+		const bottom = -(y + this.gaugeHeight() + this.gaugeBottom())
+		this.move(x - halfWidth, bottom);
 	}
 };
 
@@ -789,22 +829,20 @@ Scene_Map.prototype.createMapPlayerSprite = function() {
 		return;
 	}
 
-	if (ALWAYS_PLAYER_HP || $gameParty.inMapBattle()) {
-		const characterSprites = SceneManager._scene._spriteset._characterSprites;
-		const index = characterSprites.findIndex(cs => cs._character.constructor.name === "Game_Player");
-		const cs = characterSprites[index];
-		const battler = $gameParty.leader();
-		if (characterSprites && cs) {
-			if (USE_DAMAGE_POPUP) {
-				this.createDamagePopup(cs, battler);
-			}
-			if (USE_HP_GAUGE_PLAYER) {
-				this.createHpGauge(cs, battler);
-			}
-			if (USE_STATE_ICON) {
-				const h = $gamePlayer._size ? $gamePlayer._size[1] : 48;
-				this.createStateIcon(cs, battler, h);
-			}
+	const characterSprites = SceneManager._scene._spriteset._characterSprites;
+	const index = characterSprites.findIndex(cs => cs._character.constructor.name === "Game_Player");
+	const cs = characterSprites[index];
+	const battler = $gameParty.leader();
+	if (characterSprites && cs) {
+		if (ALWAYS_DAMAGE_POPUP || (USE_DAMAGE_POPUP && $gameParty.inMapBattle())) {
+			this.createDamagePopup(cs, battler);
+		}
+		if (ALWAYS_PLAYER_HP || (USE_HP_GAUGE_PLAYER && $gameParty.inMapBattle())) {
+			this.createHpGauge(cs, battler);
+		}
+		if (ALWAYS_STATE_ICON || (USE_STATE_ICON && $gameParty.inMapBattle())) {
+			const h = $gamePlayer._size ? $gamePlayer._size[1] : 48;
+			this.createStateIcon(cs, battler, h);
 		}
 	}
 };
@@ -815,32 +853,30 @@ Scene_Map.prototype.createMapFollowerSprite = function() {
 	}
 
 	if ($gamePlayer.followers().isVisible()) {
-		if (ALWAYS_FOLLOWER_HP || $gameParty.inMapBattle()) {
-			const characterSprites = SceneManager._scene._spriteset._characterSprites;
-			const csIndexList = characterSprites.map((cs, index) => {
-				if (cs._character.constructor.name === "Game_Follower") {
-					return index;
-				}
-			}).filter(i => !isNaN(i));
-			const followers = $gameParty.battleMembers().filter((e, index) => index > 0);
+		const characterSprites = SceneManager._scene._spriteset._characterSprites;
+		const csIndexList = characterSprites.map((cs, index) => {
+			if (cs._character.constructor.name === "Game_Follower") {
+				return index;
+			}
+		}).filter(i => !isNaN(i));
+		const followers = $gameParty.battleMembers().filter((e, index) => index > 0);
 
-			followers.forEach((battler, index) => {
-				const cs = characterSprites[csIndexList[csIndexList.length - index - 1]];
+		followers.forEach((battler, index) => {
+			const cs = characterSprites[csIndexList[csIndexList.length - index - 1]];
 
-				if (characterSprites && cs) {
-					if (USE_DAMAGE_POPUP) {
-						this.createDamagePopup(cs, battler);
-					}
-					if (USE_HP_GAUGE_FOLLOWER) {
-						this.createHpGauge(cs, battler);
-					}
-					if (USE_STATE_ICON) {
-						const h = $gamePlayer._size ? $gamePlayer._size[1] : 48;
-						this.createStateIcon(cs, battler, h);
-					}
+			if (characterSprites && cs) {
+				if (ALWAYS_DAMAGE_POPUP || (USE_DAMAGE_POPUP && $gameParty.inMapBattle())) {
+					this.createDamagePopup(cs, battler);
 				}
-			}, this);
-		}
+				if (ALWAYS_FOLLOWER_HP || (USE_HP_GAUGE_FOLLOWER && $gameParty.inMapBattle())) {
+					this.createHpGauge(cs, battler);
+				}
+				if (ALWAYS_STATE_ICON || (USE_STATE_ICON && $gameParty.inMapBattle())) {
+					const h = $gamePlayer._size ? $gamePlayer._size[1] : 48;
+					this.createStateIcon(cs, battler, h);
+				}
+			}
+		}, this);
 	}
 };
 
@@ -1565,13 +1601,17 @@ Game_Party.prototype.inMapBattle = function() {
 };
 
 Game_Party.prototype.isAlwaysPlayerHp = function() {
-	const inBattle = $gameParty.inBattle();
-	const playerHp = ALWAYS_PLAYER_HP && USE_DAMAGE_POPUP;
-	return !inBattle && playerHp;
+	return USE_HP_GAUGE && ALWAYS_PLAYER_HP;
+};
+
+Game_Party.prototype.isAlwaysPopup = function() {
+	return USE_DAMAGE_POPUP && ALWAYS_DAMAGE_POPUP;
 };
 
 Game_Party.prototype.canMapDamagePopup = function() {
-	return (this.inMapBattle() && USE_DAMAGE_POPUP) || this.isAlwaysPlayerHp();
+	return !$gameParty.inBattle()
+	&& (this.isAlwaysPopup()
+	|| (USE_DAMAGE_POPUP && this.inMapBattle()));
 };
 
 const KRD_Game_Actor_turnEndOnMap = Game_Actor.prototype.turnEndOnMap;

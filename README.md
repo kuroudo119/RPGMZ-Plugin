@@ -119,7 +119,9 @@ TPBの場合、負の速度補正（キャストタイム）に有効です。
 
 ![敵キャラ透明部分選択なし](img/touch.png)
 
-## KRD_MZ_MapEnemy （マップイベント敵キャラ）体当たりアクションRPGサンプル
+### KRD_MZ_ActionRPG （アクションRPG）
+
+MapEnemyプラグインの更新版です（ファイル名変更しました）。
 
 マップイベントにDBの敵キャラデータを持たせることが出来ます。
 体当たりアクションRPG用のプラグインです。
@@ -134,19 +136,12 @@ TPBの場合、負の速度補正（キャストタイム）に有効です。
 使い方を書いていないので、代わりにサンプルプロジェクトを配布しています。
 新規プロジェクトに上書きしてください。
 
-[サンプルプロジェクト：Sample_ARPG.zipをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/Sample_ARPG.zip)
+[KRD_MZ_ActionRPGをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_ActionRPG.js)
 
-[ソースコード単独：KRD_MZ_MapEnemyをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_MapEnemy.js)
+[サンプルプロジェクト：Sample_ARPG.zipをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/Sample_ARPG.zip)
 
 ![体当たりアクションRPGサンプル](img/ARPG.png)
 ![体当たりアクションRPGサンプル2](img/ARPG_2.png)
-
-### KRD_MZ_ActionRPG （アクションRPG）
-
-MapEnemyプラグインの更新版です（ファイル名変更しました）。
-
-[KRD_MZ_ActionRPGをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_ActionRPG.js)
-
 ![アクションRPG](img/action.png)
 
 ## KRD_MZ_AlwaysImage （常時画像表示）

@@ -274,6 +274,24 @@
  * @type number
  * @parent layoutSection
  * 
+ * @param useJson
+ * @text 外部jsonファイル使用
+ * @desc UniqueDataLoaderプラグインで読み込んだjsonファイルを使用する。
+ * 
+ * @param globalName
+ * @text グローバル変数名
+ * @desc UniqueDataLoaderプラグインで指定したグローバル変数名です。
+ * @default $dataUniques
+ * @type string
+ * @parent useJson
+ * 
+ * @param jsonName
+ * @text jsonプロパティ名
+ * @desc UniqueDataLoaderプラグインで指定したプロパティ名です。
+ * @default info
+ * @type string
+ * @parent useJson
+ * 
  * @command setShowListNew
  * @text 表示初期化
  * @desc 指定されたデータベースの表示を初期状態に戻します。
@@ -401,6 +419,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.6.0 (2022/06/15) 敵キャラ画像に色調を反映
 - ver.1.6.1 (2022/06/17) 多言語プラグインでやるべき処理をそちらに移動
 - ver.1.7.0 (2022/06/29) 敵キャラ画像の内部処理を修正
+- ver.1.8.0 (2022/07/19) 外部jsonファイル使用を追加
 
  * 
  * 
@@ -550,6 +569,9 @@ const PORTRAIT = $plugins.some(plugin => plugin.name.match(portraitPluginName) &
 
 const KRD_Window_Base_drawText = Window_Base.prototype.drawText;
 
+const GLOBAL_NAME = PARAM["globalName"] || "$dataUniques";
+const JSON_NAME = PARAM["jsonName"] || "info";
+
 //--------------------------------------
 // プラグインコマンド
 
@@ -664,6 +686,14 @@ Game_System.prototype.onAfterLoad = function() {
 };
 
 Game_System.prototype.makeShowList = function() {
+	if (this.useJson()) {
+		return this.makeShowListJson();
+	} else {
+		return this.makeShowListPluginParam();
+	}
+};
+
+Game_System.prototype.makeShowListPluginParam = function() {
 	this._showList = this._showList ? this._showList : {};
 	return {
 		gameInfo: this.makeShowListDetail(GAME_INFO_BASE.data, this._showList.gameInfo),
@@ -678,6 +708,15 @@ Game_System.prototype.makeShowList = function() {
 		armors: this.makeShowListDetail($dataArmors, this._showList.armors),
 		enemies: this.makeShowListDetail($dataEnemies, this._showList.enemies),
 	};
+};
+
+Game_System.prototype.makeShowListJson = function() {
+	GAME_INFO_BASE.data = this.getJsonData("gameInfo");
+	HELP_BASE.data = this.getJsonData("help");
+	GLOSSARY_BASE.data = this.getJsonData("glossary");
+	QUEST_BASE.data = this.getJsonData("quest");
+
+	return this.makeShowListPluginParam();
 };
 
 Game_System.prototype.makeShowListDetail = function(database, thisData) {
@@ -697,7 +736,7 @@ Game_System.prototype.addShowList = function(database, thisData) {
 };
 
 Game_System.prototype.addData = function(active, data) {
-	if (data && data.meta && data.meta.KRD_showData) {
+	if (this.checkShowData(data)) {
 		active.push(true);
 	} else {
 		active.push(false);
@@ -705,34 +744,40 @@ Game_System.prototype.addData = function(active, data) {
 };
 
 Game_System.prototype.newShowList = function(database) {
-	return database.map(data => data && data.meta && data.meta.KRD_showData);
+	return database.map(data => this.checkShowData(data));
+};
+
+Game_System.prototype.checkShowData = function(data) {
+	const case1 = data && data.meta && data.meta.KRD_showData;
+	const case2 = data && data.showData === "true";
+	return case1 || case2;
 };
 
 //--------------------------------------
 // Game_System：プラグインコマンド用
 
 Game_System.prototype.setShowListNew = function(name) {
-	const database = this.getDbName(name);
+	const database = this.getDbByName(name);
 	if (database) {
 		this._showList[name] = this.newShowList(database);
 	}
 };
 
 Game_System.prototype.setShowListAll = function(name, flag) {
-	const database = this.getDbName(name);
+	const database = this.getDbByName(name);
 	if (database) {
 		this._showList[name] = database.map(() => !!flag);
 	}
 };
 
 Game_System.prototype.setShowListOne = function(name, flag, index) {
-	const database = this.getDbName(name);
+	const database = this.getDbByName(name);
 	if (database && index < this._showList[name].length) {
 		this._showList[name][index] = !!flag;
 	}
 };
 
-Game_System.prototype.getDbName = function(name) {
+Game_System.prototype.getDbByName = function(name) {
 	switch (name) {
 		case "gameInfo":
 			return GAME_INFO_BASE.data;
@@ -759,6 +804,17 @@ Game_System.prototype.getDbName = function(name) {
 		default:
 			return null;
 	}
+};
+
+//--------------------------------------
+// JSON データ使用
+
+Game_System.prototype.useJson = function() {
+	return window[GLOBAL_NAME] && window[GLOBAL_NAME][JSON_NAME];
+};
+
+Game_System.prototype.getJsonData = function(dataName) {
+	return window[GLOBAL_NAME][JSON_NAME][dataName];
 };
 
 //--------------------------------------
@@ -882,7 +938,7 @@ class Scene_InfoBase extends Scene_MenuBase {
 	}
 
 	createInfo(database, subSymbol, name, showList) {
-		const info = database.filter((item, index) => item && !item.meta.KRD_notData && item.name !== "" && showList[index]);
+		const info = database.filter((item, index) => item && !item.meta?.KRD_notData && item.name !== "" && showList[index]);
 		const command = {
 			subSymbol: subSymbol,
 			name: name,
@@ -951,16 +1007,16 @@ class Scene_Info extends Scene_InfoBase {
 			$gameSystem._showList = $gameSystem.makeShowList();
 		}
 		if (GAME_INFO) {
-			this.createInfo(GAME_INFO_DATA, "gameInfo", GAME_INFO, $gameSystem._showList.gameInfo);
+			this.createInfo(GAME_INFO_BASE.data, "gameInfo", GAME_INFO, $gameSystem._showList.gameInfo);
 		}
 		if (HELP) {
-			this.createInfo(HELP_DATA, "help", HELP, $gameSystem._showList.help);
+			this.createInfo(HELP_BASE.data, "help", HELP, $gameSystem._showList.help);
 		}
 		if (GLOSSARY) {
-			this.createInfo(GLOSSARY_DATA, "glossary", GLOSSARY, $gameSystem._showList.glossary);
+			this.createInfo(GLOSSARY_BASE.data, "glossary", GLOSSARY, $gameSystem._showList.glossary);
 		}
 		if (QUEST) {
-			this.createInfo(QUEST_DATA, "quest", QUEST, $gameSystem._showList.quest);
+			this.createInfo(QUEST_BASE.data, "quest", QUEST, $gameSystem._showList.quest);
 		}
 		if (ACTORS) {
 			this.createInfo($dataActors, "actorInfo", ACTORS, $gameSystem._showList.actors);
@@ -1123,9 +1179,10 @@ class Window_InfoSubCommand extends Window_Command {
 
 	makeCommandList() {
 		if (this._i >= 0) {
+			const language = ConfigManager.multilingual;
 			const subSymbol = KRD_INFO.command[this._i].subSymbol;
 			KRD_INFO.command[this._i].data.forEach((data, index) => {
-				const commandName = data.name;
+				const commandName = data[`name_${language}`] || data.name || "";
 				const name = this.convertEscapeCharacters(commandName) || "";
 				this.addCommand(name, subSymbol + index);
 			}, this);
@@ -1166,7 +1223,7 @@ class Window_InfoTextBase extends Window_Base {
 	}
 
 	havePicture(found) {
-		return !!found.meta.KRD_picture || !!found.picture;
+		return !!found.meta?.KRD_picture || !!found.picture;
 	}
 
 	isActor(found) {
@@ -1192,17 +1249,17 @@ class Window_InfoTextBase extends Window_Base {
 
 	text(found) {
 		const language = ConfigManager.multilingual;
-		const textLang = found.meta[`KRD_text_${language}`];
-		const tmpText = found.meta.KRD_text || "";
+		const textLang = found.meta ? found.meta[`KRD_text_${language}`] : "";
+		const tmpText = found.meta?.KRD_text || "";
 		const useText = textLang ? textLang : tmpText;
 		const retText = this.convertEscapeCharacters(useText);
 		return retText;
 	}
 
 	alphabet(found) {
-		if (found.meta.KRD_alphabet) {
-			const fontSize = Number(found.meta.KRD_fontSize) || 0;
-			const lineHeight = Number(found.meta.KRD_lineHeight) || 0;
+		if (found.meta?.KRD_alphabet) {
+			const fontSize = Number(found.meta?.KRD_fontSize) || 0;
+			const lineHeight = Number(found.meta?.KRD_lineHeight) || 0;
 			return [fontSize, lineHeight];
 		} else if (found.alphabet === "true") {
 			const fontSize = Number(found.fontSize) || 0;
@@ -1214,7 +1271,7 @@ class Window_InfoTextBase extends Window_Base {
 	}
 
 	drawPicture(found) {
-		const filename = found.meta.KRD_picture || found.picture;
+		const filename = found.meta?.KRD_picture || found.picture;
 		if (filename) {
 			this._bitmap = ImageManager.loadPicture(filename);
 			this._bitmap.addLoadListener(this.drawTextWithImage.bind(this, found));
@@ -1257,8 +1314,12 @@ class Window_InfoText extends Window_InfoTextBase {
 
 	drawInfoText(found, x = 0, y = DOWN_LETTER) {
 		if (found) {
-			const name = this.convertEscapeCharacters(found.name) || "";
-			const tmpDesc = found.description || "";
+			const language = ConfigManager.multilingual;
+
+			const tmpName = found[`name_${language}`] || found.name || "";
+			const name = this.convertEscapeCharacters(tmpName);
+
+			const tmpDesc = found[`description_${language}`] || found.description || "";
 			const description = this.convertEscapeCharacters(tmpDesc);
 			const tmpDescLF = description.replace(/\x1bn/g, "\n");
 			const descLF = tmpDescLF.replace(/\\n/g, "\n");;

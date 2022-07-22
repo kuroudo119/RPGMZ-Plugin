@@ -6,7 +6,8 @@
 
 ## KRD_MZ_NeighborBalloon （隣接時フキダシ表示）
 
-プレイヤーとイベントが隣り合った時にイベントにフキダシを表示します。
+プレイヤーとイベントが隣り合った時にイベントにフキダシを表示します。  
+隠しアイテムを知らせる時などに使えると思います。
 
 [KRD_MZ_NeighborBalloonをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_NeighborBalloon.js)
 

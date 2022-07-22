@@ -4,6 +4,14 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_NeighborBalloon （隣接時フキダシ表示）
+
+プレイヤーとイベントが隣り合った時にイベントにフキダシを表示します。
+
+[KRD_MZ_NeighborBalloonをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_NeighborBalloon.js)
+
+https://user-images.githubusercontent.com/43639887/180491807-81061eaa-b21d-4b48-9835-8217ed6386ed.mp4
+
 ## KRD_MZ_DoubleAutoSave （オートセーブ2個）
 
 マップ切替時と戦闘後にオートセーブされるが、これを別ファイルにセーブする。

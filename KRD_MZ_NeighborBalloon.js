@@ -35,6 +35,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2022/07/23) 作成開始
 - ver.0.1.0 (2022/07/23) 非公開版完成
 - ver.1.0.0 (2022/07/23) 公開
+- ver.1.1.0 (2022/07/23) イベント出現条件を満たしていない時は実行しない。
 
  * 
  * 
@@ -58,14 +59,18 @@ Game_Event.prototype.updateStop = function() {
 };
 
 Game_Event.prototype.doNeighborBalloon = function() {
+	if (this._pageIndex < 0) {
+		return;
+	}
+
 	const balloonId = Number(this.event().meta.balloonId);
 	if (!isNaN(balloonId)) {
-		this._position = this._position ? this._position : 0;
+		this._oldPosition = this._oldPosition ? this._oldPosition : 0;
 		const newPosition = this.neighborPlayer();
-		if (this._position !== newPosition && newPosition > 0) {
+		if (this._oldPosition !== newPosition && newPosition > 0) {
 			$gameTemp.requestBalloon(this, balloonId);
 		}
-		this._position = newPosition;
+		this._oldPosition = newPosition;
 	}
 };
 

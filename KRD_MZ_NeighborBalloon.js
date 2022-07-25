@@ -30,12 +30,22 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 メモ欄に <balloonId:番号> を記述します。
 「番号」はフキダシの番号です。
 
+## 使い方（イベントページ毎にバルーン変更）
+
+フキダシを表示させたいマップイベントの
+メモ欄に <balloonPage:番号, 番号, 番号…> を記述します。
+「番号」はフキダシの番号です。
+カンマ区切りでイベントページ番号の順番に記述します。
+
+フキダシを表示しないページは番号の代わりに false を記述してください。
+
 ## 更新履歴
 
 - ver.0.0.1 (2022/07/23) 作成開始
 - ver.0.1.0 (2022/07/23) 非公開版完成
 - ver.1.0.0 (2022/07/23) 公開
 - ver.1.1.0 (2022/07/23) イベント出現条件を満たしていない時は実行しない。
+- ver.1.2.0 (2022/07/25) イベントページ毎にバルーン変更。
 
  * 
  * 
@@ -63,7 +73,17 @@ Game_Event.prototype.doNeighborBalloon = function() {
 		return;
 	}
 
-	const balloonId = Number(this.event().meta.balloonId);
+	const tagBalloonPage = this.event().meta.balloonPage;
+	const tagBalloonId = this.event().meta.balloonId;
+	if (tagBalloonPage || tagBalloonId) {
+		const balloonPage = tagBalloonPage ? JSON.parse("[" + tagBalloonPage + "]") : null;
+		const balloonId = balloonPage ? balloonPage[this._pageIndex] : Number(tagBalloonId);
+	
+		this.doBalloon(balloonId);
+	}
+};
+
+Game_Event.prototype.doBalloon = function(balloonId) {
 	if (!isNaN(balloonId)) {
 		this._oldPosition = this._oldPosition ? this._oldPosition : 0;
 		const newPosition = this.neighborPlayer();

@@ -46,6 +46,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.0 (2022/07/23) 公開
 - ver.1.1.0 (2022/07/23) イベント出現条件を満たしていない時は実行しない。
 - ver.1.2.0 (2022/07/25) イベントページ毎にバルーン変更。
+- ver.1.2.1 (2022/07/25) parseInt に修正。
 
  * 
  * 
@@ -77,8 +78,8 @@ Game_Event.prototype.doNeighborBalloon = function() {
 	const tagBalloonId = this.event().meta.balloonId;
 	if (tagBalloonPage || tagBalloonId) {
 		const balloonPage = tagBalloonPage ? JSON.parse("[" + tagBalloonPage + "]") : null;
-		const balloonId = balloonPage ? balloonPage[this._pageIndex] : Number(tagBalloonId);
-	
+		const balloonId = balloonPage ? parseInt(balloonPage[this._pageIndex], 10) : parseInt(tagBalloonId, 10);
+
 		this.doBalloon(balloonId);
 	}
 };

@@ -1,8 +1,14 @@
 # RPGツクールMZプラグイン
 
-「ログインボーナス支援プラグイン」以降は、プラグイン内にヘルプを少ししか記述していません。
+現在、プラグイン内にヘルプを少ししか記述していません。
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
+
+## KRD_MZ_BattleBgmIsMap （バトルBGMをマップBGMと同じにする）
+
+バトルBGMをマップBGMと同じにして、BGMを途切れない形にする（勝利MEもなしにすること）。
+
+[KRD_MZ_BattleBgmIsMapをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_BattleBgmIsMap.js)
 
 ## KRD_MZ_NeighborBalloon （隣接時フキダシ表示）
 

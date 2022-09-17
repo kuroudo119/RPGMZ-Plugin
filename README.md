@@ -4,9 +4,16 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_StopSelfMove （メッセージ中自律移動停止）
+
+メッセージ表示中にマップイベントの自律移動を停止します。  
+シンボルエンカウント等で必要になると思われます。
+
+[KRD_MZ_StopSelfMoveをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_StopSelfMove.js)
+
 ## KRD_MZ_BattleBgmIsMap （バトルBGMをマップBGMと同じにする）
 
-バトルBGMをマップBGMと同じにして、BGMを途切れない形にする（勝利MEもなしにすること）。
+バトルBGMをマップBGMと同じにして、BGMを途切れない形にします（勝利MEをなしにする必要があります）。
 
 [KRD_MZ_BattleBgmIsMapをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_BattleBgmIsMap.js)
 

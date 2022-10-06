@@ -4,6 +4,13 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_WalkSpeed （歩行スピード変更）
+
+歩行スピードを標準(4)と2倍速(5)の中間(4.5)にします。  
+プラグインパラメータとタグを使用すると先頭アクターの職業で歩行スピードを変更できるようになります。
+
+[KRD_MZ_WalkSpeedをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_WalkSpeed.js)
+
 ## KRD_MZ_StopSelfMove （メッセージ中自律移動停止）
 
 メッセージ表示中にマップイベントの自律移動を停止します。  

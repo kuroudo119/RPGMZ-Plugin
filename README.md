@@ -4,6 +4,15 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_VerticalCenter （イベント表示位置を縦中央にする）
+
+イベント画像をタイルに対して縦位置をセンタリングします。  
+尚、横方向のセンタリングは元々されるのでプラグイン不要です。
+
+[KRD_MZ_VerticalCenterをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_VerticalCenter.js)
+
+![イベント表示位置を縦中央にする](img/vCenter.png)
+
 ## KRD_MZ_WalkSpeed （歩行スピード変更）
 
 歩行スピードを標準(4)と2倍速(5)の中間(4.5)にします。  

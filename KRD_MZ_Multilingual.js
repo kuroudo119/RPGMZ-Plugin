@@ -189,6 +189,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 公式プラグイン UniqueDataLoader を併用し、
 文章を外部jsonファイルに記述します。
 
+プロパティ名は「msg_0」です。0 の部分は言語番号です。
+
 ## 更新履歴
 
 - ver.0 (2021/01/26) 初版（希望者に期間限定配布）
@@ -212,6 +214,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.3.1.4 (2022/06/10) LANGENDがない場合の無限ループを防止。
 - ver.3.2.0 (2022/06/17) drawText に制御文字 LANG の処理を入れた。
 - ver.3.2.1 (2022/06/21) 制御文字 LANG を修正。
+- ver.3.2.2 (2022/07/15) 制御文字 LANGF を修正。
 
  * 
  * 
@@ -1121,6 +1124,7 @@ Window_Base.prototype.changeText = function(code, textState) {
 		window[GLOBAL_NAME][MSG_NAME + language] &&
 		window[GLOBAL_NAME][MSG_NAME + language][name]) {
 			textState.text = window[GLOBAL_NAME][MSG_NAME + language][name];
+			textState.text = this.convertEscapeCharacters(textState.text);
 			textState.text = textState.text.replace(/\x1bn/g, "\n");
 			textState.index = 0;
 	} else {

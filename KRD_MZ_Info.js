@@ -201,6 +201,13 @@
  * @type string
  * @parent databaseSection
  * 
+ * @param enemyElements
+ * @text 敵キャラ属性有効度
+ * @desc 表示する属性の番号をカンマ区切りで指定します。
+ * @default 5, 6, 7
+ * @type string
+ * @parent databaseSection
+ * 
  * @param layoutSection
  * @text レイアウトなど
  * 
@@ -420,6 +427,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.6.1 (2022/06/17) 多言語プラグインでやるべき処理をそちらに移動
 - ver.1.7.0 (2022/06/29) 敵キャラ画像の内部処理を修正
 - ver.1.8.0 (2022/07/19) 外部jsonファイル使用を追加
+- ver.1.9.0 (2022/08/18) 敵キャラ表示データを追加
 
  * 
  * 
@@ -558,6 +566,10 @@ const SUB_CMD_COLS = Number(PARAM["subCommandCols"]) || SUB_CMD_COLS_BASE;
 const PARAMS_COLS = PARAM["paramsCols"] === "true";
 const ENEMY_PARAMS = JSON.parse(`[${PARAM["enemyParams"]}]`) || [];
 
+const ENEMY_HIT_RATE = true;
+const ENEMY_EVASION_RATE = true;
+const ENEMY_ELEMENTS = JSON.parse(`[${PARAM["enemyElements"]}]`) || [];
+
 const DOWN_LETTER = 8;
 const DESC_FONT_SIZE = Number(PARAM["descFontSize"]) || 0;
 
@@ -569,8 +581,8 @@ const PORTRAIT = $plugins.some(plugin => plugin.name.match(portraitPluginName) &
 
 const KRD_Window_Base_drawText = Window_Base.prototype.drawText;
 
-const GLOBAL_NAME = PARAM["globalName"] || "$dataUniques";
-const JSON_NAME = PARAM["jsonName"] || "info";
+const GLOBAL_NAME = PARAM["globalName"];
+const JSON_NAME = PARAM["jsonName"];
 
 //--------------------------------------
 // プラグインコマンド
@@ -1543,6 +1555,32 @@ class Window_InfoText extends Window_InfoTextBase {
 			y += lineHeight;
 		}
 
+		// 命中率
+		if (ENEMY_HIT_RATE) {
+			const param = Math.round(enemy.hit * 100);
+			this.drawTextExFontSize(TextManager.param(8) + " " + param + "%", x, y);
+		}
+
+		// 回避率
+		if (ENEMY_EVASION_RATE) {
+			const param = Math.round(enemy.eva * 100);
+			this.drawTextExFontSize(TextManager.param(9) + " " + param + "%", x + xx, y);
+			y += lineHeight;
+		}
+
+		// 属性有効度
+		ENEMY_ELEMENTS.forEach((elementId, index, array) => {
+			const x2 = index % 2 === 0 ? 0 : xx;
+			const param = Math.round(enemy.elementRate(elementId) * 100);
+			this.drawTextExFontSize(this.elementName(elementId) + " " + param + "%", x + x2, y);
+			if (array.length !== index - 1) {
+				y += index % 2 === 0 ? 0 : lineHeight;
+			}
+		}, this);
+
+		if (ENEMY_ELEMENTS.length % 2 === 1) {
+			y += lineHeight;
+		}
 		this.drawTextExFontSize(TextManager.exp + " " + found.exp, x, y);
 		this.drawTextExFontSize(TextManager.currencyUnit + " " + found.gold, x + xx, y);
 		y += lineHeight + 4;
@@ -1578,6 +1616,10 @@ class Window_InfoText extends Window_InfoTextBase {
 		}
 
 		return y;
+	}
+
+	elementName(index) {
+		return TextManager.element ? TextManager.element(index) : $dataSystem.elements[index] ;
 	}
 
 	drawActorStart(found) {

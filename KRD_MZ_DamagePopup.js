@@ -4,7 +4,7 @@
  * @url https://twitter.com/kuroudo119/
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
- ***************************************
+ * 
  * @command popupParty
  * @text 味方ダメージポップアップ
  * @desc イベントコマンドでHP増減した後にポップアップさせる時に使用する。
@@ -12,9 +12,11 @@
  * @command popupTroop
  * @text 敵ダメージポップアップ
  * @desc イベントコマンドでHP増減した後にポップアップさせる時に使用する。
- ***************************************
+ * 
  * @help
 # KRD_MZ_DamagePopup.js
+
+バトルイベント時ダメージポップアップ
 
 ## 権利表記
 
@@ -29,6 +31,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 - ver.0.0.1 (2021/02/19) 非公開版完成
 - ver.1.0.0 (2021/06/05) 公開開始
+- ver.1.0.1 (2021/06/18) コメント部分修正
 
 ## 使い方
 
@@ -42,7 +45,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 "use strict";
 
-const PLUGIN_NAME	= document.currentScript.src.match(/^.*\/(.*).js$/)[1];
+const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 
 //--------------------------------------
 // プラグインコマンド

@@ -432,6 +432,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.15.1 (2022/05/02) パラメータ初期値変更。
 - ver.1.15.2 (2022/06/02) ゲージ幅をパラメータ化。
 - ver.1.16.0 (2022/06/25) パラメータ常時ポップアップ追加。
+- ver.1.16.1 (2022/08/04) 少しリファクタリング。
+- ver.1.16.2 (2022/10/17) hasTag 関数追加。
 
  * 
  * 
@@ -732,15 +734,14 @@ KRD_Game_MapAction = class extends Game_Action {
 // マップ移動衝突時の振り向き禁止
 // 同じ処理なので KRD_MZ_DirectionFix は不要
 
-const KRD_Game_Character_turnTowardCharacter = Game_Character.prototype.turnTowardCharacter;
-Game_Character.prototype.turnTowardCharacter = function(character, flag) {
+const KRD_Game_Event_turnTowardCharacter = Game_Event.prototype.turnTowardCharacter;
+Game_Event.prototype.turnTowardCharacter = function(character, flag) {
 	if (flag) {
 		// スクリプトから実行で DirectionFix の影響なし動作をしたい場合の処理
-		KRD_Game_Character_turnTowardCharacter.apply(this, arguments);
+		KRD_Game_Event_turnTowardCharacter.apply(this, arguments);
 	} else {
-		const directionFix = this._eventId ? $dataMap.events[this._eventId].meta.DirectionFix : false;
-		if (!directionFix) {
-			KRD_Game_Character_turnTowardCharacter.apply(this, arguments);
+		if (!this.event().meta.DirectionFix) {
+			KRD_Game_Event_turnTowardCharacter.apply(this, arguments);
 		}
 	}
 };
@@ -755,7 +756,7 @@ Game_Event.prototype.initialize = function(mapId, eventId) {
 };
 
 Game_Event.prototype.createEnemy = function(eventId) {
-	const enemyId = Number($dataMap.events[eventId].meta[META_ENEMY]);
+	const enemyId = Number(this.event().meta[META_ENEMY]);
 	if (enemyId) {
 		this._enemy = new KRD_Game_MapEnemy(enemyId, 0, 0, eventId);
 	}
@@ -765,11 +766,20 @@ Game_Event.prototype.createEnemy = function(eventId) {
 // meta リストを取得
 
 Game_Map.prototype.metaList = function(tag) {
-	return $dataMap.events.filter(event => event && !!event.meta[tag]);
+	return this.events().filter(event => event.event().meta[tag]);
 };
 
 Game_Map.prototype.metaIdList = function(tag) {
-	return this.metaList(tag).map(e => e.id);
+	return this.metaList(tag).map(e => e.eventId());
+};
+
+// -------------------------------------
+// イベントが指定のタグを持っているかチェック
+
+// 引数は this._eventId の想定
+Game_Map.prototype.hasTag = function(tag, eventId) {
+	const metaIdList = this.metaIdList(tag);
+	return metaIdList.includes(eventId);
 };
 
 // -------------------------------------

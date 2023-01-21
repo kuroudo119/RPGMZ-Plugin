@@ -36,6 +36,12 @@
  * @default 5
  * @type common_event
  * 
+ * @param portrait
+ * @text 縦長モード
+ * @desc 縦横の画面・UIの大きさを入れ替えます。画像描画に関係します。
+ * @default false
+ * @type boolean
+ * 
  * @command startScene
  * @text シーン開始
  * @desc Scene_Schedule を始めます。KRD_MZ_Calendar の年月日変数で初期値を設定できます。
@@ -177,6 +183,9 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.2.0.0 (2022/02/04) セーブデータのキーを変更した（旧との互換性なし）。
 - ver.2.1.0 (2022/02/04) diffToday の仕様変更。
 - ver.2.1.1 (2022/02/06) 不要な関数の削除。
+- ver.2.1.2 (2022/02/06) リファクタリング。
+- ver.2.1.3 (2022/03/27) 画面サイズとUIサイズの差分に対応。
+- ver.2.1.4 (2022/03/28) 画面サイズとUIサイズの差分に対応。
 
  * 
  * 
@@ -197,6 +206,8 @@ const CMN_CANCEL = Number(PARAM["cmnCancel"]) || 0;
 
 const CMN_PAGE = Number(PARAM["cmnPage"]) || 0;
 const CMN_PRE_PAGE = Number(PARAM["cmnPrePage"]) || 0;
+
+const CHANGE_WIDTH_HEIGHT = PARAM["portrait"] === "true";
 
 const MONTH_END = 31;
 
@@ -317,11 +328,14 @@ Scene_Schedule = class extends Scene_Calendar {
 	}
 
 	drawCircle(date, pidStart, pictureName) {
+		const diffX = CHANGE_WIDTH_HEIGHT ? $dataSystem.advanced.screenHeight - $dataSystem.advanced.uiAreaHeight : $dataSystem.advanced.screenWidth - $dataSystem.advanced.uiAreaWidth;
+		const diffY = CHANGE_WIDTH_HEIGHT ? $dataSystem.advanced.screenWidth - $dataSystem.advanced.uiAreaWidth : $dataSystem.advanced.screenHeight - $dataSystem.advanced.uiAreaHeight;
+
 		const dateIndex = this._calendarWindow.startIndex() + date - 1;
 		const pictureId = pidStart + date;
 		const origin = 1;
-		const x = this._calendarWindow.rectCenterX(dateIndex);
-		const y = this._calendarWindow.rectCenterY(dateIndex);
+		const x = this._calendarWindow.rectCenterX(dateIndex) + diffX / 2;
+		const y = this._calendarWindow.rectCenterY(dateIndex) + diffY / 2;
 		const scaleX = 100;
 		const scaleY = 100;
 		const opacity = 255;
@@ -425,15 +439,12 @@ Game_System.prototype.countSchedule = function() {
 };
 
 Game_System.prototype.firstSchedule = function() {
-	const schedule = this.getSortedKeys();
-	const first = schedule[0];
-	return first;
+	return this.getSortedKeys()[0];
 };
 
 Game_System.prototype.lastSchedule = function() {
 	const schedule = this.getSortedKeys();
-	const last = schedule[schedule.length - 1];
-	return last;
+	return schedule[schedule.length - 1];
 };
 
 Game_System.prototype.dateFromString = function(strDate) {

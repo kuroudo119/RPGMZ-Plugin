@@ -5,6 +5,12 @@
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
  * 
+ * @param swUseThisPlugin
+ * @text 機能利用スイッチ番号
+ * @desc 本プラグインの利用有無切替スイッチ番号。0 の場合は常時利用する。
+ * @default 0
+ * @type switch
+ * 
  * @param useClassMeta
  * @text 職業メモ欄使用
  * @desc 職業のメモ欄 <moveSpeed:5> を使用する：true ／ 使用しない：false。
@@ -35,6 +41,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2022/10/06) 非公開版完成
 - ver.1.0.0 (2022/10/06) 公開
 - ver.1.1.0 (2022/10/07) 乗り物などに対応した。
+- ver.1.1.1 (2022/10/09) 移動ルートの設定内スクリプト用フラグ追加。
+- ver.1.2.0 (2023/01/29) 本プラグインのON/OFFをできるようにした。
 
 ## 機能概要
 
@@ -68,6 +76,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
+const SW_USE_THIS_PLUGIN = PARAM["swUseThisPlugin"] || 0;
 const USE_CLASS_META = PARAM["useClassMeta"] === "true";
 
 const DEFAULT_WALK_SPEED = 4;
@@ -84,14 +93,17 @@ PluginManager.registerCommand(PLUGIN_NAME, "setMoveSpeed", args => {
 //--------------------------------------
 
 const KRD_Game_Player_setMoveSpeed = Game_Player.prototype.setMoveSpeed;
-Game_Player.prototype.setMoveSpeed = function(moveSpeed) {
-	if (this.isMoveRouteForcing()) {
-		KRD_Game_Player_setMoveSpeed.apply(this, arguments);
-	} else if (this._vehicleType === "walk" || this._vehicleGettingOff) {
-		if (USE_CLASS_META) {
-			this._moveSpeed = this.leaderMoveSpeed();
+Game_Player.prototype.setMoveSpeed = function(moveSpeed, flag) {
+	if ($gameTemp.useWalkSpeedPlugin()) {
+		if (flag) {
+			// 移動ルートの設定内スクリプト用フラグ
+			this.krdSetMoveSpeed();
+		} else if (this.isMoveRouteForcing()) {
+			KRD_Game_Player_setMoveSpeed.apply(this, arguments);
+		} else if (this._vehicleType === "walk" || this._vehicleGettingOff) {
+			this.krdSetMoveSpeed();
 		} else {
-			this._moveSpeed = NEW_WALK_SPEED;
+			KRD_Game_Player_setMoveSpeed.apply(this, arguments);
 		}
 	} else {
 		KRD_Game_Player_setMoveSpeed.apply(this, arguments);
@@ -100,38 +112,66 @@ Game_Player.prototype.setMoveSpeed = function(moveSpeed) {
 
 const KRD_Game_Player_realMoveSpeed = Game_Player.prototype.realMoveSpeed;
 Game_Player.prototype.realMoveSpeed = function() {
-	const moveSpeed = KRD_Game_Player_realMoveSpeed.apply(this, arguments);
-	return moveSpeed >= MAX_DASH_SPEED ? MAX_DASH_SPEED : moveSpeed;
+	if ($gameTemp.useWalkSpeedPlugin()) {
+		const moveSpeed = KRD_Game_Player_realMoveSpeed.apply(this, arguments);
+		return moveSpeed >= MAX_DASH_SPEED ? MAX_DASH_SPEED : moveSpeed;
+	} else {
+		return KRD_Game_Player_realMoveSpeed.apply(this, arguments);
+	}
 };
 
 //--------------------------------------
+
+Game_Player.prototype.krdSetMoveSpeed = function() {
+	if (USE_CLASS_META) {
+		this._moveSpeed = this.leaderMoveSpeed();
+	} else {
+		this._moveSpeed = NEW_WALK_SPEED;
+	}
+};
 
 Game_Player.prototype.leaderMoveSpeed = function() {
 	return Number($dataClasses[$gameParty.leader()._classId]?.meta.moveSpeed) || DEFAULT_WALK_SPEED;
 };
 
+//--------------------------------------
+
+Game_Temp.prototype.useWalkSpeedPlugin = function() {
+	return SW_USE_THIS_PLUGIN === 0 || $gameSwitches.value(SW_USE_THIS_PLUGIN);
+};
+
+//--------------------------------------
+
 const KRD_Scene_Map_start = Scene_Map.prototype.start;
 Scene_Map.prototype.start = function() {
 	KRD_Scene_Map_start.apply(this, arguments);
-	$gamePlayer.setMoveSpeed($gamePlayer._moveSpeed);
+	if ($gameTemp.useWalkSpeedPlugin()) {
+		$gamePlayer.setMoveSpeed($gamePlayer._moveSpeed);
+	}
 };
 
 const KRD_Game_Party_addActor = Game_Party.prototype.addActor;
 Game_Party.prototype.addActor = function(actorId) {
 	KRD_Game_Party_addActor.apply(this, arguments);
-	$gamePlayer.setMoveSpeed($gamePlayer._moveSpeed);
+	if ($gameTemp.useWalkSpeedPlugin()) {
+		$gamePlayer.setMoveSpeed($gamePlayer._moveSpeed);
+	}
 };
 
 const KRD_Game_Party_removeActor = Game_Party.prototype.removeActor;
 Game_Party.prototype.removeActor = function(actorId) {
 	KRD_Game_Party_removeActor.apply(this, arguments);
-	$gamePlayer.setMoveSpeed($gamePlayer._moveSpeed);
+	if ($gameTemp.useWalkSpeedPlugin()) {
+		$gamePlayer.setMoveSpeed($gamePlayer._moveSpeed);
+	}
 };
 
 const KRD_Game_Actor_changeClass = Game_Actor.prototype.changeClass;
 Game_Actor.prototype.changeClass = function(classId, keepExp) {
 	KRD_Game_Actor_changeClass.apply(this, arguments);
-	$gamePlayer.setMoveSpeed($gamePlayer._moveSpeed);
+	if ($gameTemp.useWalkSpeedPlugin()) {
+		$gamePlayer.setMoveSpeed($gamePlayer._moveSpeed);
+	}
 };
 
 //--------------------------------------

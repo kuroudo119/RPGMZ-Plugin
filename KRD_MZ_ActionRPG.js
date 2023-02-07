@@ -294,19 +294,15 @@
  * @desc ステートIDが入っている変数番号を指定します。
  * @type variable
  * 
- * @command resetBallSelfSwitches
- * @text 一括玉セルフスイッチOFF
- * @desc 全ての「玉」のセルフスイッチをOFFにします。
+ * @command resetGroupSelfSwitches
+ * @text 一括セルフスイッチOFF
+ * @desc 指定メタタグのセルフスイッチをOFFにします。
  * @arg alphabet
  * @text アルファベット
  * @desc セルフスイッチのアルファベット A ～ D を指定します。
- * 
- * @command resetEnemyBallSelfSwitches
- * @text 一括敵玉セルフスイッチOFF
- * @desc 全ての「敵玉」のセルフスイッチをOFFにします。
- * @arg alphabet
- * @text アルファベット
- * @desc セルフスイッチのアルファベット A ～ D を指定します。
+ * @arg meta
+ * @text メタタグ
+ * @desc メモ欄に書いたメタタグ文字列。
  * 
  * @command eraseMapEnemy
  * @text 全敵イベント消去
@@ -434,6 +430,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.16.0 (2022/06/25) パラメータ常時ポップアップ追加。
 - ver.1.16.1 (2022/08/04) 少しリファクタリング。
 - ver.1.16.2 (2022/10/17) hasTag 関数追加。
+- ver.1.17.0 (2023/02/07) 攻撃スキルIDに 0 を指定可能にした。
+- ver.1.18.0 (2023/02/07) プラグインコマンド削除と追加。
 
  * 
  * 
@@ -488,6 +486,8 @@ const E_FRONT = -800;
 const GAUGE_WIDTH = Number(PARAM["gaugeWidth"]) || 40;
 const GAUGE_HEIGHT = Number(PARAM["gaugeHeight"]) || 6;
 const GAUGE_BOTTOM = Number(PARAM["gaugeBottom"]) || 0;
+
+const SELF_AFTER_ENEMY_DAMAGE = "C";
 
 // -------------------------------------
 // プラグインコマンド
@@ -594,12 +594,8 @@ PluginManager.registerCommand(PLUGIN_NAME, "addStatePlayer", args => {
 	$gameTemp.addStatePlayer(stateId);
 });
 
-PluginManager.registerCommand(PLUGIN_NAME, "resetBallSelfSwitches", args => {
-	$gameTemp.resetBallSelfSwitches(args.alphabet, META_BALL);
-});
-
-PluginManager.registerCommand(PLUGIN_NAME, "resetEnemyBallSelfSwitches", args => {
-	$gameTemp.resetBallSelfSwitches(args.alphabet, META_ENEMY_BALL);
+PluginManager.registerCommand(PLUGIN_NAME, "resetGroupSelfSwitches", args => {
+	$gameTemp.resetBallSelfSwitches(args.alphabet, args.meta);
 });
 
 PluginManager.registerCommand(PLUGIN_NAME, "eraseMapEnemy", args => {
@@ -954,8 +950,9 @@ Game_Temp.prototype.mapDamage = function(target, subject, skillId) {
 Game_Temp.prototype.mapDamageEnemy = function(eventId, skillId) {
 	const subject = $gameParty.leader();
 	const target = $gameMap.enemy(eventId);
+	const trueSkillId = skillId || subject.attackSkillId();
 	if (target) {
-		this.mapDamage(target, subject, skillId);
+		this.mapDamage(target, subject, trueSkillId);
 	}
 };
 
@@ -968,7 +965,8 @@ Game_Temp.prototype.mapDamageTroop = function(skillId) {
 Game_Temp.prototype.mapDamagePlayer = function(eventId, skillId) {
 	const subject = $gameMap.enemy(eventId);
 	const target = $gameParty.leader();
-	this.mapDamage(target, subject, skillId);
+	const trueSkillId = skillId || subject.attackSkillId();
+	this.mapDamage(target, subject, trueSkillId);
 };
 
 // -------------------------------------
@@ -1310,7 +1308,7 @@ Game_Actor.prototype.displayLevelUp = function(newSkills) {
 // スキルに設定されたアニメーションを表示
 
 Game_Temp.prototype.showSkillAnimation = function(skillId, characterId, waitMode) {
-	const animationId = $dataSkills[skillId].animationId;
+	const animationId = $dataSkills[skillId]?.animationId || 0;
 	this.showAnimation(animationId, characterId, waitMode);
 };
 
@@ -1451,10 +1449,14 @@ Game_Interpreter.prototype.anyCollision = function(skillId, eventId) {
 	const waitMode = true;
 	const collisionCode = [FRONT, SIDE, BACK, E_FRONT];
 	const targetId = $gameTemp.anyCollision(evId, collisionCode);
-	if (targetId > 0) {
+	const key = [$gameMap.mapId(), targetId, SELF_AFTER_ENEMY_DAMAGE];
+	if (targetId > 0 && !$gameSelfSwitches.value(key)) {
 		$gameTemp.showSkillAnimation(skillId, targetId, waitMode);
 		$gameTemp.mapDamageEnemy(targetId, skillId);
 		$gameTemp.mapPopupEnemy(targetId);
+
+		// 連続ダメージ防止用セルフスイッチ
+		$gameSelfSwitches.setValue(key, true);
 		return true;
 	}
 	return false;

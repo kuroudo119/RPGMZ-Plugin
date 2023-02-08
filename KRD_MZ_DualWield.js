@@ -36,6 +36,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2021/02/19) 非公開版完成
 - ver.1.0.0 (2022/03/09) 公開
 - ver.2.0.0 (2023/02/08) 二刀流時に攻撃回数を増やす機能を追加
+- ver.2.0.1 (2023/02/08) リファクタリング
 
  * 
  * 
@@ -56,19 +57,12 @@ const ATTACK_TIMES_PLUS = PARAM["attackTimesPlus"] === "true";
 
 const KRD_Game_Actor_canEquipWeapon = Game_Actor.prototype.canEquipWeapon;
 Game_Actor.prototype.canEquipWeapon = function(item) {
-	if (DUAL_SAME_WEAPON) {
+	if (DUAL_SAME_WEAPON && this.isDualWield()) {
 		const ret = KRD_Game_Actor_canEquipWeapon.apply(this, arguments);
-		if (this.isDualWield()) {
-			const weapon = this.weapons()[0];
-			if (!weapon) {
-				return ret;
-			}
-			return ret && item.wtypeId === weapon.wtypeId;
-		}
-		return ret;
-	} else {
-		return KRD_Game_Actor_canEquipWeapon.apply(this, arguments);
+		const weapon = this.weapons()[0];
+		return weapon ? ret && item.wtypeId === weapon.wtypeId : ret;
 	}
+	return KRD_Game_Actor_canEquipWeapon.apply(this, arguments);
 };
 
 // -------------------------------------

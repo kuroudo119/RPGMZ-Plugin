@@ -5,6 +5,18 @@
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
  * 
+ * @param dualSameWeapon
+ * @text 同じ武器タイプのみ二刀流
+ * @desc 同じ武器タイプのみ二刀流にする：true ／ しない：false
+ * @default true
+ * @type boolean
+ * 
+ * @param attackTimesPlus
+ * @text 二刀流時攻撃回数追加
+ * @desc 二刀流時に2枠とも装備していると攻撃回数+1にする：true ／ しない：false
+ * @default false
+ * @type boolean
+ * 
  * @help
 # KRD_MZ_DualWield.js
 
@@ -19,18 +31,11 @@
 このプラグインはMITライセンスです。
 https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
-## 概要
-
-装備している武器と同じ武器タイプのみ装備可能になります。
-武器の特徴で二刀流を設定してください。
-
-尚、武器をすべて外さないと別の武器タイプを装備できません。
-
 ## 更新履歴
 
 - ver.0.0.1 (2021/02/19) 非公開版完成
 - ver.1.0.0 (2022/03/09) 公開
-- ver.1.0.1 (2022/06/26) ヘルプ追記
+- ver.2.0.0 (2023/02/08) 二刀流時に攻撃回数を増やす機能を追加
 
  * 
  * 
@@ -40,17 +45,56 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 "use strict";
 
+const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
+const PARAM = PluginManager.parameters(PLUGIN_NAME);
+
+const DUAL_SAME_WEAPON = PARAM["dualSameWeapon"] === "true";
+const ATTACK_TIMES_PLUS = PARAM["attackTimesPlus"] === "true";
+
+// -------------------------------------
+// 同じ武器タイプのみ二刀流
+
 const KRD_Game_Actor_canEquipWeapon = Game_Actor.prototype.canEquipWeapon;
 Game_Actor.prototype.canEquipWeapon = function(item) {
-	const ret = KRD_Game_Actor_canEquipWeapon.apply(this, arguments);
-	if (this.isDualWield()) {
-		const weapon = this.weapons()[0];
-		if (!weapon) {
-			return ret;
+	if (DUAL_SAME_WEAPON) {
+		const ret = KRD_Game_Actor_canEquipWeapon.apply(this, arguments);
+		if (this.isDualWield()) {
+			const weapon = this.weapons()[0];
+			if (!weapon) {
+				return ret;
+			}
+			return ret && item.wtypeId === weapon.wtypeId;
 		}
-		return ret && item.wtypeId === weapon.wtypeId;
+		return ret;
+	} else {
+		return KRD_Game_Actor_canEquipWeapon.apply(this, arguments);
 	}
-	return ret;
 };
 
+// -------------------------------------
+// 二刀流時攻撃回数追加
+
+const KRD_Game_Actor_attackTimesAdd = Game_Actor.prototype.attackTimesAdd;
+Game_Actor.prototype.attackTimesAdd = function() {
+	if (ATTACK_TIMES_PLUS) {
+		const base = KRD_Game_Actor_attackTimesAdd.apply(this, arguments);
+		const plus = this.isAttackTimesPlus() ? 1 : 0;
+		return base + plus;
+	} else {
+		return KRD_Game_Actor_attackTimesAdd.apply(this, arguments);
+	}
+};
+
+Game_Actor.prototype.isAttackTimesPlus = function() {
+	if (this.isDualWield()) {
+		const weapon1 = this.weapons()[0];
+		const weapon2 = this.weapons()[1];
+		if (weapon1 && weapon2) {
+			return true;
+		}
+	}
+	return false;
+};
+
+// -------------------------------------
 })();

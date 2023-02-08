@@ -140,6 +140,8 @@ TPBの場合、負の速度補正（キャストタイム）に有効です。
 二刀流の時、一番上の装備枠と同じ武器タイプの武器のみ装備可能になります。
 武器の特徴で二刀流を付与する想定です。
 
+二刀流時に2枠とも装備していると攻撃回数+1にする機能もあります。
+
 [KRD_MZ_DualWieldをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_DualWield.js)
 
 ## KRD_MZ_Demo （デモ用マップ自動スタート（タイトルデモ））

@@ -268,8 +268,11 @@ RPGツクールMZのオートセーブ機能をプレイヤーが任意にON／O
 
 [KRD_MZ_Scheduleをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Schedule.js)
 
-動作サンプル (ゲームアツマール)
+動作サンプル (ゲームアツマール)  
 https://game.nicovideo.jp/atsumaru/games/gm21562
+
+【参考】JavaScript の日付(Date)について  
+https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Date
 
 ![スケジュール管理](img/calendar_060.png)
 

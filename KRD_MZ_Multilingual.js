@@ -146,23 +146,27 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 ## 使い方
 
+### 用語
+
+- 言語番号 : 言語を指定する時に使う番号です。デフォルト言語は 0 です。
+
 ### プラグインコマンド
 
-- setLanguage 言語切替コマンド 言語を変更します。
-- getLanguage 現在言語取得コマンド 言語番号を変数に取得します。
+- setLanguage : 言語切替コマンド 言語を変更します。
+- getLanguage : 現在言語取得コマンド 言語番号を変数に取得します。
 
 ### データベース項目（メモ欄に記述）
 
-<name_1:名前>
-<nickname_1:二つ名>
-<profile_1:プロフィール>
-<desc_1:説明>
-<message1_1:スキルのメッセージ1行目、ステートのメッセージ（アクター）>
-<message2_1:スキルのメッセージ2行目、ステートのメッセージ（敵キャラ）>
-<message3_1:ステートのメッセージ（継続）>
-<message4_1:ステートのメッセージ（解除）>
+<name_99:名前>
+<nickname_99:二つ名>
+<profile_99:プロフィール>
+<desc_99:説明>
+<message1_99:スキルのメッセージ1行目、ステートのメッセージ（アクター）>
+<message2_99:スキルのメッセージ2行目、ステートのメッセージ（敵キャラ）>
+<message3_99:ステートのメッセージ（継続）>
+<message4_99:ステートのメッセージ（解除）>
 
-「_1」の部分は言語番号の連番です。
+99 の部分は言語番号です。
 
 ### 用語
 
@@ -170,26 +174,120 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 ### イベント
 
-プラグインコマンドで言語番号を取得し、条件分岐で切り替えます。
+プラグインコマンド getLanguage で言語番号を取得し、
+条件分岐コマンドで切り替えます。
+
+または、制御文字 LANG & LANGEND および LANGF を使います。
 
 ### 制御文字
 
-#### LANG
+#### LANG & LANGEND
 
-制御文字 \LANG[0] が使えます。0 の部分は言語番号です。
-\LANG[0] から \LANGEND までを言語番号 0 の文字列として使用します。
+制御文字 \LANG[99] が使えます。99 の部分は言語番号です。
+\LANG[99] から \LANGEND までを言語番号 99 の文字列として使用します。
 \LANG[0] はデフォルト値として使用されます。
 
-以下のように設定します。
+#### 【例】LANG & LANGEND 使い方
+
+以下のように LANG と LANGEND をセットで設定します。
+
 \LANG[0]はい\LANGEND\LANG[1]Yes\LANGEND\LANG[2]ええで\LANGEND
 
 #### LANGF
 
 制御文字 \LANGF[データ名] が使えます。
-公式プラグイン UniqueDataLoader を併用し、
-文章を外部jsonファイルに記述します。
+公式プラグイン UniqueDataLoader を使用し、
+文章を外部jsonファイルに記述できます。
 
-プロパティ名は「msg_0」です。0 の部分は言語番号です。
+言語番号ごとにjsonファイルを用意し、
+UniqueDataLoader のプロパティ名は「msg_99」とします。
+99 の部分は言語番号です。
+
+#### 【例】LANGF 使い方
+
+- 文章の表示などで以下のように使用します。
+- \LANGF[battle_1_01] の後ろは、
+jsonファイルにデータがない場合に使用するデフォルト文字列です。
+- 言語番号を指定する必要はありません。
+
+◆文章：\N[2], Actor1(1), ウィンドウ, 下
+：　　：\LANGF[battle_1_01]テストです。
+◆文章：\N[2], Actor1(1), ウィンドウ, 下
+：　　：\LANGF[battle_1_02]これがバトルです。
+
+#### 【例】LANGF用 jsonファイル
+
+- 下記 { から } をjsonファイルに記述します。
+- キー（battle_1_01 など）は自由です。
+- 値に改行を使う場合は「\\n」と記述します。
+
+```json
+{
+	"battle_1_01": "Test.",
+	"battle_1_02": "This is battle.",
+	"battle_1_03": "This is test.\\nThis is test2.",
+	"message_3_01": "This is message.",
+	"message_3_02": "This is test.\\nThis is test2."
+}
+```
+
+### 外部DB取得機能
+
+外部DB取得機能を有効(true) にすると、
+jsonファイルからDB項目の値を取得できます。
+
+公式プラグイン UniqueDataLoader を使用します。
+言語番号ごとにjsonファイルを用意し、
+UniqueDataLoader のプロパティ名は「db_99」とします。
+99 の部分は言語番号です。
+
+#### 【例】外部DB取得機能 jsonファイル
+
+- 下記 [ から ] をjsonファイルに記述します。
+- ひとつのデータは { から } で挟みます。
+
+- 下記の中から必要なキーを設定します。
+- type : actor, class, item, skill, weapon, armor, enemy, state
+- id : アクターやアイテムなどの番号
+- name : アクターやアイテムなどの名前
+- nickname : 二つ名
+- profile_1st : プロフィールの1行目
+- profile_2nd : プロフィールの2行目
+- desc_1st : 説明の1行目
+- desc_2nd : 説明の2行目
+- message1 : スキルのメッセージ1行目、ステートのメッセージ（アクター）
+- message2 : スキルのメッセージ2行目、ステートのメッセージ（敵キャラ）
+- message3 : ステートのメッセージ（継続）
+- message4 : ステートのメッセージ（解除）
+
+```json
+[
+	{
+		"type": "actor",
+		"id": 1,
+		"name": "Hero",
+		"nickname": "Test Nickname",
+		"profile_1st": "Test text.",
+		"profile_2nd": "Test text2."
+	},
+	{
+		"type": "skill",
+		"id": 2,
+		"name": "Guard",
+		"desc_1st": "Test text.",
+		"desc_2nd": "Test text2."
+	},
+	{
+		"type": "state",
+		"id": 4,
+		"name": "Poison",
+		"message1": "Message1 test.",
+		"message2": "Message2 test.",
+		"message3": "Message3 test.",
+		"message4": "Message4 test."
+	}
+]
+```
 
 ## 更新履歴
 
@@ -215,6 +313,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.3.2.0 (2022/06/17) drawText に制御文字 LANG の処理を入れた。
 - ver.3.2.1 (2022/06/21) 制御文字 LANG を修正。
 - ver.3.2.2 (2022/07/15) 制御文字 LANGF を修正。
+- ver.3.2.3 (2023/02/13) ヘルプ修正。
 
  * 
  * 

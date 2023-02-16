@@ -16,7 +16,7 @@ DBやイベントコマンドなどエディタでの演奏音量の設定が90%
 
 [KRD_MZ_VolumeIsNot90をダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_VolumeIsNot90.js)
 
-![KRD_MZ_VolumeIsNot90](img/KRD_MZ_VolumeIsNot90.png)
+![KRD_MZ_VolumeIsNot90](img/VolumeIsNot90.png)
 
 ## KRD_MZ_VerticalCenter （イベント表示位置を縦中央にする）
 

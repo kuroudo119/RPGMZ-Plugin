@@ -4,6 +4,20 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_CriticalWeapon （特定武器限定会心率）
+
+特定武器を装備して、特定スキルを使った場合のみ会心率の変更を適用できるようにします。
+
+[KRD_MZ_CriticalWeaponをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_CriticalWeapon.js)
+
+## KRD_MZ_VolumeIsNot90 （演奏音量が90%の時に変更）
+
+DBやイベントコマンドなどエディタでの演奏音量の設定が90%の時、別の音量に強制変更します。
+
+[KRD_MZ_VolumeIsNot90をダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_VolumeIsNot90.js)
+
+![KRD_MZ_VolumeIsNot90](img/KRD_MZ_VolumeIsNot90.png)
+
 ## KRD_MZ_VerticalCenter （イベント表示位置を縦中央にする）
 
 イベント画像をタイルに対して縦位置をセンタリングします。  

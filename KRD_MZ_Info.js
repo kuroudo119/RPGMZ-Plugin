@@ -428,6 +428,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.7.0 (2022/06/29) 敵キャラ画像の内部処理を修正
 - ver.1.8.0 (2022/07/19) 外部jsonファイル使用を追加
 - ver.1.9.0 (2022/08/18) 敵キャラ表示データを追加
+- ver.1.10.0 (2023/02/28) 制御文字なし text を width に対応
 
  * 
  * 
@@ -1348,9 +1349,9 @@ class Window_InfoText extends Window_InfoTextBase {
 				this.drawTextSeparate(text4draw, x, y, this.innerWidth, alphabet[0], alphabet[1]);
 			} else if (name4draw) {
 				this.drawTextEx(name4draw, x, y);
-				this.drawTextExFontSize(text4draw, x, y + this.lineHeight());
+				this.drawTextSeparateAuto(text4draw, x, y, this.innerWidth);
 			} else {
-				this.drawTextExFontSize(text4draw, x, y);
+				this.drawTextSeparateAuto(text4draw, x, y, this.innerWidth);
 			}
 		}
 	}
@@ -1364,6 +1365,26 @@ class Window_InfoText extends Window_InfoTextBase {
 			y = y + lineHeight;
 			KRD_Window_Base_drawText.call(this, str, x, y, width);
 		}, this);
+	}
+
+	drawTextSeparateAuto(text, x, y, width) {
+		const strList = text.split("\n");
+		const lineHeight = this.lineHeight();
+
+		strList.forEach(str => {
+			y = y + lineHeight;
+			if (this.hasEscape(str)) {
+				this.drawTextExFontSize(str, x, y);
+			} else {
+				KRD_Window_Base_drawText.call(this, str, x, y, width);
+			}
+		}, this);
+	}
+
+	hasEscape(text) {
+		const result = text.match(/\\/);
+		const result2 = text.match(/\x1b/);
+		return result || result2;
 	}
 
 	drawEnemy(found) {

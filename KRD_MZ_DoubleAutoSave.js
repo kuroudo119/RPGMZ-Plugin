@@ -15,6 +15,12 @@
  * @desc バトル後のオートセーブ表示名です。初期値「バトル」
  * @default バトル
  * 
+ * @param setSavefileId
+ * @text ファイルID更新
+ * @desc オートセーブ時にも最新セーブファイル番号を更新する。初期値「false」
+ * @default false
+ * @type boolean
+ * 
  * @help
 # KRD_MZ_DoubleAutoSave.js
 
@@ -29,6 +35,12 @@
 このプラグインはMITライセンスです。
 https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
+## 補足
+
+最新セーブファイル番号はセーブデータに含まれています。
+なので、最新ではないファイルをロードすると、
+そのファイルが最新である状態が復元されます。
+
 ## 更新履歴
 
 - ver.0.0.1 (2022/06/14) 作成開始
@@ -38,6 +50,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.2.0 (2022/06/15) セーブデータ名を設定可能にした
 - ver.1.2.1 (2022/06/16) リファクタリングした
 - ver.1.2.2 (2022/06/17) 多言語プラグイン対応を不要にしたので削除
+- ver.1.3.0 (2022/07/04) パラメータ setSavefileId を追加
+- ver.1.4.0 (2023/03/01) 元関数を退避した
 
  * 
  * 
@@ -53,6 +67,9 @@ const PARAM = PluginManager.parameters(PLUGIN_NAME);
 const SAVE_NAME_MAP = PARAM["saveFileMap"];
 const SAVE_NAME_BATTLE = PARAM["saveFileBattle"];
 
+const SET_FILE_ID = PARAM["setSavefileId"] === "true";
+
+const MAP_FILE_ID = 0;
 const BATTLE_FILE_ID = 1;
 const INIT_FILE_ID = 2;
 
@@ -60,10 +77,42 @@ const INIT_FILE_ID = 2;
 // 戦闘後オートセーブ
 
 Scene_Battle.prototype.executeAutosave = function() {
+	if (SET_FILE_ID) {
+		$gameSystem.setSavefileId(BATTLE_FILE_ID);
+	}
 	$gameSystem.onBeforeSave();
 	DataManager.saveGame(BATTLE_FILE_ID)
 		.then(() => this.onAutosaveSuccess())
 		.catch(() => this.onAutosaveFailure());
+};
+
+//--------------------------------------
+// マップ移動時も最新セーブファイル番号を更新
+
+const KRD_Scene_Base_executeAutosave = Scene_Base.prototype.executeAutosave;
+Scene_Base.prototype.executeAutosave = function() {
+	if (SET_FILE_ID) {
+		$gameSystem.setSavefileId(MAP_FILE_ID);
+	}
+	KRD_Scene_Base_executeAutosave.apply(this, arguments);
+};
+
+//--------------------------------------
+// 最新セーブファイル番号
+// 
+// セーブがある時はオートセーブ番号を最新にしない
+
+const KRD_DataManager_latestSavefileId = DataManager.latestSavefileId;
+DataManager.latestSavefileId = function() {
+	const globalInfo = this._globalInfo;
+	const validInfo = globalInfo.slice(INIT_FILE_ID).filter(x => x);
+	if (validInfo.length > 0) {
+		const latest = Math.max(...validInfo.map(x => x.timestamp));
+		const index = globalInfo.findIndex(x => x && x.timestamp === latest);
+		return index > 0 ? index : 0;
+	} else {
+		return KRD_DataManager_latestSavefileId.apply(this, arguments);
+	}
 };
 
 //--------------------------------------
@@ -77,6 +126,7 @@ Window_SavefileList.prototype.isEnabled = function(savefileId) {
 	}
 };
 
+const KRD_Window_SavefileList_drawTitle = Window_SavefileList.prototype.drawTitle;
 Window_SavefileList.prototype.drawTitle = function(savefileId, x, y) {
 	if (savefileId < INIT_FILE_ID) {
 		if (SAVE_NAME_MAP && SAVE_NAME_BATTLE) {
@@ -91,7 +141,7 @@ Window_SavefileList.prototype.drawTitle = function(savefileId, x, y) {
 		}
 	} else {
 		const fileId = savefileId - 1;
-		this.drawText(TextManager.file + " " + fileId, x, y, 180);
+		KRD_Window_SavefileList_drawTitle.call(this, fileId, x, y);
 	}
 };
 

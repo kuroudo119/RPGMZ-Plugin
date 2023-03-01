@@ -7,13 +7,13 @@
  * 
  * @param versionKey
  * @text バージョン識別子
- * @desc TextScriptBaseプラグインで設定した識別子。初期値 ver
+ * @desc バージョンの値。または、TextScriptBaseプラグインで設定した識別子。初期値 ver
  * @default ver
  * 
  * @param versionText
  * @text バージョン表示文字列
- * @desc バージョンの前に表示する文字列。初期値 ver.
- * @default ver.
+ * @desc バージョンの前に表示する文字列。初期値 v.
+ * @default v.
  * 
  * @param mapY
  * @text マップ名Y
@@ -58,6 +58,28 @@
  * @default true
  * @type boolean
  * 
+ * @param usePng
+ * @text pngを使用
+ * @desc true: pngを使う。ファイルサイズが大きくなります。 ／ false: jpegを使う。
+ * @default false
+ * @type boolean
+ * @parent useMapImage
+ * 
+ * @param compressRate
+ * @text jpeg圧縮率
+ * @desc jpegの圧縮率です。パーセントで記述します。
+ * @default 10
+ * @type number
+ * @max 100
+ * @parent useMapImage
+ * 
+ * @param thumbnailScale
+ * @text サムネイル割合
+ * @desc マップ画像サイズのゲーム画面サイズとの割合です。パーセントで記述します。初期値13
+ * @default 13
+ * @type number
+ * @parent useMapImage
+ * 
  * @help
 # KRD_MZ_Save.js
 
@@ -81,6 +103,17 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.3.0 (2021/11/09) 文字の表示位置を調整
 - ver.0.4.0 (2022/01/15) 確認ダイアログ表示有無オプション追加
 - ver.0.5.0 (2022/02/21) マップ画像表示を追加
+- ver.0.6.0 (2022/03/09) プラグインパラメータ追加
+- ver.0.7.0 (2022/03/27) プラグインパラメータ追加
+- ver.0.7.1 (2022/06/14) ダブルオートセーブ対応した。
+- ver.0.7.2 (2022/06/16) 不透明度の処理を修正した。
+- ver.0.8.0 (2022/06/29) タイトル表示処理を修正した。
+- ver.0.9.0 (2022/07/04) 最新ファイルの文字色を変更するようにした。
+- ver.0.10.0 (2022/07/08) 確認ダイアログのSEを修正した。
+- ver.0.10.1 (2022/10/18) 確認ダイアログのクラス名を変更した。
+- ver.0.10.2 (2022/11/17) バージョン表示文字列の初期値を変更した。
+- ver.0.11.0 (2023/02/28) バージョン取得処理を変更。
+- ver.0.12.0 (2023/03/01) 最新ファイルをselectするようにした。
 
  * 
  * 
@@ -105,6 +138,17 @@ const VAR_TEXT = Number(PARAM["varText"]) || 0;
 
 const USE_DIALOG = PARAM["useDialog"] === "true";
 const USE_MAP_IMAGE = PARAM["useMapImage"] === "true";
+
+const USE_PNG = PARAM["usePng"] === "true";
+const MIME_PNG = "image/png";
+const MIME_JPEG = "image/jpeg";
+const MIME_TYPE = USE_PNG ? MIME_PNG : MIME_JPEG;
+const COMPRESS_RATE = (Number(PARAM["compressRate"]) || 10) / 100;
+const THUMBNAIL_SCALE = Number(PARAM["thumbnailScale"] || 13) / 100;
+
+const INIT_FILE_ID = 1;
+
+const NEW_FILE_COLOR = 17;
 
 //--------------------------------------
 // セーブデータ info 追加
@@ -139,10 +183,13 @@ DataManager.getMapName = function() {
 };
 
 DataManager.getVersion = function() {
-	try {
-		return $gameSystem.getTextBase(VERSION_KEY);
-	} catch(e) {
-		return "";
+	if ($gameSystem.getTextBase) {
+		const text = `\\js[${VERSION_KEY}]`;
+		const version = Window_Base.prototype.convertEscapeCharacters(text);
+		return version;
+	} else {
+		// TextScriptBaseプラグインを使用しない場合
+		return VERSION_KEY;
 	}
 };
 
@@ -154,29 +201,57 @@ DataManager.getMapImage = function() {
 		height: $gameTemp._mapImage.height,
 	} : null;
 
-	$gameTemp._mapImage = null;
 	return result;
 };
 
 //--------------------------------------
 // セーブ画面
 
-Window_SavefileList.prototype.drawContents = function(info, rect) {
+Window_SavefileList.prototype.drawItem = function(index) {
+	const savefileId = this.indexToSavefileId(index);
+	const info = DataManager.savefileInfo(savefileId);
+	const rect = this.itemRectWithPadding(index);
+	this.resetTextColor();
+	this.changePaintOpacity(true);
+	this.drawTitle(savefileId, rect.x, rect.y + 4);
+	if (info) {
+		 this.drawContents(info, rect, savefileId);
+	}
+};
+
+Window_SavefileList.prototype.drawContents = function(info, rect, savefileId) {
 	if (USE_MAP_IMAGE && info.mapImage) {
 		const image = new Image(info.mapImage.width, info.mapImage.height);
 		image.src = info.mapImage.src;
 		image.addEventListener("load", element => {
 			this.drawMapImage(rect, image);
-			this.drawMainContents(info, rect);
+			this.drawTitle(savefileId, rect.x, rect.y + 4);
+			this.drawMainContents(info, rect, savefileId);
+
+			this.firstSelectSavefile();
 		});
 	} else {
-		this.drawMainContents(info, rect);
+		this.drawTitle(savefileId, rect.x, rect.y + 4);
+		this.drawMainContents(info, rect, savefileId);
+
+		this.firstSelectSavefile();
 	}
 };
 
-Window_SavefileList.prototype.drawMainContents = function(info, rect) {
-	this.changePaintOpacity(true);
+Window_SavefileList.prototype.firstSelectSavefile = function() {
+	if (!this._firstView) {
+		this.selectSavefile(SceneManager._scene.firstSavefileId());
+		this._firstView = true;
+	}
+};
 
+Window_SavefileList.prototype.changeTitleColor = function(savefileId) {
+	if (savefileId === SceneManager._scene.firstSavefileId()) {
+		this.changeTextColor(ColorManager.textColor(NEW_FILE_COLOR));
+	}
+}
+
+Window_SavefileList.prototype.drawMainContents = function(info, rect, savefileId) {
 	const bottom = rect.y + rect.height;
 	const lineHeight = this.lineHeight();
 	this.drawPartyCharacters(info, rect.x + 16, bottom - lineHeight - 8);
@@ -186,11 +261,13 @@ Window_SavefileList.prototype.drawMainContents = function(info, rect) {
 
 	const y3 = rect.y + lineHeight;
 	const timestamp = new Date(info.timestamp).toLocaleString();
+	this.changeTitleColor(savefileId);
 	this.drawText(timestamp, rect.x, y3, rect.width, "right");
+	this.resetTextColor()
 
 	if (info.mapName) {
 		const y4 = bottom - lineHeight + MAP_Y_PLUS;
-		this.drawTextEx(info.mapName, rect.x, y4, rect.width);
+		this.drawText(info.mapName, rect.x, y4, rect.width);
 	}
 	if (info.version) {
 		const y5 = rect.y + 4;
@@ -210,6 +287,7 @@ Window_SavefileList.prototype.drawMapImage = function(rect, image) {
 			const dx = rect.x + rect.width - dw;
 			const dy = rect.y + Math.floor((rect.height - dh) / 2);
 
+			// rmmz_core の Bitmap.prototype.blt から移植
 			this.contents.context.globalCompositeOperation = "source-over";
 			this.contents.context.drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
 			this.contents._baseTexture.update();
@@ -249,24 +327,32 @@ Window_SavefileList.prototype.drawPartyCharacters = function(info, x, y) {
 };
 
 //--------------------------------------
-// maxCols が 2 の時
-// マップ画像使用時に画像読込遅延により表示がおかしくなるので、index = 0 としてる。
+// maxCols が 2 の時の処理を修正
 
 const KRD_Window_SavefileList_selectSavefile = Window_SavefileList.prototype.selectSavefile;
 Window_SavefileList.prototype.selectSavefile = function(savefileId) {
-	if (USE_MAP_IMAGE) {
-		const index = 0;
+	if (MAX_COLS === 2) {
+		const index = Math.max(0, this.savefileIdToIndex(savefileId));
 		this.select(index);
-		this.setTopRow(index - 2);
+		this.setTopRow(Math.floor(index / 2) - 2);
 	} else {
-		if (MAX_COLS === 2) {
-			const index = Math.max(0, this.savefileIdToIndex(savefileId));
-			this.select(index);
-			this.setTopRow(Math.floor(index / 2) - 2);
-		} else {
-			KRD_Window_SavefileList_selectSavefile.apply(this, arguments);
-		}
+		KRD_Window_SavefileList_selectSavefile.apply(this, arguments);
 	}
+};
+
+Scene_File.prototype.createListWindow = function() {
+	const rect = this.listWindowRect();
+	this._listWindow = new Window_SavefileList(rect);
+	this._listWindow.setHandler("ok", this.onSavefileOk.bind(this));
+	this._listWindow.setHandler("cancel", this.popScene.bind(this));
+	this._listWindow.setMode(this.mode(), this.needsAutosave());
+	// コメントアウト（画像表示の遅延があるので、後で処理する）
+	// this._listWindow.selectSavefile(this.firstSavefileId());
+	this._listWindow.refresh();
+	this.addWindow(this._listWindow);
+
+	// 追加
+	this._listWindow._firstView = false;
 };
 
 //--------------------------------------
@@ -275,7 +361,7 @@ Window_SavefileList.prototype.selectSavefile = function(savefileId) {
 const KRD_Scene_Save_create = Scene_Save.prototype.create;
 Scene_Save.prototype.create = function() {
 	if (USE_DIALOG) {
-		Scene_File.prototype.create.apply(this, arguments);
+		KRD_Scene_Save_create.apply(this, arguments);
 		this.createConfirmWindow();
 	} else {
 		KRD_Scene_Save_create.apply(this, arguments);
@@ -284,7 +370,8 @@ Scene_Save.prototype.create = function() {
 
 const KRD_Scene_Save_onSavefileOk = Scene_Save.prototype.onSavefileOk;
 Scene_Save.prototype.onSavefileOk = function() {
-	if (USE_DIALOG && this.savefileId() !== 0) {
+	this._initFileId = this._initFileId || INIT_FILE_ID;
+	if (USE_DIALOG && this.savefileId() >= this._initFileId) {
 		Scene_File.prototype.onSavefileOk.apply(this, arguments);
 		this._confirmWindow.show();
 		this._confirmWindow.activate();
@@ -296,7 +383,7 @@ Scene_Save.prototype.onSavefileOk = function() {
 
 Scene_Save.prototype.createConfirmWindow = function() {
 	const rect = this.confirmWindowRect();
-	this._confirmWindow = new Window_Confirm(rect);
+	this._confirmWindow = new Window_Save_Confirm(rect);
 	this._confirmWindow.setHandler("save", this.onConfirmOk.bind(this));
 	this._confirmWindow.setHandler("cancel", this.onConfirmCancel.bind(this));
 	this.addWindow(this._confirmWindow);
@@ -326,12 +413,13 @@ Scene_Save.prototype.onConfirmOk = function() {
 };
 
 Scene_Save.prototype.onConfirmCancel = function() {
+	SoundManager.playCancel();
 	this.activateListWindow();
 	this._confirmWindow.hide();
 	this._confirmWindow.deactivate();
 };
 
-class Window_Confirm extends Window_Command {
+class Window_Save_Confirm extends Window_Command {
 	makeCommandList() {
 		this.addCommand(TextManager.save, "save");
 		this.addCommand(TextManager.cancel, "cancel");
@@ -339,6 +427,10 @@ class Window_Confirm extends Window_Command {
 
 	itemHeight() {
 		return Math.floor(this.innerHeight / 2);
+	}
+
+	playOkSound() {
+		//
 	}
 }
 
@@ -373,12 +465,12 @@ Scene_Map.prototype.stop = function() {
 
 Scene_Base.prototype.mapImage = function() {
 	if (USE_MAP_IMAGE) {
-		const scale = 0.125;
+		const scale = THUMBNAIL_SCALE;
 		const width = Math.floor(Graphics.boxWidth * scale);
 		const height = Math.floor(Graphics.boxHeight * scale);
 		const bitmap = SceneManager.snapWH(width, height);
 		const image = new Image(width, height);
-		image.src = bitmap.canvas.toDataURL("image/jpeg", 0.1);
+		image.src = bitmap.canvas.toDataURL(MIME_TYPE, COMPRESS_RATE);
 		$gameTemp._mapImage = image;
 	} else {
 		$gameTemp._mapImage = null;

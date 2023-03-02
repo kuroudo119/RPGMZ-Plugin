@@ -52,6 +52,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.2.2 (2022/06/17) 多言語プラグイン対応を不要にしたので削除
 - ver.1.3.0 (2022/07/04) パラメータ setSavefileId を追加
 - ver.1.4.0 (2023/03/01) 元関数を退避した
+- ver.1.5.0 (2023/03/02) 関数を追加
 
  * 
  * 
@@ -149,7 +150,22 @@ Window_SavefileList.prototype.drawTitle = function(savefileId, x, y) {
 const KRD_Scene_Save_initialize = Scene_Save.prototype.initialize;
 Scene_Save.prototype.initialize = function() {
 	KRD_Scene_Save_initialize.apply(this, arguments);
-	this._initFileId = this._initFileId || INIT_FILE_ID;
+	this._initFileId = this._initFileId || $gameTemp.initFileId();
+};
+
+//--------------------------------------
+Scene_Save.prototype.firstSavefileId = function() {
+	const fileId = $gameSystem.savefileId() ;
+	return $gameTemp.isAutoSaveFileId(fileId) ? $gameTemp.initFileId() : fileId;
+};
+
+//--------------------------------------
+Game_Temp.prototype.isAutoSaveFileId = function(fileId){
+	return fileId < $gameTemp.initFileId();
+};
+
+Game_Temp.prototype.initFileId = function() {
+	return INIT_FILE_ID;
 };
 
 //--------------------------------------

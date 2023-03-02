@@ -114,6 +114,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.10.2 (2022/11/17) バージョン表示文字列の初期値を変更した。
 - ver.0.11.0 (2023/02/28) バージョン取得処理を変更。
 - ver.0.12.0 (2023/03/01) 最新ファイルをselectするようにした。
+- ver.0.12.1 (2023/03/02) 最新ファイルselect処理を修正。
 
  * 
  * 
@@ -217,6 +218,9 @@ Window_SavefileList.prototype.drawItem = function(index) {
 	if (info) {
 		 this.drawContents(info, rect, savefileId);
 	}
+
+	// サムネイル画像なし時処理
+	this.firstSelectSavefile(savefileId);
 };
 
 Window_SavefileList.prototype.drawContents = function(info, rect, savefileId) {
@@ -228,13 +232,11 @@ Window_SavefileList.prototype.drawContents = function(info, rect, savefileId) {
 			this.drawTitle(savefileId, rect.x, rect.y + 4);
 			this.drawMainContents(info, rect, savefileId);
 
-			this.firstSelectSavefile();
+			this.firstSelectSavefile(savefileId);
 		});
 	} else {
 		this.drawTitle(savefileId, rect.x, rect.y + 4);
 		this.drawMainContents(info, rect, savefileId);
-
-		this.firstSelectSavefile();
 	}
 };
 
@@ -355,6 +357,12 @@ Scene_File.prototype.createListWindow = function() {
 	this._listWindow._firstView = false;
 };
 
+const KRD_Window_SavefileList_initialize = Window_SavefileList.prototype.initialize;
+Window_SavefileList.prototype.initialize = function(rect) {
+	KRD_Window_SavefileList_initialize.apply(this, arguments);
+	this._firstView = false;
+};
+
 //--------------------------------------
 // セーブ確認ダイアログ
 
@@ -370,7 +378,7 @@ Scene_Save.prototype.create = function() {
 
 const KRD_Scene_Save_onSavefileOk = Scene_Save.prototype.onSavefileOk;
 Scene_Save.prototype.onSavefileOk = function() {
-	this._initFileId = this._initFileId || INIT_FILE_ID;
+	this._initFileId = this._initFileId || $gameTemp.initFileId();
 	if (USE_DIALOG && this.savefileId() >= this._initFileId) {
 		Scene_File.prototype.onSavefileOk.apply(this, arguments);
 		this._confirmWindow.show();
@@ -448,6 +456,15 @@ Scene_Battle.prototype.create = function() {
 	} catch (e) {
 		$gameTemp._mapName = "";
 	}
+};
+
+//--------------------------------------
+Game_Temp.prototype.isAutoSaveFileId = function(fileId){
+	return fileId < $gameTemp.initFileId();
+};
+
+Game_Temp.prototype.initFileId = function() {
+	return INIT_FILE_ID;
 };
 
 //--------------------------------------

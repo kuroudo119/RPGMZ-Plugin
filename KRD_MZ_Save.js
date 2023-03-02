@@ -115,6 +115,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.11.0 (2023/02/28) バージョン取得処理を変更。
 - ver.0.12.0 (2023/03/01) 最新ファイルをselectするようにした。
 - ver.0.12.1 (2023/03/02) 最新ファイルselect処理を修正。
+- ver.0.12.2 (2023/03/02) リファクタリング
 
  * 
  * 
@@ -216,11 +217,11 @@ Window_SavefileList.prototype.drawItem = function(index) {
 	this.changePaintOpacity(true);
 	this.drawTitle(savefileId, rect.x, rect.y + 4);
 	if (info) {
-		 this.drawContents(info, rect, savefileId);
+		this.drawContents(info, rect, savefileId);
 	}
 
 	// サムネイル画像なし時処理
-	this.firstSelectSavefile(savefileId);
+	this.firstSelectSavefile();
 };
 
 Window_SavefileList.prototype.drawContents = function(info, rect, savefileId) {
@@ -232,7 +233,8 @@ Window_SavefileList.prototype.drawContents = function(info, rect, savefileId) {
 			this.drawTitle(savefileId, rect.x, rect.y + 4);
 			this.drawMainContents(info, rect, savefileId);
 
-			this.firstSelectSavefile(savefileId);
+			// 画像表示を待って処理する
+			this.firstSelectSavefile();
 		});
 	} else {
 		this.drawTitle(savefileId, rect.x, rect.y + 4);
@@ -340,21 +342,6 @@ Window_SavefileList.prototype.selectSavefile = function(savefileId) {
 	} else {
 		KRD_Window_SavefileList_selectSavefile.apply(this, arguments);
 	}
-};
-
-Scene_File.prototype.createListWindow = function() {
-	const rect = this.listWindowRect();
-	this._listWindow = new Window_SavefileList(rect);
-	this._listWindow.setHandler("ok", this.onSavefileOk.bind(this));
-	this._listWindow.setHandler("cancel", this.popScene.bind(this));
-	this._listWindow.setMode(this.mode(), this.needsAutosave());
-	// コメントアウト（画像表示の遅延があるので、後で処理する）
-	// this._listWindow.selectSavefile(this.firstSavefileId());
-	this._listWindow.refresh();
-	this.addWindow(this._listWindow);
-
-	// 追加
-	this._listWindow._firstView = false;
 };
 
 const KRD_Window_SavefileList_initialize = Window_SavefileList.prototype.initialize;

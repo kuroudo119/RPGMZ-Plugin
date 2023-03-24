@@ -78,7 +78,7 @@ Scene_Battle.prototype.selectNextCommand = function() {
 		if (actor._actions.length < DUAL_CAST.castTimes) {
 			actor._actions.push(new Game_Action(actor));
 
-			this.selectNextCommandDualSkill(this._skillWindow._stypeId);
+			this.selectNextCommandDualSkill();
 		} else {
 			KRD_Scene_Battle_selectNextCommand.apply(this, arguments);
 			this._skillWindow._stypeId = 0;

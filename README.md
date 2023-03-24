@@ -10,6 +10,8 @@
 
 [KRD_MZ_DualCastをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_DualCast.js)
 
+https://user-images.githubusercontent.com/43639887/227468347-e407edee-7ec4-44b6-b6ab-c3adf3ee11ac.mp4
+
 ## KRD_MZ_CriticalWeapon （特定武器限定会心率）
 
 特定武器を装備して、特定スキルを使った場合のみ会心率の変更を適用できるようにします。

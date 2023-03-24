@@ -4,6 +4,12 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_DualCast （れんぞくまほう）
+
+特定のスキルタイプを連続使用するコマンドを作成できます。
+
+[KRD_MZ_DualCastをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_DualCast.js)
+
 ## KRD_MZ_CriticalWeapon （特定武器限定会心率）
 
 特定武器を装備して、特定スキルを使った場合のみ会心率の変更を適用できるようにします。

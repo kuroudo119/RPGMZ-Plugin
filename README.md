@@ -4,6 +4,12 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_SelfSwitches （セルフスイッチ一括操作）
+
+指定タグを持つマップイベントのセルフスイッチをまとめて変更します。
+
+[KRD_MZ_SelfSwitchesをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_SelfSwitches.js)
+
 ## KRD_MZ_DualCast （れんぞくまほう）
 
 特定のスキルタイプを連続使用するコマンドを作成できます。

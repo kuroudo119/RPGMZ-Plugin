@@ -4,6 +4,13 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_TargetRate （隊列狙われ率変更）
+
+隊列の順番に応じて狙われ率を設定できます。  
+例えば、先頭は狙われ率400%にするなど。
+
+[KRD_MZ_TargetRateをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_TargetRate.js)
+
 ## KRD_MZ_SelfSwitches （セルフスイッチ一括操作）
 
 指定タグを持つマップイベントのセルフスイッチをまとめて変更します。

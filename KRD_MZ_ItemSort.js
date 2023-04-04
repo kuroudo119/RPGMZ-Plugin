@@ -21,7 +21,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 ## 仕様
 
-### アイテム・スキルの並び順
+### アイテムの並び順
 
 使用可能時、ダメージタイプ、範囲の順。
 
@@ -33,12 +33,19 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 装備タイプ、防具タイプの順。
 
+### スキルの並び順
+
+使用可能時、ダメージタイプ、範囲の順。
+同じアイコン、スキル番号の順。
+
 ## 更新履歴
 
 - ver.0.0.1 (2021/02/23) 非公開版完成
 - ver.0.1.0 (2022/03/08) 武器防具タイプソートに変更
 - ver.0.2.0 (2022/03/10) 範囲・使用可能時でのソートに変更
 - ver.1.0.0 (2022/03/17) 公開
+- ver.1.1.0 (2022/05/27) 関数をクラスメソッドに変更
+- ver.1.2.0 (2023/04/04) 特徴での追加スキルのソートに対応
 
  * 
  * 
@@ -54,6 +61,10 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 const KRD_Window_ItemList_makeItemList = Window_ItemList.prototype.makeItemList;
 Window_ItemList.prototype.makeItemList = function() {
 	KRD_Window_ItemList_makeItemList.apply(this, arguments);
+	this.sortList();
+};
+
+Window_ItemList.prototype.sortList = function() {
 	if (this._data && this._data.length > 0) {
 		if (DataManager.isItem(this._data[0])) {
 			this._data.sort(compareItems);
@@ -119,18 +130,53 @@ const compareArmors = function(a, b) {
 };
 
 //--------------------------------------
+// 基本項目ソート
+
+const compareItemId = function(a, b) {
+	return a.id - b.id;
+};
+
+const compareItemName = function(a, b) {
+	return a.name - b.name;
+};
+
+const compareItemIconIndex = function(a, b) {
+	return a.iconIndex - b.iconIndex;
+};
+
+const compareSkillCost = function(a, b) {
+	return a.mpCost - b.mpCost;
+};
+
+//--------------------------------------
 // スキルリストのソート
 
 const KRD_Window_SkillList_makeItemList = Window_SkillList.prototype.makeItemList;
 Window_SkillList.prototype.makeItemList = function() {
 	KRD_Window_SkillList_makeItemList.apply(this, arguments);
+	this.sortList();
+};
+
+Window_SkillList.prototype.sortList = function() {
 	if (this._data && this._data.length > 0) {
 		this._data.sort(compareSkills);
 	}
 };
 
 const compareSkills = function(a, b) {
-	return compareItems(a, b);
+	if (!a || !b) {
+		return 0;
+	}
+	
+	const sortItem = compareItems(a, b);
+	if (sortItem === 0) {
+		const sortIcon = compareItemIconIndex(a, b);
+		if (sortIcon === 0) {
+			return compareItemId(a, b);
+		}
+	} else {
+		return sortItem;
+	}
 };
 
 //--------------------------------------

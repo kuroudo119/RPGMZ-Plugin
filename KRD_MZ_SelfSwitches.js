@@ -18,6 +18,9 @@
  * @text 値
  * @desc セルフスイッチON: true ／ OFF: false
  * @type boolean
+ * @arg mapIdList
+ * @text マップIDリスト
+ * @desc 変更したいマップIDの一覧です。カンマ区切りで複数記述できます。未記入時は今いるマップです。
  * 
  * @help
 # KRD_MZ_SelfSwitches.js
@@ -38,6 +41,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2023/03/31) 作成開始
 - ver.0.1.0 (2023/03/31) 非公開版完成
 - ver.1.0.0 (2023/04/01) 公開
+- ver.2.0.0 (2023/04/11) 他マップを対象にできるようにした。
 
  * 
  * 
@@ -53,18 +57,21 @@ const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 // プラグインコマンド
 
 PluginManager.registerCommand(PLUGIN_NAME, "setSelfSwitches", args => {
-	$gameTemp.setSelfSwitches(args.alphabet, args.tag, args.value === "true");
+	$gameTemp.setSelfSwitches(args.alphabet, args.tag, args.value === "true", args.mapIdList);
 });
 
 //--------------------------------------
-Game_Temp.prototype.setSelfSwitches = function(alphabet, tag, value) {
+Game_Temp.prototype.setSelfSwitches = function(alphabet, tag, value, argMapIdList) {
 	const eventIdList = this.eventIdList(tag);
-	const mapId = $gameMap.mapId();
+	const baseMapIdList = [ $gameMap.mapId() ];
+	const mapIdList = argMapIdList ? JSON.parse("[" + argMapIdList + "]") : baseMapIdList;
 
-	eventIdList.forEach(eventId => {
-		const key = [mapId, eventId, alphabet];
-		$gameSelfSwitches.setValue(key, !!value);
-	}, this);
+	mapIdList.forEach(mapId => {
+		eventIdList.forEach(eventId => {
+			const key = [mapId, eventId, alphabet];
+			$gameSelfSwitches.setValue(key, !!value);
+		});
+	});
 };
 
 Game_Temp.prototype.eventIdList = function(tag) {

@@ -4,6 +4,13 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_VolumeChanger （演奏音量倍率）
+
+音量の設定に倍率（パーセント）をかけます。  
+主に爆音防止用です。
+
+[KRD_MZ_VolumeChangerをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_VolumeChanger.js)
+
 ## KRD_MZ_TargetRate （隊列狙われ率変更）
 
 隊列の順番に応じて狙われ率を設定できます。  
@@ -30,14 +37,6 @@ https://user-images.githubusercontent.com/43639887/227468347-e407edee-7ec4-44b6-
 特定武器を装備して、特定スキルを使った場合のみ会心率の変更を適用できるようにします。
 
 [KRD_MZ_CriticalWeaponをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_CriticalWeapon.js)
-
-## KRD_MZ_VolumeIsNot90 （演奏音量が90%の時に変更）
-
-DBやイベントコマンドなどエディタでの演奏音量の設定が90%の時、別の音量に強制変更します。
-
-[KRD_MZ_VolumeIsNot90をダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_VolumeIsNot90.js)
-
-![KRD_MZ_VolumeIsNot90](img/VolumeIsNot90.png)
 
 ## KRD_MZ_VerticalCenter （イベント表示位置を縦中央にする）
 

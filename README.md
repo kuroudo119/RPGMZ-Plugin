@@ -6,7 +6,7 @@
 
 ## KRD_MZ_VolumeChanger （演奏音量倍率）
 
-エディタの音量の設定に倍率（パーセント）をかけます。  
+音量の設定に倍率（パーセント）をかけます。  
 主に爆音防止用です。
 
 [KRD_MZ_VolumeChangerをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_VolumeChanger.js)

@@ -29,6 +29,16 @@
  * @default 20
  * @type number
  * 
+ * @param SPECIAL_DIRECTORY
+ * @text 特定ディレクトリ名
+ * @desc 特定ディレクトリとしてしていする文字列。
+ * 
+ * @param SPECIAL_VOLUME
+ * @text 特定ディレクトリ音量割合
+ * @desc 特定ディレクトリに入っている音声の演奏の音量に、この値（パーセント）をかける。
+ * @default 40
+ * @type number
+ * 
  * @help
 # KRD_MZ_VolumeChanger.js
 
@@ -48,6 +58,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2023/04/15) 作成開始
 - ver.0.1.0 (2023/04/15) 非公開版完成
 - ver.1.0.0 (2023/04/16) 公開
+- ver.1.1.0 (2023/04/17) 特定ディレクトリ機能を追加
 
  * 
  * 
@@ -65,10 +76,14 @@ const PERCENT_BGS = Number(PARAM["PERCENT_BGS"]) || 0;
 const PERCENT_ME = Number(PARAM["PERCENT_ME"]) || 0;
 const PERCENT_SE = Number(PARAM["PERCENT_SE"]) || 0;
 
+const SPECIAL_DIRECTORY = PARAM["SPECIAL_DIRECTORY"];
+const SPECIAL_VOLUME = Number(PARAM["SPECIAL_VOLUME"]) || 0;
+
 const KRD_AudioManager_updateBgmParameters = AudioManager.updateBgmParameters;
 AudioManager.updateBgmParameters = function(bgm) {
 	if (bgm) {
-		bgm.volume = this._bgmVolume * PERCENT_BGM / 100;
+		const percent = SPECIAL_DIRECTORY && bgm.name.match(SPECIAL_DIRECTORY) ? SPECIAL_VOLUME : PERCENT_BGM;
+		bgm.volume = this._bgmVolume * percent / 100;
 	}
 	KRD_AudioManager_updateBgmParameters.apply(this, arguments);
 };
@@ -76,7 +91,8 @@ AudioManager.updateBgmParameters = function(bgm) {
 const KRD_AudioManager_updateBgsParameters = AudioManager.updateBgsParameters;
 AudioManager.updateBgsParameters = function(bgs) {
 	if (bgs) {
-		bgs.volume = this._bgsVolume * PERCENT_BGS / 100;
+		const percent = SPECIAL_DIRECTORY && bgs.name.match(SPECIAL_DIRECTORY) ? SPECIAL_VOLUME : PERCENT_BGS;
+		bgs.volume = this._bgsVolume * percent / 100;
 	}
 	KRD_AudioManager_updateBgsParameters.apply(this, arguments);
 };
@@ -84,7 +100,8 @@ AudioManager.updateBgsParameters = function(bgs) {
 const KRD_AudioManager_updateMeParameters = AudioManager.updateMeParameters;
 AudioManager.updateMeParameters = function(me) {
 	if (me) {
-		me.volume = this._meVolume * PERCENT_ME / 100;
+		const percent = SPECIAL_DIRECTORY && me.name.match(SPECIAL_DIRECTORY) ? SPECIAL_VOLUME : PERCENT_ME;
+		me.volume = this._meVolume * percent / 100;
 	}
 	KRD_AudioManager_updateMeParameters.apply(this, arguments);
 };
@@ -92,7 +109,8 @@ AudioManager.updateMeParameters = function(me) {
 const KRD_AudioManager_updateSeParameters = AudioManager.updateSeParameters;
 AudioManager.updateSeParameters = function(buffer, se) {
 	if (se) {
-		se.volume = this._seVolume * PERCENT_SE / 100;
+		const percent = SPECIAL_DIRECTORY && se.name.match(SPECIAL_DIRECTORY) ? SPECIAL_VOLUME : PERCENT_SE;
+		se.volume = this._seVolume * percent / 100;
 	}
 	KRD_AudioManager_updateSeParameters.apply(this, arguments);
 };

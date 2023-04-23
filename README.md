@@ -4,6 +4,14 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_AutoGame （オートゲーム）
+
+ゲームを自動進行するためのプラグインです。  
+ゲーム速度を加速するプラグインではありません。  
+画面上部の「>>」ボタンをクリックするとONになり、指定時間（5秒）ごとに決定ボタンを押す動作をします。
+
+[KRD_MZ_AutoGameをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_AutoGame.js)
+
 ## KRD_MZ_VolumeChanger （演奏音量倍率）
 
 音量の設定に倍率（パーセント）をかけます。  

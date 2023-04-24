@@ -7,7 +7,9 @@
 ## KRD_MZ_EscapeRatio （逃走率変更）
 
 逃走率の初期値に割合（パーセント）を加算して逃げやすくします。  
-※初期値はパーティと敵グループの敏捷性を元に算出されます。
+
+※逃走率の初期値はパーティと敵グループの敏捷性を元に算出されます。  
+※敏捷性が同じ場合、逃走率の初期値は50%です。
 
 [KRD_MZ_EscapeRatioをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_EscapeRatio.js)
 

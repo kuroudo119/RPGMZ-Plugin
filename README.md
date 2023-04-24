@@ -4,6 +4,13 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_EscapeRatio （逃走率変更）
+
+逃走率の初期値に割合（パーセント）を加算して逃げやすくします。  
+※初期値はパーティと敵グループの敏捷性を元に算出されます。
+
+[KRD_MZ_EscapeRatioをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_EscapeRatio.js)
+
 ## KRD_MZ_AutoGame （オートゲーム）
 
 ゲームを自動進行するためのプラグインです。  

@@ -110,6 +110,10 @@
  * @default true
  * @type boolean
  * 
+ * @param selfAfterEnemyDamage
+ * @text 玉ダメージ後セルフスイッチ
+ * @desc 玉による敵イベントの被ダメージ後にONにするセルフスイッチ。連続ダメージ防止用。
+ * 
  * @command clearInput
  * @text 入力クリア
  * @desc 入力バッファを空にします。押しっぱなし等の入力を一旦無しにします。
@@ -432,6 +436,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.16.2 (2022/10/17) hasTag 関数追加。
 - ver.1.17.0 (2023/02/07) 攻撃スキルIDに 0 を指定可能にした。
 - ver.1.18.0 (2023/02/07) プラグインコマンド削除と追加。
+- ver.1.19.0 (2023/02/08) 玉の連続ダメージ防止用パラメータ追加。
+- ver.1.20.0 (2023/03/08) 玉を元の位置に戻す関数追加。
 
  * 
  * 
@@ -487,7 +493,8 @@ const GAUGE_WIDTH = Number(PARAM["gaugeWidth"]) || 40;
 const GAUGE_HEIGHT = Number(PARAM["gaugeHeight"]) || 6;
 const GAUGE_BOTTOM = Number(PARAM["gaugeBottom"]) || 0;
 
-const SELF_AFTER_ENEMY_DAMAGE = "C";
+// const SELF_AFTER_ENEMY_DAMAGE = PARAM["selfAfterEnemyDamage"];
+const SELF_AFTER_ENEMY_DAMAGE = null;
 
 // -------------------------------------
 // プラグインコマンド
@@ -1449,14 +1456,19 @@ Game_Interpreter.prototype.anyCollision = function(skillId, eventId) {
 	const waitMode = true;
 	const collisionCode = [FRONT, SIDE, BACK, E_FRONT];
 	const targetId = $gameTemp.anyCollision(evId, collisionCode);
-	const key = [$gameMap.mapId(), targetId, SELF_AFTER_ENEMY_DAMAGE];
-	if (targetId > 0 && !$gameSelfSwitches.value(key)) {
+	const key = SELF_AFTER_ENEMY_DAMAGE ? [$gameMap.mapId(), targetId, SELF_AFTER_ENEMY_DAMAGE] : null;
+	const self = SELF_AFTER_ENEMY_DAMAGE ? $gameSelfSwitches.value(key) : false;
+
+	if (targetId > 0 && !self) {
 		$gameTemp.showSkillAnimation(skillId, targetId, waitMode);
 		$gameTemp.mapDamageEnemy(targetId, skillId);
 		$gameTemp.mapPopupEnemy(targetId);
 
 		// 連続ダメージ防止用セルフスイッチ
-		$gameSelfSwitches.setValue(key, true);
+		// 敵イベントに設定される
+		if (key) {
+			$gameSelfSwitches.setValue(key, true);
+		}
 		return true;
 	}
 	return false;
@@ -1468,6 +1480,21 @@ Game_Interpreter.prototype.anyCollision = function(skillId, eventId) {
 Game_Interpreter.prototype.canPass = function(eventId) {
 	const event = $gameMap.event(eventId);
 	return event.canPass(event.x, event.y, event.direction());
+};
+
+// -------------------------------------
+// 玉を元の位置に戻す
+
+Game_Temp.prototype.moveHome = function(eventId) {
+	const dataEvent = $dataMap.events[eventId] || {x : 0, y : 0};
+	this.setEventLocation(eventId, dataEvent.x, dataEvent.y, 0);
+};
+
+Game_Temp.prototype.moveHomeAll = function(tag = META_BALL) {
+	const metaIdList = $gameMap.metaIdList(tag);
+	metaIdList.forEach(id => {
+		this.moveHome(id);
+	 }, this);
 };
 
 // -------------------------------------

@@ -27,6 +27,12 @@
  * @default 1
  * @type switch
  * 
+ * @arg startNow
+ * @text 開始時刻
+ * @desc 開始時刻を現在時刻にする: true ／ しない: false （しない場合、コマンド実行後ボーナスONになります）
+ * @default false
+ * @type boolean
+ * 
  * @command KRD_isNewDate
  * @text 時刻リセット式ボーナス
  * @desc 時刻リセット式ボーナスです。その日のボーナスを未取得の場合にスイッチがONになります。
@@ -73,6 +79,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.0 (2021/06/01) 公開開始
 - ver.1.0.1 (2021/06/18) プラグインコマンド引数のtypeを修正
 - ver.1.1.0 (2022/03/26) 時刻リセット式を追加
+- ver.1.2.0 (2022/05/01) プラグインコマンド引数を追加
 
  * 
  * 
@@ -92,7 +99,8 @@ PluginManager.registerCommand(PLUGIN_NAME, "KRD_canGetBonus", args => {
 	const name = args.name;
 	const border  = Number(args.borderSecond) || 0;
 	const swBonus = Number(args.swBonus) || 0;
-	$gameSwitches.setValue(swBonus, $gameSystem.canGetBonus(border, name));
+	const startNow = args.startNow === "true";
+	$gameSwitches.setValue(swBonus, $gameSystem.canGetBonus(border, name, startNow));
 });
 
 PluginManager.registerCommand(PLUGIN_NAME, "KRD_isNewDate", args => {
@@ -105,12 +113,13 @@ PluginManager.registerCommand(PLUGIN_NAME, "KRD_isNewDate", args => {
 //------------------------------------------------
 // タイマー式
 
-Game_System.prototype.canGetBonus = function(second, name = "bonus") {
-	this._oldTime = this._oldTime || {};
-	this._oldTime[name] = this._oldTime[name] || 0;
+Game_System.prototype.canGetBonus = function(second, name = "bonus", startNow) {
 	const millisecond = 1000;
 	const border = millisecond * second;
 	const newTime = Date.now();
+	const startTime = startNow ? newTime : 0;
+	this._oldTime = this._oldTime || {};
+	this._oldTime[name] = this._oldTime[name] || startTime;
 	if ((newTime - this._oldTime[name]) >= border) {
 		this._oldTime[name] = newTime;
 		return true;

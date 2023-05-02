@@ -314,6 +314,7 @@ UniqueDataLoader のプロパティ名は「db_99」とします。
 - ver.3.2.1 (2022/06/21) 制御文字 LANG を修正。
 - ver.3.2.2 (2022/07/15) 制御文字 LANGF を修正。
 - ver.3.2.3 (2023/02/13) ヘルプ修正。
+- ver.3.3.0 (2023/05/02) 制御文字 LANG を改行文字に対応。
 
  * 
  * 
@@ -1178,6 +1179,8 @@ Window_Base.prototype.getLangText = function(text) {
 Window_Base.prototype.processLanguage = function(textState) {
 	textState.text = this.getLangText(textState.text);
 	textState.index -= "\\LANG".length;
+
+	KRD_MULTILINGUAL.cutHeadReturn(textState);
 };
 
 const KRD_Window_Base_drawText = Window_Base.prototype.drawText;
@@ -1510,8 +1513,8 @@ KRD_MULTILINGUAL.getType = function(data) {
 };
 
 KRD_MULTILINGUAL.getLangText = function(text) {
-	const regex1 = /\\LANG\[(?<language>\d+?)\](?<text>.*?)\\LANGEND/g;
-	const regex2 = /\x1bLANG\[(?<language>\d+?)\](?<text>.*?)\x1bLANGEND/g;
+	const regex1 = /\\LANG\[(?<language>\d+?)\](?<text>.*?)\\LANGEND/gs;
+	const regex2 = /\x1bLANG\[(?<language>\d+?)\](?<text>.*?)\x1bLANGEND/gs;
 	
 	const result1 = text?.toString().replace(regex1, languageReplacer);
 	const result2 = result1?.toString().replace(regex2, languageReplacer);
@@ -1533,8 +1536,8 @@ function languageReplacer(match, p1, p2, offset, string, groups) {
 }
 
 KRD_MULTILINGUAL.getDefaultLangText = function(text) {
-	const regex1 = /\\LANG\[0\](?<text>.*?)\\LANGEND.*/;
-	const regex2 = /\x1bLANG\[0\](?<text>.*?)\x1bLANGEND.*/;
+	const regex1 = /\\LANG\[0\](?<text>.*?)\\LANGEND.*/gs;
+	const regex2 = /\x1bLANG\[0\](?<text>.*?)\x1bLANGEND.*/gs;
 
 	const result1 = text?.toString().replace(regex1, defaultReplacer);
 	const result2 = result1?.toString().replace(regex2, defaultReplacer);
@@ -1558,6 +1561,10 @@ KRD_MULTILINGUAL.isLangText = function(text) {
 	const regex1 = /\\LANG\[/;
 	const regex2 = /\x1bLANG\[/;
 	return !!(text.toString().match(regex1) || text.toString().match(regex2));
+};
+
+KRD_MULTILINGUAL.cutHeadReturn = function(textState) {
+	textState.text = textState.text.replace(/^\n/, "");
 };
 
 //--------------------------------------

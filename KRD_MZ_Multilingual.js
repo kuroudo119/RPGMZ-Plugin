@@ -315,6 +315,7 @@ UniqueDataLoader のプロパティ名は「db_99」とします。
 - ver.3.2.2 (2022/07/15) 制御文字 LANGF を修正。
 - ver.3.2.3 (2023/02/13) ヘルプ修正。
 - ver.3.3.0 (2023/05/02) 制御文字 LANG を改行文字に対応。
+- ver.3.4.0 (2023/05/03) 制御文字 LANG を改行文字に対応。
 
  * 
  * 
@@ -971,7 +972,7 @@ TextManager.basic = function(id) {
 		return KRD_TextManager_basic.apply(this, arguments);
 	}
 	if (BASIC) {
-		const preData = JSON.parse(BASIC[language - 1]);
+		const preData = BASIC[language - 1] ? JSON.parse(BASIC[language - 1]) : null;
 		if (preData && preData.basic) {
 			const data = JSON.parse(preData.basic);
 			return data[id] || KRD_TextManager_basic.apply(this, arguments);
@@ -990,7 +991,7 @@ TextManager.param = function(id) {
 		return KRD_TextManager_param.apply(this, arguments);
 	}
 	if (PARAMS) {
-		const preData = JSON.parse(PARAMS[language - 1]);
+		const preData = PARAMS[language - 1] ? JSON.parse(PARAMS[language - 1]) : null;
 		if (preData && preData.params) {
 			const data = JSON.parse(preData.params);
 			return data[id] || KRD_TextManager_param.apply(this, arguments);
@@ -1009,7 +1010,7 @@ TextManager.command = function(id) {
 		return KRD_TextManager_command.apply(this, arguments);
 	}
 	if (COMMANDS) {
-		const preData = JSON.parse(COMMANDS[language - 1]);
+		const preData = COMMANDS[language - 1] ? JSON.parse(COMMANDS[language - 1]) : null;
 		if (preData && preData.commands) {
 			const data = JSON.parse(preData.commands);
 			return data[id] || KRD_TextManager_command.apply(this, arguments);
@@ -1028,8 +1029,8 @@ TextManager.message = function(id) {
 		return KRD_TextManager_message.apply(this, arguments);
 	}
 	if (MESSAGES) {
-		const data = JSON.parse(MESSAGES[language - 1]);
-		return data[id] || KRD_TextManager_message.apply(this, arguments);
+		const data = MESSAGES[language - 1] ? JSON.parse(MESSAGES[language - 1]) : null;
+		return data ? data[id] : KRD_TextManager_message.apply(this, arguments);
 	} else {
 		return KRD_TextManager_message.apply(this, arguments);
 	}
@@ -1042,7 +1043,7 @@ Object.defineProperty(TextManager, "currencyUnit", {
 			return $dataSystem.currencyUnit;
 		}
 		if (CURRENCY_UNIT) {
-			const data = JSON.parse(CURRENCY_UNIT[language - 1]);
+			const data = CURRENCY_UNIT[language - 1] ? JSON.parse(CURRENCY_UNIT[language - 1]) : null;
 			return data && data.currencyUnit ? data.currencyUnit : $dataSystem.currencyUnit;
 		} else {
 			return $dataSystem.currencyUnit;
@@ -1060,7 +1061,7 @@ TextManager.skillType = function(id) {
 		return $dataSystem.skillTypes[id];
 	}
 	if (SKILL_TYPES) {
-		const preData = JSON.parse(SKILL_TYPES[language - 1]);
+		const preData = SKILL_TYPES[language - 1] ? JSON.parse(SKILL_TYPES[language - 1]) : null;
 		if (preData && preData.skillTypes) {
 			const data = JSON.parse(preData.skillTypes);
 			return data[id - 1] || $dataSystem.skillTypes[id];
@@ -1096,7 +1097,7 @@ TextManager.equipType = function(id) {
 		return $dataSystem.equipTypes[id];
 	}
 	if (EQUIP_TYPES) {
-		const preData = JSON.parse(EQUIP_TYPES[language - 1]);
+		const preData = EQUIP_TYPES[language - 1] ? JSON.parse(EQUIP_TYPES[language - 1]) : null;
 		if (preData && preData.equipTypes) {
 			const data = JSON.parse(preData.equipTypes);
 			return data[id - 1] || $dataSystem.equipTypes[id];
@@ -1119,7 +1120,7 @@ TextManager.element = function(id) {
 		return $dataSystem.elements[id];
 	}
 	if (ELEMENTS) {
-		const preData = JSON.parse(ELEMENTS[language - 1]);
+		const preData = ELEMENTS[language - 1] ? JSON.parse(ELEMENTS[language - 1]) : null;
 		if (preData && preData.elements) {
 			const data = JSON.parse(preData.elements);
 			return data[id - 1] || $dataSystem.elements[id];
@@ -1144,7 +1145,7 @@ Scene_Title.prototype.drawGameTitle = function() {
 			const x = 20;
 			const y = Graphics.height / 4;
 			const maxWidth = Graphics.width - x * 2;
-			const data = JSON.parse(GAME_TITLE[language - 1]);
+			const data = GAME_TITLE[language - 1] ? JSON.parse(GAME_TITLE[language - 1]) : null;
 			const text = data && data.gameTitle ? data.gameTitle : $dataSystem.gameTitle;
 			const bitmap = this._gameTitleSprite.bitmap;
 			bitmap.fontFace = $gameSystem.mainFontFace();
@@ -1179,8 +1180,6 @@ Window_Base.prototype.getLangText = function(text) {
 Window_Base.prototype.processLanguage = function(textState) {
 	textState.text = this.getLangText(textState.text);
 	textState.index -= "\\LANG".length;
-
-	KRD_MULTILINGUAL.cutHeadReturn(textState);
 };
 
 const KRD_Window_Base_drawText = Window_Base.prototype.drawText;
@@ -1519,8 +1518,10 @@ KRD_MULTILINGUAL.getLangText = function(text) {
 	const result1 = text?.toString().replace(regex1, languageReplacer);
 	const result2 = result1?.toString().replace(regex2, languageReplacer);
 
-	if (result2?.length > 0) {
-		return KRD_MULTILINGUAL.cutEscapeLang(result2);
+	const result3 = KRD_MULTILINGUAL.cutHeadReturn(result2);
+
+	if (result3?.length > 0) {
+		return KRD_MULTILINGUAL.cutEscapeLang(result3);
 	} else {
 		return KRD_MULTILINGUAL.cutEscapeLang(KRD_MULTILINGUAL.getDefaultLangText(text));
 	}
@@ -1563,8 +1564,8 @@ KRD_MULTILINGUAL.isLangText = function(text) {
 	return !!(text.toString().match(regex1) || text.toString().match(regex2));
 };
 
-KRD_MULTILINGUAL.cutHeadReturn = function(textState) {
-	textState.text = textState.text.replace(/^\n/, "");
+KRD_MULTILINGUAL.cutHeadReturn = function(text) {
+	return text?.replace(/^\n\n*/, "");
 };
 
 //--------------------------------------

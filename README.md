@@ -7,7 +7,7 @@
 ## KRD_MZ_FPS_Meter （FPSメーター表示）
 
 FPSメーターを表示します。  
-スマホのテスト用ですがモードに関係なく適用されます。
+スマホのテスト用ですがモードに関係なく適用されます。  
 F2キーを1回押したのと同じ状態です。
 
 [KRD_MZ_FPS_Meterをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_FPS_Meter.js)

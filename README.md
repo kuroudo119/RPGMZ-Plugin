@@ -4,6 +4,14 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。  
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_FPS_Meter （FPSメーター表示）
+
+FPSメーターを表示します。  
+スマホのテスト用ですがモードに関係なく適用されます。
+F2キーを1回押したのと同じ状態です。
+
+[KRD_MZ_FPS_Meterをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_FPS_Meter.js)
+
 ## KRD_MZ_EscapeRatio （逃走率変更）
 
 逃走率の初期値に割合（パーセント）を加算して逃げやすくします。  

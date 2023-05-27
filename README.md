@@ -4,6 +4,14 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。  
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_GroupTarget （グループ（同一敵番号）対象スキル）
+
+同一敵番号をグループとしてスキルの範囲に設定できます。
+
+[KRD_MZ_GroupTargetをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_GroupTarget.js)
+
+https://github.com/kuroudo119/RPGMZ-Plugin/assets/43639887/9150b85f-ba65-48d5-a332-68fa0a18b4e3
+
 ## KRD_MZ_FPS_Meter （FPSメーター表示）
 
 FPSメーターを表示します。  

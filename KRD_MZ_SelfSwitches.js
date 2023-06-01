@@ -5,6 +5,10 @@
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
  * 
+ * @param MAP_TAG_LIST
+ * @text マップタグ一覧
+ * @desc 他マップ処理用にイベント番号を自動取得するタグをカンマ区切りで設定します。余分なスペースは入れないこと。
+ * 
  * @command setSelfSwitches
  * @text 一括セルフスイッチ操作
  * @desc 指定タグを持つイベントのセルフスイッチを変更します。
@@ -36,15 +40,10 @@
 このプラグインはMITライセンスです。
 https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
-## 制約事項
+## 他マップについて
 
-現在マップ以外のマップ（他マップ）を対象とする場合、
-他マップのイベントのタグは取得できないため、
-現在マップの指定タグが設定されているイベントIDが使われます。
-
-つまり、他マップを対象とする場合は、
-同じイベントIDを使う必要があります。
-指定タグが複数ある場合はその全てのイベントIDとなります。
+そのマップに遷移したことがある場合のみ
+セルフスイッチ一括操作可能。
 
 ## 更新履歴
 
@@ -53,6 +52,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.0 (2023/04/01) 公開
 - ver.2.0.0 (2023/04/11) 他マップを対象にできるようにした。
 - ver.2.0.1 (2023/05/19) 他マップについての制約事項を追記。
+- ver.3.0.0 (2023/06/01) 他マップ処理を修正。
 
  * 
  * 
@@ -63,6 +63,9 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 "use strict";
 
 const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
+const PARAM = PluginManager.parameters(PLUGIN_NAME);
+
+const MAP_TAG_LIST = PARAM["MAP_TAG_LIST"] ? PARAM["MAP_TAG_LIST"].split(",") : [];
 
 //--------------------------------------
 // プラグインコマンド
@@ -73,20 +76,64 @@ PluginManager.registerCommand(PLUGIN_NAME, "setSelfSwitches", args => {
 
 //--------------------------------------
 Game_Temp.prototype.setSelfSwitches = function(alphabet, tag, value, argMapIdList) {
-	const eventIdList = this.eventIdList(tag);
-	const baseMapIdList = [ $gameMap.mapId() ];
-	const mapIdList = argMapIdList ? JSON.parse("[" + argMapIdList + "]") : baseMapIdList;
+	if (argMapIdList) {
+		this.setSelfSwitchesSomeMap(...arguments);
+	} else {
+		this.setSelfSwitchesCurrentMap(...arguments);
+	}
+};
 
-	mapIdList.forEach(mapId => {
-		eventIdList.forEach(eventId => {
-			const key = [mapId, eventId, alphabet];
-			$gameSelfSwitches.setValue(key, !!value);
-		});
-	});
+Game_Temp.prototype.setSelfSwitchesCurrentMap = function(alphabet, tag, value) {
+	const mapId = $gameMap.mapId();
+	const eventIdList = this.eventIdList(tag);
+	for (const eventId of eventIdList) {
+		const key = [mapId, eventId, alphabet];
+		$gameSelfSwitches.setValue(key, !!value);
+	}
+};
+
+Game_Temp.prototype.setSelfSwitchesSomeMap = function(alphabet, tag, value, argMapIdList) {
+	const paramMapIdList = argMapIdList.split(",");
+	for (const paramMapId of paramMapIdList) {
+		const data = $gameSystem._eventIdObjectList.find(e => e.mapId === Number(paramMapId) && e.tag === tag);
+
+		if (data) {
+			for (const eventId of data.eventIdList) {
+				const key = [data.mapId, eventId, alphabet];
+				$gameSelfSwitches.setValue(key, !!value);
+			}
+		}
+	}
 };
 
 Game_Temp.prototype.eventIdList = function(tag) {
 	return $gameMap.events().filter(event => event.event().meta[tag]).map(e => e.eventId());
+};
+
+//--------------------------------------
+// マップ遷移時イベントID自動登録
+
+const KRD_Scene_Map_start = Scene_Map.prototype.start;
+Scene_Map.prototype.start = function() {
+	KRD_Scene_Map_start.apply(this, arguments);
+	this.setEventIdObjectList();
+};
+
+Scene_Map.prototype.setEventIdObjectList = function() {
+	$gameSystem._eventIdObjectList = $gameSystem._eventIdObjectList ? $gameSystem._eventIdObjectList : [];
+
+	for (const tag of MAP_TAG_LIST) {
+		if (!$gameSystem._eventIdObjectList.some(e => e.mapId === $gameMap.mapId() && e.tag === tag)) {
+			const eventIdList = $gameTemp.eventIdList(tag);
+			if (eventIdList.length > 0) {
+				$gameSystem._eventIdObjectList.push({
+					mapId: $gameMap.mapId(),
+					tag: tag,
+					eventIdList: eventIdList
+				});
+			}
+		}
+	}
 };
 
 //--------------------------------------

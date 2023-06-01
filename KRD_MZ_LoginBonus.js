@@ -29,7 +29,7 @@
  * 
  * @arg startNow
  * @text 開始時刻
- * @desc 開始時刻を現在時刻にする: true ／ しない: false （しない場合、コマンド実行後ボーナスONになります）
+ * @desc 開始時刻を現在時刻にする: true ／ しない: false （しない場合、初回にボーナスONになります）
  * @default false
  * @type boolean
  * 
@@ -57,7 +57,7 @@
  * 
  * @arg startNow
  * @text 開始時刻
- * @desc 開始時刻を現在時刻にする: true ／ しない: false （しない場合、コマンド実行後ボーナスONになります）
+ * @desc 開始時刻を現在時刻にする: true ／ しない: false （しない場合、初回にボーナスONになります）
  * @default false
  * @type boolean
  * 
@@ -109,6 +109,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.1.0 (2022/03/26) 時刻リセット式を追加
 - ver.1.2.0 (2022/05/01) プラグインコマンド引数を追加
 - ver.1.3.0 (2023/06/01) チェックのみコマンドを追加
+- ver.1.3.1 (2023/06/01) チェックのみコマンドを修正
 
  * 
  * 
@@ -173,7 +174,7 @@ Game_System.prototype.checkCanGetBonus = function(second, name = "bonus", startN
 	const border = millisecond * second;
 	const newTime = Date.now();
 	const startTime = startNow ? newTime : 0;
-	const oldTime = this._oldTime[name] || startTime;
+	const oldTime = this._oldTime && this._oldTime[name] ? this._oldTime[name] : startTime;
 	if ((newTime - oldTime) >= border) {
 		return true;
 	} else {

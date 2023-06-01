@@ -23,7 +23,35 @@
  * 
  * @arg swBonus
  * @text ボーナススイッチ
- * @desc ボーナス取得可否が入るスイッチです。共用できます。
+ * @desc ボーナス取得可否が入るスイッチです。
+ * @default 1
+ * @type switch
+ * 
+ * @arg startNow
+ * @text 開始時刻
+ * @desc 開始時刻を現在時刻にする: true ／ しない: false （しない場合、コマンド実行後ボーナスONになります）
+ * @default false
+ * @type boolean
+ * 
+ * @command KRD_checkCanGetBonus
+ * @text タイマー式チェックのみ
+ * @desc タイマーの時間経過を確認し、経過している場合スイッチがONになります。タイマー更新しません。
+ * 
+ * @arg name
+ * @text タイマー名
+ * @desc 複数タイマーを使い分ける場合の名前です。
+ * @default bonus
+ * @type string
+ * 
+ * @arg borderSecond
+ * @text 経過秒数
+ * @desc ボーナス取得に必要な秒数です。1時間は3600秒。24時間は86400秒です。
+ * @default 43200
+ * @type number
+ * 
+ * @arg swBonus
+ * @text ボーナススイッチ
+ * @desc ボーナス取得可否が入るスイッチです。
  * @default 1
  * @type switch
  * 
@@ -80,6 +108,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.1 (2021/06/18) プラグインコマンド引数のtypeを修正
 - ver.1.1.0 (2022/03/26) 時刻リセット式を追加
 - ver.1.2.0 (2022/05/01) プラグインコマンド引数を追加
+- ver.1.3.0 (2023/06/01) チェックのみコマンドを追加
 
  * 
  * 
@@ -103,6 +132,14 @@ PluginManager.registerCommand(PLUGIN_NAME, "KRD_canGetBonus", args => {
 	$gameSwitches.setValue(swBonus, $gameSystem.canGetBonus(border, name, startNow));
 });
 
+PluginManager.registerCommand(PLUGIN_NAME, "KRD_checkCanGetBonus", args => {
+	const name = args.name;
+	const border  = Number(args.borderSecond) || 0;
+	const swBonus = Number(args.swBonus) || 0;
+	const startNow = args.startNow === "true";
+	$gameSwitches.setValue(swBonus, $gameSystem.checkCanGetBonus(border, name, startNow));
+});
+
 PluginManager.registerCommand(PLUGIN_NAME, "KRD_isNewDate", args => {
 	const resetHour = Number(args.resetHour) || 0;
 	const resetMinutes = Number(args.resetMinutes) || 0;
@@ -122,6 +159,22 @@ Game_System.prototype.canGetBonus = function(second, name = "bonus", startNow) {
 	this._oldTime[name] = this._oldTime[name] || startTime;
 	if ((newTime - this._oldTime[name]) >= border) {
 		this._oldTime[name] = newTime;
+		return true;
+	} else {
+		return false;
+	}
+};
+
+//------------------------------------------------
+// タイマー更新なし（タイマー式）
+
+Game_System.prototype.checkCanGetBonus = function(second, name = "bonus", startNow) {
+	const millisecond = 1000;
+	const border = millisecond * second;
+	const newTime = Date.now();
+	const startTime = startNow ? newTime : 0;
+	const oldTime = this._oldTime[name] || startTime;
+	if ((newTime - oldTime) >= border) {
 		return true;
 	} else {
 		return false;

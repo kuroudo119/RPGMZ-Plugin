@@ -4,6 +4,13 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。  
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_HPMPPopup （HP再生とMP再生の両ポップアップ）
+
+バトルのターン終了時のHP再生とMP再生の両方をポップアップ表示します。  
+上下に表示します。
+
+[KRD_MZ_HPMPPopupをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_HPMPPopup.js)
+
 ## KRD_MZ_GroupTarget （グループ（同一敵番号）対象スキル）
 
 同一敵番号をグループとしてスキルの範囲に設定できます。

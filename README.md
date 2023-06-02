@@ -11,6 +11,8 @@
 
 [KRD_MZ_HPMPPopupをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_HPMPPopup.js)
 
+![ポップアップ上下表示](img/popup.png)
+
 ## KRD_MZ_GroupTarget （グループ（同一敵番号）対象スキル）
 
 同一敵番号をグループとしてスキルの範囲に設定できます。

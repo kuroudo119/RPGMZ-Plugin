@@ -5,6 +5,11 @@
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
  * 
+ * @param FORCE_LANGUAGE
+ * @text 強制言語指定
+ * @desc 本プラグイン用データを残して特定の言語を使う場合の言語番号。
+ * @type number
+ * 
  * @param basicSection
  * @text 基本設定
  * 
@@ -316,6 +321,7 @@ UniqueDataLoader のプロパティ名は「db_99」とします。
 - ver.3.2.3 (2023/02/13) ヘルプ修正。
 - ver.3.3.0 (2023/05/02) 制御文字 LANG を改行文字に対応。
 - ver.3.4.0 (2023/05/03) 制御文字 LANG を改行文字に対応。
+- ver.3.5.0 (2023/06/10) FORCE_LANGUAGE パラメータを追加。
 
  * 
  * 
@@ -773,6 +779,8 @@ const KRD_MULTILINGUAL = {};
 const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
+const FORCE_LANGUAGE = PARAM["FORCE_LANGUAGE"];
+
 const LANGUAGE = JSON.parse(PARAM["argLanguage"] || null);
 
 let OPTION_TEXT = null;
@@ -820,7 +828,7 @@ PluginManager.registerCommand(PLUGIN_NAME, "getLanguage", args => {
 	if (isNaN(varLanguage)) {
 		return;
 	}
-	const value = ConfigManager.multilingual;
+	const value = KRD_MULTILINGUAL.multilingual();
 	$gameVariables.setValue(varLanguage, value);
 });
 
@@ -829,7 +837,7 @@ PluginManager.registerCommand(PLUGIN_NAME, "getLanguage", args => {
 
 const KRD_Scene_Options_maxCommands = Scene_Options.prototype.maxCommands;
 Scene_Options.prototype.maxCommands = function() {
-	if (OPTION_TEXT) {
+	if (OPTION_TEXT && KRD_MULTILINGUAL.isConfigurable()) {
 		return KRD_Scene_Options_maxCommands.apply(this, arguments) + 1;
 	} else {
 		return KRD_Scene_Options_maxCommands.apply(this, arguments);
@@ -839,7 +847,7 @@ Scene_Options.prototype.maxCommands = function() {
 const KRD_Window_Options_addGeneralOptions = Window_Options.prototype.addGeneralOptions;
 Window_Options.prototype.addGeneralOptions = function() {
 	KRD_Window_Options_addGeneralOptions.apply(this, arguments);
-	if (OPTION_TEXT) {
+	if (OPTION_TEXT && KRD_MULTILINGUAL.isConfigurable()) {
 		this.addCommand(OPTION_TEXT[ConfigManager.multilingual], "multilingual");
 	}
 };
@@ -967,7 +975,7 @@ Game_Actor.prototype.profile = function() {
 
 const KRD_TextManager_basic = TextManager.basic;
 TextManager.basic = function(id) {
-	const language = ConfigManager.multilingual;
+	const language = KRD_MULTILINGUAL.multilingual();
 	if (language <= 0) {
 		return KRD_TextManager_basic.apply(this, arguments);
 	}
@@ -986,7 +994,7 @@ TextManager.basic = function(id) {
 
 const KRD_TextManager_param = TextManager.param;
 TextManager.param = function(id) {
-	const language = ConfigManager.multilingual;
+	const language = KRD_MULTILINGUAL.multilingual();
 	if (language <= 0) {
 		return KRD_TextManager_param.apply(this, arguments);
 	}
@@ -1005,7 +1013,7 @@ TextManager.param = function(id) {
 
 const KRD_TextManager_command = TextManager.command;
 TextManager.command = function(id) {
-	const language = ConfigManager.multilingual;
+	const language = KRD_MULTILINGUAL.multilingual();
 	if (language <= 0) {
 		return KRD_TextManager_command.apply(this, arguments);
 	}
@@ -1024,7 +1032,7 @@ TextManager.command = function(id) {
 
 const KRD_TextManager_message = TextManager.message;
 TextManager.message = function(id) {
-	const language = ConfigManager.multilingual;
+	const language = KRD_MULTILINGUAL.multilingual();
 	if (language <= 0) {
 		return KRD_TextManager_message.apply(this, arguments);
 	}
@@ -1038,7 +1046,7 @@ TextManager.message = function(id) {
 
 Object.defineProperty(TextManager, "currencyUnit", {
 	get: function() {
-		const language = ConfigManager.multilingual;
+		const language = KRD_MULTILINGUAL.multilingual();
 		if (language <= 0) {
 			return $dataSystem.currencyUnit;
 		}
@@ -1056,7 +1064,7 @@ Object.defineProperty(TextManager, "currencyUnit", {
 // 取得：用語（追加関数）
 
 TextManager.skillType = function(id) {
-	const language = ConfigManager.multilingual;
+	const language = KRD_MULTILINGUAL.multilingual();
 	if (language <= 0) {
 		return $dataSystem.skillTypes[id];
 	}
@@ -1092,7 +1100,7 @@ Window_ActorCommand.prototype.addSkillCommands = function() {
 };
 
 TextManager.equipType = function(id) {
-	const language = ConfigManager.multilingual;
+	const language = KRD_MULTILINGUAL.multilingual();
 	if (language <= 0) {
 		return $dataSystem.equipTypes[id];
 	}
@@ -1115,7 +1123,7 @@ Window_StatusBase.prototype.actorSlotName = function(actor, index) {
 };
 
 TextManager.element = function(id) {
-	const language = ConfigManager.multilingual;
+	const language = KRD_MULTILINGUAL.multilingual();
 	if (language <= 0) {
 		return $dataSystem.elements[id];
 	}
@@ -1137,7 +1145,7 @@ TextManager.element = function(id) {
 
 const KRD_Scene_Title_drawGameTitle = Scene_Title.prototype.drawGameTitle;
 Scene_Title.prototype.drawGameTitle = function() {
-	const language = ConfigManager.multilingual;
+	const language = KRD_MULTILINGUAL.multilingual();
 	if (language <= 0) {
 		KRD_Scene_Title_drawGameTitle.apply(this, arguments);
 	} else {
@@ -1215,7 +1223,7 @@ Window_Base.prototype.processEscapeCharacter = function(code, textState) {
 };
 
 Window_Base.prototype.changeText = function(code, textState) {
-	const language = ConfigManager.multilingual;
+	const language = KRD_MULTILINGUAL.multilingual();
 	const start = textState.text.indexOf(`${code}[`);
 	const end = textState.text.indexOf("]", start);
 	const plus = `${code}[`.length;
@@ -1460,13 +1468,13 @@ KRD_MULTILINGUAL.getData = function(data) {
 };
 
 KRD_MULTILINGUAL.getReturnData = function(data, key, exKey1, exKey2) {
-	if (USE_EXTERNAL && ConfigManager.multilingual > 0 && exKey1) {
+	if (USE_EXTERNAL && KRD_MULTILINGUAL.multilingual() > 0 && exKey1) {
 		const find = KRD_MULTILINGUAL.getExternalData(data, exKey1, exKey2);
 		if (find) {
 			return find;
 		}
 	}
-	return data.meta[key + ConfigManager.multilingual] || data[key + "0"] || "";
+	return data.meta[key + KRD_MULTILINGUAL.multilingual()] || data[key + "0"] || "";
 };
 
 KRD_MULTILINGUAL.getExternalData = function(data, key, key2) {
@@ -1474,7 +1482,7 @@ KRD_MULTILINGUAL.getExternalData = function(data, key, key2) {
 	if (!type) {
 		return null;
 	}
-	const find = window[GLOBAL_NAME][EXTERNAL_NAME + ConfigManager.multilingual].find(ex => ex.type === type && ex.id === data.id);
+	const find = window[GLOBAL_NAME][EXTERNAL_NAME + KRD_MULTILINGUAL.multilingual()].find(ex => ex.type === type && ex.id === data.id);
 	if (find) {
 		if (key2) {
 			const text1 = find[key] || "";
@@ -1528,7 +1536,7 @@ KRD_MULTILINGUAL.getLangText = function(text) {
 };
 
 function languageReplacer(match, p1, p2, offset, string, groups) {
-	const language = ConfigManager.multilingual;
+	const language = KRD_MULTILINGUAL.multilingual();
 	if (Number(groups.language) === language) {
 		return groups.text;
 	} else {
@@ -1566,6 +1574,18 @@ KRD_MULTILINGUAL.isLangText = function(text) {
 
 KRD_MULTILINGUAL.cutHeadReturn = function(text) {
 	return text?.replace(/^\n\n*/, "");
+};
+
+KRD_MULTILINGUAL.multilingual = function() {
+	if (KRD_MULTILINGUAL.isConfigurable()) {
+		return ConfigManager.multilingual;
+	} else {
+		return FORCE_LANGUAGE;
+	}
+};
+
+KRD_MULTILINGUAL.isConfigurable = function() {
+	return FORCE_LANGUAGE === "" || Number(FORCE_LANGUAGE);
 };
 
 //--------------------------------------

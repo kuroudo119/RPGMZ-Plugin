@@ -283,7 +283,9 @@
  * 
  * @param useJson
  * @text 外部jsonファイル使用
- * @desc UniqueDataLoaderプラグインで読み込んだjsonファイルを使用する。
+ * @desc UniqueDataLoaderプラグインで読み込んだjsonファイルを使用する: true ／ 使用しない: false
+ * @default false
+ * @type boolean
  * 
  * @param globalName
  * @text グローバル変数名
@@ -429,6 +431,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.8.0 (2022/07/19) 外部jsonファイル使用を追加
 - ver.1.9.0 (2022/08/18) 敵キャラ表示データを追加
 - ver.1.10.0 (2023/02/28) 制御文字なし text を width に対応
+- ver.1.11.0 (2023/04/04) USE_JSON フラグを追加
+- ver.1.12.0 (2023/06/10) 多言語プラグイン処理を修正
 
  * 
  * 
@@ -582,6 +586,7 @@ const PORTRAIT = $plugins.some(plugin => plugin.name.match(portraitPluginName) &
 
 const KRD_Window_Base_drawText = Window_Base.prototype.drawText;
 
+const USE_JSON = PARAM["useJson"] === "true";
 const GLOBAL_NAME = PARAM["globalName"];
 const JSON_NAME = PARAM["jsonName"];
 
@@ -823,7 +828,7 @@ Game_System.prototype.getDbByName = function(name) {
 // JSON データ使用
 
 Game_System.prototype.useJson = function() {
-	return window[GLOBAL_NAME] && window[GLOBAL_NAME][JSON_NAME];
+	return USE_JSON && window[GLOBAL_NAME] && window[GLOBAL_NAME][JSON_NAME];
 };
 
 Game_System.prototype.getJsonData = function(dataName) {
@@ -1192,7 +1197,7 @@ class Window_InfoSubCommand extends Window_Command {
 
 	makeCommandList() {
 		if (this._i >= 0) {
-			const language = ConfigManager.multilingual;
+			const language = multilingual();
 			const subSymbol = KRD_INFO.command[this._i].subSymbol;
 			KRD_INFO.command[this._i].data.forEach((data, index) => {
 				const commandName = data[`name_${language}`] || data.name || "";
@@ -1261,7 +1266,7 @@ class Window_InfoTextBase extends Window_Base {
 	}
 
 	text(found) {
-		const language = ConfigManager.multilingual;
+		const language = multilingual();
 		const textLang = found.meta ? found.meta[`KRD_text_${language}`] : "";
 		const tmpText = found.meta?.KRD_text || "";
 		const useText = textLang ? textLang : tmpText;
@@ -1327,7 +1332,7 @@ class Window_InfoText extends Window_InfoTextBase {
 
 	drawInfoText(found, x = 0, y = DOWN_LETTER) {
 		if (found) {
-			const language = ConfigManager.multilingual;
+			const language = multilingual();
 
 			const tmpName = found[`name_${language}`] || found.name || "";
 			const name = this.convertEscapeCharacters(tmpName);
@@ -1700,6 +1705,14 @@ function parseJson2Data(text) {
 		delete info[index].showData;
 	});
 	return info;
+}
+
+function multilingual() {
+	if (typeof KRD_MULTILINGUAL !== "undefined") {
+		return KRD_MULTILINGUAL.multilingual();
+	} else {
+		return 0;
+	}
 }
 
 //--------------------------------------

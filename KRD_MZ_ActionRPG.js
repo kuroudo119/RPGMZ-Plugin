@@ -441,7 +441,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.21.0 (2023/04/29) 敵玉リファクタリング。
 - ver.1.22.0 (2023/04/30) 玉リファクタリング。
 - ver.1.23.0 (2023/06/13) 敵イベントの床ダメージ処理を追加。
-- ver.1.24.0 (2023/06/13) hasTag 関数を修正。
+- ver.1.23.1 (2023/06/13) hasTag 関数を変更。
+- ver.1.23.2 (2023/06/13) 敵イベントの床ダメージ処理を変更。
 
  * 
  * 
@@ -500,8 +501,6 @@ const GAUGE_HEIGHT = Number(PARAM["gaugeHeight"]) || 6;
 const GAUGE_BOTTOM = Number(PARAM["gaugeBottom"]) || 0;
 
 const SELF_AFTER_ENEMY_DAMAGE = PARAM["selfAfterEnemyDamage"];
-
-const ENEMY_FLOOR_DAMAGE = 10;
 
 const PLAYER_ID = -1;
 
@@ -649,7 +648,7 @@ KRD_Game_MapEnemy = class extends Game_Enemy {
 	}
 
 	basicFloorDamage() {
-		return ENEMY_FLOOR_DAMAGE;
+		return Game_Actor.prototype.basicFloorDamage.apply(this, arguments);
 	}
 
 	maxFloorDamage() {

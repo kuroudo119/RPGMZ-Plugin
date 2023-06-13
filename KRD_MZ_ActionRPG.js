@@ -441,6 +441,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.21.0 (2023/04/29) 敵玉リファクタリング。
 - ver.1.22.0 (2023/04/30) 玉リファクタリング。
 - ver.1.23.0 (2023/06/13) 敵イベントの床ダメージ処理を追加。
+- ver.1.24.0 (2023/06/13) hasTag 関数を修正。
 
  * 
  * 
@@ -812,8 +813,7 @@ Game_Map.prototype.metaIdList = function(tag) {
 
 // 引数は this._eventId の想定
 Game_Map.prototype.hasTag = function(tag, eventId) {
-	const metaIdList = this.metaIdList(tag);
-	return metaIdList.includes(eventId);
+	return this.event(eventId) ? this.event(eventId).event().meta[tag] !== undefined : false;
 };
 
 // -------------------------------------

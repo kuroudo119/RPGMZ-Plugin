@@ -112,7 +112,7 @@
  * 
  * @param selfAfterEnemyDamage
  * @text 玉ダメージ後セルフスイッチ
- * @desc 玉による敵イベントの被ダメージ後にONにするセルフスイッチ。連続ダメージ防止用。
+ * @desc 玉による敵イベントの被ダメージ後にONにするセルフスイッチ。連続ダメージ防止用。使用しない場合は記述なしとする。
  * 
  * @command clearInput
  * @text 入力クリア
@@ -438,6 +438,9 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.18.0 (2023/02/07) プラグインコマンド削除と追加。
 - ver.1.19.0 (2023/02/08) 玉の連続ダメージ防止用パラメータ追加。
 - ver.1.20.0 (2023/03/08) 玉を元の位置に戻す関数追加。
+- ver.1.21.0 (2023/04/29) 敵玉リファクタリング。
+- ver.1.22.0 (2023/04/30) 玉リファクタリング。
+- ver.1.23.0 (2023/06/13) 敵イベントの床ダメージ処理を追加。
 
  * 
  * 
@@ -481,6 +484,8 @@ const META_LAUNCH = "Launch";
 const META_ENEMY_BALL = "EnemyBall";
 const META_ENEMY_LAUNCH = "EnemyLaunch";
 const META_BOSS = "MapBoss";
+const NO_DAMAGE = "NoDamage";
+const SKILL_ID = "SkillId";
 
 const FRONT = 200;
 const SIDE = 400;
@@ -493,8 +498,11 @@ const GAUGE_WIDTH = Number(PARAM["gaugeWidth"]) || 40;
 const GAUGE_HEIGHT = Number(PARAM["gaugeHeight"]) || 6;
 const GAUGE_BOTTOM = Number(PARAM["gaugeBottom"]) || 0;
 
-// const SELF_AFTER_ENEMY_DAMAGE = PARAM["selfAfterEnemyDamage"];
-const SELF_AFTER_ENEMY_DAMAGE = null;
+const SELF_AFTER_ENEMY_DAMAGE = PARAM["selfAfterEnemyDamage"];
+
+const ENEMY_FLOOR_DAMAGE = 10;
+
+const PLAYER_ID = -1;
 
 // -------------------------------------
 // プラグインコマンド
@@ -625,6 +633,29 @@ KRD_Game_MapEnemy = class extends Game_Enemy {
 	eventId() {
 		return this._eventId;
 	}
+
+	// -------------------------------------
+	// 床ダメージ処理
+
+	executeFloorDamage() {
+		const floorDamage = Math.floor(this.basicFloorDamage() * this.fdr);
+		const realDamage = Math.min(floorDamage, this.maxFloorDamage());
+		this.gainHp(-realDamage);
+
+		if (realDamage > 0) {
+			$gameTemp.mapPopupEnemy(this.eventId());
+		}
+	}
+
+	basicFloorDamage() {
+		return ENEMY_FLOOR_DAMAGE;
+	}
+
+	maxFloorDamage() {
+		return $dataSystem.optFloorDeath ? this.hp : Math.max(this.hp - 1, 0);
+	}
+
+	// -------------------------------------
 };
 
 // -------------------------------------
@@ -822,11 +853,12 @@ Scene_Map.prototype.createMapEnemySprite = function() {
 		const cs = characterSprites[index];
 		const event = $gameMap.event(eventId);
 		const battler = $gameMap.enemy(eventId);
+		const noDamage = event.event().meta[NO_DAMAGE];
 		if (characterSprites && cs && event) {
 			if (USE_DAMAGE_POPUP) {
 				this.createDamagePopup(cs, battler);
 			}
-			if (USE_HP_GAUGE) {
+			if (USE_HP_GAUGE && !noDamage) {
 				this.createHpGauge(cs, battler);
 			}
 			if (USE_STATE_ICON) {
@@ -1041,7 +1073,13 @@ Game_Temp.prototype.checkCollision = function(attackId, defenseId) {
 Game_Temp.prototype.checkCollisionMain = function(player, event) {
 	if (event._erased) {
 		return 0;
-	} 
+	}
+	if (event.eventId) {
+		const noDamage = $gameMap.event(event.eventId()).event().meta[NO_DAMAGE];
+		if (noDamage) {
+			return 0;
+		}
+	}
 
 	const playerDirection = player.direction();
 	const eventDirection = event.direction();
@@ -1241,6 +1279,13 @@ Game_Temp.prototype.anyCollision = function(attackId, collisionCode) {
 	return findId;
 };
 
+Game_Temp.prototype.playerCollision = function(attackId, collisionCode) {
+	const attacker = $gameMap.event(attackId);
+
+	const collision = this.checkCollisionMain(attacker, $gamePlayer);
+	return !!collisionCode.includes(collision);
+};
+
 // -------------------------------------
 // マップバトル報酬
 
@@ -1401,7 +1446,10 @@ Game_Temp.prototype.setEventLocation = function(eventId, x, y, direction) {
 	if (event) {
 		event.locate(x, y);
 		if (direction > 0) {
+			const fixed = event.isDirectionFixed();
+			event.setDirectionFix(false);
 			event.setDirection(direction);
+			event.setDirectionFix(fixed);
 		}
 	}
 };
@@ -1431,9 +1479,9 @@ Game_Temp.prototype.turnTowardPlayer = function(eventId) {
 //
 // Game_Interpreter であることに注意！！
 
-Game_Interpreter.prototype.moveForward = function(eventId, waitMode) {
+Game_Interpreter.prototype.moveForward = function(waitMode) {
 	$gameMap.refreshIfNeeded();
-	const character = $gameMap.event(eventId);
+	const character = $gameMap.event(this.eventId());
 	if (character) {
 		const moveRoute = {
 			list: [
@@ -1442,7 +1490,7 @@ Game_Interpreter.prototype.moveForward = function(eventId, waitMode) {
 			],
 			repeat: false,
 			skippable: false,
-			wait: waitMode
+			wait: !!waitMode
 		};
 		character.forceMoveRoute(moveRoute);
 	}
@@ -1451,15 +1499,41 @@ Game_Interpreter.prototype.moveForward = function(eventId, waitMode) {
 // -------------------------------------
 // 玉がどれかの敵イベントに当たったチェック
 
-Game_Interpreter.prototype.anyCollision = function(skillId, eventId) {
-	const evId = eventId ? eventId : this.eventId();
+Game_Interpreter.prototype.anyCollision = function() {
+	const eventId = this.eventId();
+	const event = $gameMap.event(eventId).event();
+	const enemyBall = event.meta[META_ENEMY_BALL];
+	const skillId = event.meta[SKILL_ID];
+
+	return enemyBall ? this.playerCollision(skillId, eventId) : this.enemyCollision(skillId, eventId);
+};
+
+Game_Interpreter.prototype.playerCollision = function(skillId, eventId) {
 	const waitMode = true;
 	const collisionCode = [FRONT, SIDE, BACK, E_FRONT];
-	const targetId = $gameTemp.anyCollision(evId, collisionCode);
+	const collision = $gameTemp.playerCollision(eventId, collisionCode);
+	const characterId = PLAYER_ID;
+
+	if (collision) {
+		$gameTemp.showSkillAnimation(skillId, characterId, waitMode);
+		$gameTemp.mapDamagePlayer(eventId, skillId);
+		$gameTemp.mapPopupPlayer();
+
+		return true;
+	}
+
+	return false;
+};
+
+Game_Interpreter.prototype.enemyCollision = function(skillId, eventId) {
+	const collisionCode = [FRONT, SIDE, BACK, E_FRONT];
+	const targetId = $gameTemp.anyCollision(eventId, collisionCode);
+	
 	const key = SELF_AFTER_ENEMY_DAMAGE ? [$gameMap.mapId(), targetId, SELF_AFTER_ENEMY_DAMAGE] : null;
-	const self = SELF_AFTER_ENEMY_DAMAGE ? $gameSelfSwitches.value(key) : false;
+	const self = key ? $gameSelfSwitches.value(key) : false;
 
 	if (targetId > 0 && !self) {
+		const waitMode = true;
 		$gameTemp.showSkillAnimation(skillId, targetId, waitMode);
 		$gameTemp.mapDamageEnemy(targetId, skillId);
 		$gameTemp.mapPopupEnemy(targetId);
@@ -1471,23 +1545,32 @@ Game_Interpreter.prototype.anyCollision = function(skillId, eventId) {
 		}
 		return true;
 	}
+
 	return false;
 };
 
 // -------------------------------------
 // イベント移動可能チェック
 
-Game_Interpreter.prototype.canPass = function(eventId) {
-	const event = $gameMap.event(eventId);
+Game_Interpreter.prototype.canPass = function() {
+	const event = $gameMap.event(this.eventId());
 	return event.canPass(event.x, event.y, event.direction());
 };
 
 // -------------------------------------
 // 玉を元の位置に戻す
 
+Game_Interpreter.prototype.moveHome = function() {
+	const eventId = this.eventId();
+	const dataEvent = $dataMap.events[eventId] || {x : 0, y : 0};
+	const direction = 2;
+	$gameTemp.setEventLocation(eventId, dataEvent.x, dataEvent.y, direction);
+};
+
 Game_Temp.prototype.moveHome = function(eventId) {
 	const dataEvent = $dataMap.events[eventId] || {x : 0, y : 0};
-	this.setEventLocation(eventId, dataEvent.x, dataEvent.y, 0);
+	const direction = 2;
+	this.setEventLocation(eventId, dataEvent.x, dataEvent.y, direction);
 };
 
 Game_Temp.prototype.moveHomeAll = function(tag = META_BALL) {
@@ -1500,9 +1583,9 @@ Game_Temp.prototype.moveHomeAll = function(tag = META_BALL) {
 // -------------------------------------
 // 玉移動数チェック
 
-Game_Interpreter.prototype.checkOverStep = function(step) {
+Game_Interpreter.prototype.checkOverStep = function(step, launchEventId) {
 	const event = $gameMap.event(this.eventId());
-	const launchId = this.launchEventId(this.eventId());
+	const launchId = launchEventId ? launchEventId : this.launchEventId(this.eventId());
 	const launch = $gameMap.event(launchId);
 	const direction = event.direction();
 	const diffX = Math.abs(event.x - launch.x);
@@ -1601,6 +1684,36 @@ Game_Temp.prototype.resetBallSelfSwitches = function(alphabet, tag = META_BALL) 
 	ballIdList.forEach(id => {
 		this.setSelfSwitch($gameMap.mapId(), id, alphabet, false);
 	}, this);
+};
+
+// -------------------------------------
+// 4方向に玉を発射するスクリプト
+
+Game_Interpreter.prototype.launchBall4 = function(launchTag, ballTag, alphabet) {
+	const launchData = this.getLaunchData(launchTag, ballTag);
+	launchData.ballIdList.forEach((ballId, index) => {
+		const direction = (((index + 1) % 4) * 2) || 8;
+		this.launchBall(launchData.launch, ballId, alphabet, direction);
+	});
+};
+
+Game_Interpreter.prototype.launchBall1 = function(launchTag, ballTag, alphabet, direction) {
+	const launchData = this.getLaunchData(launchTag, ballTag);
+	const ballId = launchData.ballIdList[0];
+	const d = direction ? direction : launchData.launch.direction();
+	this.launchBall(launchData.launch, ballId, alphabet, d);
+};
+
+Game_Interpreter.prototype.getLaunchData = function(launchTag, ballTag) {
+	const launchId = launchTag ? $gameMap.metaIdList(launchTag)[0] : PLAYER_ID;
+	const launch = this.character(launchId);
+	const ballIdList = $gameMap.metaIdList(ballTag);
+	return {launch:launch, ballIdList:ballIdList};
+};
+
+Game_Interpreter.prototype.launchBall = function(launch, ballId, alphabet, direction) {
+	$gameTemp.setEventLocation(ballId, launch.x, launch.y, direction);
+	$gameTemp.setSelfSwitch($gameMap.mapId(), ballId, alphabet, true);
 };
 
 // -------------------------------------
@@ -1758,6 +1871,25 @@ Game_Map.prototype.eraseAllListEvent = function(idList) {
 	for (const id of idList) {
 		this.eraseEvent(id);
 	}
+};
+
+// -------------------------------------
+// 床ダメージ処理
+
+Game_Event.prototype.isOnDamageFloor = function() {
+	return $gameMap.isDamageFloor(this.x, this.y);
+};
+
+Game_Event.prototype.checkFloorEffect = function() {
+	if (this.enemy() && this.isOnDamageFloor()) {
+		this.enemy().executeFloorDamage();
+	}
+};
+
+const KRD_Game_Event_moveStraight = Game_Event.prototype.moveStraight;
+Game_Event.prototype.moveStraight = function(d) {
+	KRD_Game_Event_moveStraight.apply(this, arguments);
+	this.checkFloorEffect();
 };
 
 // -------------------------------------

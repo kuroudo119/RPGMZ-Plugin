@@ -433,6 +433,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.10.0 (2023/02/28) 制御文字なし text を width に対応
 - ver.1.11.0 (2023/04/04) USE_JSON フラグを追加
 - ver.1.12.0 (2023/06/10) 多言語プラグイン処理を修正
+- ver.1.13.0 (2023/06/16) 多言語プラグイン処理を修正
 
  * 
  * 
@@ -1338,7 +1339,8 @@ class Window_InfoText extends Window_InfoTextBase {
 			const name = this.convertEscapeCharacters(tmpName);
 
 			const tmpDesc = found[`description_${language}`] || found.description || "";
-			const description = this.convertEscapeCharacters(tmpDesc);
+			const langDesc = canLang() ? KRD_MULTILINGUAL.getLangText(tmpDesc) : tmpDesc;
+			const description = this.convertEscapeCharacters(langDesc);
 			const tmpDescLF = description.replace(/\x1bn/g, "\n");
 			const descLF = tmpDescLF.replace(/\\n/g, "\n");;
 
@@ -1713,6 +1715,10 @@ function multilingual() {
 	} else {
 		return 0;
 	}
+}
+
+function canLang() {
+	return typeof KRD_MULTILINGUAL !== "undefined";
 }
 
 //--------------------------------------

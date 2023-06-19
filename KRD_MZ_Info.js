@@ -253,6 +253,13 @@
  * @type number
  * @parent layoutSection
  * 
+ * @param BETWEEM_TITLE_TO_TEXT
+ * @text タイトルと本文の間
+ * @desc タイトルと本文の間に空白を作ります。
+ * @default 26
+ * @type number
+ * @parent layoutSection
+ * 
  * @param textOver
  * @text 画像に説明文をかぶせる
  * @desc 画像に説明文をかぶせます。デフォルトは OFF(false) です。敵キャラ画像が対象です。
@@ -434,6 +441,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.11.0 (2023/04/04) USE_JSON フラグを追加
 - ver.1.12.0 (2023/06/10) 多言語プラグイン処理を修正
 - ver.1.13.0 (2023/06/16) 多言語プラグイン処理を修正
+- ver.1.14.0 (2023/06/19) タイトルと本文の間パラメータを追加
 
  * 
  * 
@@ -578,6 +586,8 @@ const ENEMY_ELEMENTS = JSON.parse(`[${PARAM["enemyElements"]}]`) || [];
 
 const DOWN_LETTER = 8;
 const DESC_FONT_SIZE = Number(PARAM["descFontSize"]) || 0;
+
+const BETWEEM_TITLE_TO_TEXT = Number(PARAM["BETWEEM_TITLE_TO_TEXT"]) || 0;
 
 const KRD_INFO = {};
 KRD_INFO.command = [];
@@ -1353,10 +1363,10 @@ class Window_InfoText extends Window_InfoTextBase {
 
 			if (name4draw && alphabet) {
 				this.drawTextEx(name4draw, x, y);
-				this.drawTextSeparate(text4draw, x, y, this.innerWidth, alphabet[0], alphabet[1]);
+				this.drawTextSeparate(text4draw, x, y + BETWEEM_TITLE_TO_TEXT, this.innerWidth, alphabet[0], alphabet[1]);
 			} else if (name4draw) {
 				this.drawTextEx(name4draw, x, y);
-				this.drawTextSeparateAuto(text4draw, x, y, this.innerWidth);
+				this.drawTextSeparateAuto(text4draw, x, y + BETWEEM_TITLE_TO_TEXT, this.innerWidth);
 			} else {
 				this.drawTextSeparateAuto(text4draw, x, y, this.innerWidth);
 			}
@@ -1520,7 +1530,7 @@ class Window_InfoText extends Window_InfoTextBase {
 				this.drawTextEx(name, x, y);
 				y += this.lineHeight();
 			}
-			const yy = this.drawEnemyData(found, x, y);
+			const yy = this.drawEnemyData(found, x, y + BETWEEM_TITLE_TO_TEXT);
 			this.drawTextExFontSize(text, x, yy);
 		}
 	}
@@ -1674,7 +1684,7 @@ class Window_InfoText extends Window_InfoTextBase {
 				const text4draw = description ? description + text: text;
 
 				this.drawTextEx(name, x, y);
-				this.drawTextExFontSize(text4draw, x, y + this.lineHeight());
+				this.drawTextExFontSize(text4draw, x, y + this.lineHeight() + BETWEEM_TITLE_TO_TEXT);
 			}
 		}
 	}

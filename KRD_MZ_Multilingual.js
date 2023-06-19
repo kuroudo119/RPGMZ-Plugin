@@ -7,8 +7,10 @@
  * 
  * @param FORCE_LANGUAGE
  * @text 強制言語指定
- * @desc 本プラグイン用データを残して特定の言語を使う場合の言語番号。
+ * @desc 本プラグイン用データを残して特定の言語を使う場合の言語番号。言語切替する場合は -1 にしてください。
  * @type number
+ * @default -1
+ * @min -1
  * 
  * @param basicSection
  * @text 基本設定
@@ -304,24 +306,25 @@ UniqueDataLoader のプロパティ名は「db_99」とします。
 - ver.2.0.1 (2021/06/18) コメント部分修正
 - ver.2.1.0 (2021/08/25) 内部データ修正、useId 追加
 - ver.2.1.1 (2021/09/28) KRD_MULTILINGUAL の宣言を即時関数外に移動
-- ver.2.1.2 (2021/12/05) 使い方に追記。
-- ver.2.1.3 (2021/12/07) 使い方に追記。
-- ver.2.1.4 (2022/02/09) テストプレイ用の処理を追加。
-- ver.2.2.0 (2022/03/06) getUseLanguage を languageText に変更。
-- ver.2.2.1 (2022/03/07) LANG[0]をデフォルト値になるようにした。
-- ver.3.0.0 (2022/03/11) useId を廃止して useExternal 処理を追加。
-- ver.3.1.0 (2022/03/12) 全ての getData の外部データ対応した。
-- ver.3.1.1 (2022/03/15) 一部関数名を変更した。
-- ver.3.1.2 (2022/03/25) LANG の処理変更。
-- ver.3.1.3 (2022/06/04) F9時にエラー出たので修正。
-- ver.3.1.4 (2022/06/10) LANGENDがない場合の無限ループを防止。
-- ver.3.2.0 (2022/06/17) drawText に制御文字 LANG の処理を入れた。
-- ver.3.2.1 (2022/06/21) 制御文字 LANG を修正。
-- ver.3.2.2 (2022/07/15) 制御文字 LANGF を修正。
-- ver.3.2.3 (2023/02/13) ヘルプ修正。
-- ver.3.3.0 (2023/05/02) 制御文字 LANG を改行文字に対応。
-- ver.3.4.0 (2023/05/03) 制御文字 LANG を改行文字に対応。
-- ver.3.5.0 (2023/06/10) FORCE_LANGUAGE パラメータを追加。
+- ver.2.1.2 (2021/12/05) 使い方に追記
+- ver.2.1.3 (2021/12/07) 使い方に追記
+- ver.2.1.4 (2022/02/09) テストプレイ用の処理を追加
+- ver.2.2.0 (2022/03/06) getUseLanguage を languageText に変更
+- ver.2.2.1 (2022/03/07) LANG[0]をデフォルト値になるようにした
+- ver.3.0.0 (2022/03/11) useId を廃止して useExternal 処理を追加
+- ver.3.1.0 (2022/03/12) 全ての getData の外部データ対応した
+- ver.3.1.1 (2022/03/15) 一部関数名を変更した
+- ver.3.1.2 (2022/03/25) LANG の処理変更
+- ver.3.1.3 (2022/06/04) F9時にエラー出たので修正
+- ver.3.1.4 (2022/06/10) LANGENDがない場合の無限ループを防止
+- ver.3.2.0 (2022/06/17) drawText に制御文字 LANG の処理を入れた
+- ver.3.2.1 (2022/06/21) 制御文字 LANG を修正
+- ver.3.2.2 (2022/07/15) 制御文字 LANGF を修正
+- ver.3.2.3 (2023/02/13) ヘルプ修正
+- ver.3.3.0 (2023/05/02) 制御文字 LANG を改行文字に対応
+- ver.3.4.0 (2023/05/03) 制御文字 LANG を改行文字に対応
+- ver.3.5.0 (2023/06/10) FORCE_LANGUAGE パラメータを追加
+- ver.3.5.1 (2023/06/19) FORCE_LANGUAGE パラメータを修正
 
  * 
  * 
@@ -779,7 +782,7 @@ const KRD_MULTILINGUAL = {};
 const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
-const FORCE_LANGUAGE = PARAM["FORCE_LANGUAGE"];
+const FORCE_LANGUAGE = Number(PARAM["FORCE_LANGUAGE"]) || 0;
 
 const LANGUAGE = JSON.parse(PARAM["argLanguage"] || null);
 
@@ -837,7 +840,7 @@ PluginManager.registerCommand(PLUGIN_NAME, "getLanguage", args => {
 
 const KRD_Scene_Options_maxCommands = Scene_Options.prototype.maxCommands;
 Scene_Options.prototype.maxCommands = function() {
-	if (OPTION_TEXT && KRD_MULTILINGUAL.isConfigurable()) {
+	if (OPTION_TEXT && KRD_MULTILINGUAL.canConfig()) {
 		return KRD_Scene_Options_maxCommands.apply(this, arguments) + 1;
 	} else {
 		return KRD_Scene_Options_maxCommands.apply(this, arguments);
@@ -847,7 +850,7 @@ Scene_Options.prototype.maxCommands = function() {
 const KRD_Window_Options_addGeneralOptions = Window_Options.prototype.addGeneralOptions;
 Window_Options.prototype.addGeneralOptions = function() {
 	KRD_Window_Options_addGeneralOptions.apply(this, arguments);
-	if (OPTION_TEXT && KRD_MULTILINGUAL.isConfigurable()) {
+	if (OPTION_TEXT && KRD_MULTILINGUAL.canConfig()) {
 		this.addCommand(OPTION_TEXT[ConfigManager.multilingual], "multilingual");
 	}
 };
@@ -1577,15 +1580,15 @@ KRD_MULTILINGUAL.cutHeadReturn = function(text) {
 };
 
 KRD_MULTILINGUAL.multilingual = function() {
-	if (KRD_MULTILINGUAL.isConfigurable()) {
+	if (KRD_MULTILINGUAL.canConfig()) {
 		return ConfigManager.multilingual;
 	} else {
 		return FORCE_LANGUAGE;
 	}
 };
 
-KRD_MULTILINGUAL.isConfigurable = function() {
-	return FORCE_LANGUAGE === "" || Number(FORCE_LANGUAGE);
+KRD_MULTILINGUAL.canConfig = function() {
+	return FORCE_LANGUAGE < 0;
 };
 
 //--------------------------------------

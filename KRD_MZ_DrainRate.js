@@ -28,6 +28,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 - ver.0.0.1 (2023/06/23) 作成開始
 - ver.0.1.0 (2023/06/23) 非公開版完成
+- ver.1.0.0 (2023/06/23) 公開
 
  * 
  * 

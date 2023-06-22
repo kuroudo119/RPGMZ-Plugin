@@ -4,6 +4,15 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。  
 ただし、他者によるサポートを禁止するものではありません。
 
+
+## KRD_MZ_DrainRate （HP吸収率）
+
+HP吸収攻撃の与ダメージに対するHP回復量を変更します。
+
+[KRD_MZ_DrainRateをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_DrainRate.js)
+
+![HP吸収率](img/drain.png)
+
 ## KRD_MZ_ParamBuff （強化・弱体（バフ・デバフ）割合変更）
 
 強化・弱体による能力値変更の割合を変更します。

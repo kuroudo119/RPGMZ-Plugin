@@ -442,6 +442,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.12.0 (2023/06/10) 多言語プラグイン処理を修正
 - ver.1.13.0 (2023/06/16) 多言語プラグイン処理を修正
 - ver.1.14.0 (2023/06/19) タイトルと本文の間パラメータを追加
+- ver.1.14.1 (2023/06/23) 表示のフォントサイズを修正
 
  * 
  * 
@@ -1393,6 +1394,7 @@ class Window_InfoText extends Window_InfoTextBase {
 			if (this.hasEscape(str)) {
 				this.drawTextExFontSize(str, x, y);
 			} else {
+				this.contents.fontSize = DESC_FONT_SIZE || this.contents.fontSize;
 				KRD_Window_Base_drawText.call(this, str, x, y, width);
 			}
 		}, this);

@@ -312,10 +312,6 @@
  * @text 全敵イベント消去
  * @desc 全ての敵イベントを一時消去します。
  * 
- * @command clearGameOver
- * @text ゲームオーバー状態初期化
- * @desc ゲームオーバーイベントの中で使ってください。
- * 
  * @help
 # KRD_MZ_ActionRPG.js
 
@@ -397,53 +393,54 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.2 (2022/01/11) HPゲージとダメージポップアップ追加
 - ver.0.0.3 (2022/01/12) ダメージ処理をプラグイン化
 - ver.0.0.4 (2022/01/15) 衝突処理をプラグイン化
-- ver.0.0.5 (2022/01/17) セーブ不可を解決、ロード不可はまだある。
-- ver.0.0.6 (2022/01/17) ロード不可マップでセーブ不可にする一時的対処。
-- ver.0.0.7 (2022/01/18) プラグインパラメータを追加。
-- ver.0.0.8 (2022/01/19) ロード不可を解決した。
-- ver.0.0.9 (2022/01/20) KRD_Game_MapAction クラスを追加。
+- ver.0.0.5 (2022/01/17) セーブ不可を解決、ロード不可はまだある
+- ver.0.0.6 (2022/01/17) ロード不可マップでセーブ不可にする一時的対処
+- ver.0.0.7 (2022/01/18) プラグインパラメータを追加
+- ver.0.0.8 (2022/01/19) ロード不可を解決した
+- ver.0.0.9 (2022/01/20) KRD_Game_MapAction クラスを追加
 - ver.0.1.0 (2022/01/21) 非公開版完成
 - ver.1.0.0 (2022/01/21) 公開
-- ver.1.1.0 (2022/01/21) 報酬獲得関数を作成。
-- ver.1.1.1 (2022/01/22) ポップアップとゲージが出ないバグ修正。
-- ver.1.2.0 (2022/01/22) プラグインコマンド追加。
-- ver.1.3.0 (2022/01/24) ステートアイコン表示を追加。
-- ver.1.4.0 (2022/01/25) ステート付与コマンドを追加。
-- ver.1.5.0 (2022/01/28) イベント同士の衝突チェック処理を追加。
-- ver.1.5.1 (2022/01/29) playerAttackSet 仮作成。のちに削除。
-- ver.1.5.2 (2022/01/30) 衝突チェック処理を修正。
-- ver.1.6.0 (2022/01/31) 全イベント衝突チェックを追加。
-- ver.1.7.0 (2022/02/02) イベント発射サポート関数を作成。
-- ver.1.7.1 (2022/02/02) anyCollision関数をリファクタリング。
-- ver.1.7.2 (2022/02/06) anyCollision関数に引数を追加。
-- ver.1.8.0 (2022/02/07) イベント移動可能チェックを追加。
-- ver.1.9.0 (2022/02/09) 自分用 TinyGetInfoWndMZ 併用処理を追加。
-- ver.1.10.0 (2022/02/10) ステート効果を反映。ゲームオーバー処理追加。
-- ver.1.10.1 (2022/02/11) ダメージ表示位置をリセットするようにした。
-- ver.1.11.0 (2022/02/27) 敵玉の処理を追加。
-- ver.1.11.1 (2022/03/03) 玉のリファクタリング。
-- ver.1.11.2 (2022/03/15) 一部数値の定数化。
-- ver.1.12.0 (2022/03/21) 常時プレイヤーHPゲージ表示追加。
-- ver.1.13.0 (2022/03/23) フォロワーのHPゲージ表示追加。
-- ver.1.13.1 (2022/03/27) Scene_Scheduleに対応。
-- ver.1.13.2 (2022/04/04) 戦闘テストでエラーになる件を修正。
-- ver.1.14.0 (2022/04/12) KRD_MZ_DirectionFix を内蔵した。
-- ver.1.15.0 (2022/04/12) checkRangeCollision を追加した。
-- ver.1.15.1 (2022/05/02) パラメータ初期値変更。
-- ver.1.15.2 (2022/06/02) ゲージ幅をパラメータ化。
-- ver.1.16.0 (2022/06/25) パラメータ常時ポップアップ追加。
-- ver.1.16.1 (2022/08/04) 少しリファクタリング。
-- ver.1.16.2 (2022/10/17) hasTag 関数追加。
-- ver.1.17.0 (2023/02/07) 攻撃スキルIDに 0 を指定可能にした。
-- ver.1.18.0 (2023/02/07) プラグインコマンド削除と追加。
-- ver.1.19.0 (2023/02/08) 玉の連続ダメージ防止用パラメータ追加。
-- ver.1.20.0 (2023/03/08) 玉を元の位置に戻す関数追加。
-- ver.1.21.0 (2023/04/29) 敵玉リファクタリング。
-- ver.1.22.0 (2023/04/30) 玉リファクタリング。
-- ver.1.23.0 (2023/06/13) 敵イベントの床ダメージ処理を追加。
-- ver.1.23.1 (2023/06/13) hasTag 関数を変更。
-- ver.1.23.2 (2023/06/13) 敵イベントの床ダメージ処理を変更。
-- ver.1.23.3 (2023/06/25) 敵イベントの床ダメージ処理を修正。
+- ver.1.1.0 (2022/01/21) 報酬獲得関数を作成
+- ver.1.1.1 (2022/01/22) ポップアップとゲージが出ないバグ修正
+- ver.1.2.0 (2022/01/22) プラグインコマンド追加
+- ver.1.3.0 (2022/01/24) ステートアイコン表示を追加
+- ver.1.4.0 (2022/01/25) ステート付与コマンドを追加
+- ver.1.5.0 (2022/01/28) イベント同士の衝突チェック処理を追加
+- ver.1.5.1 (2022/01/29) playerAttackSet 仮作成。のちに削除
+- ver.1.5.2 (2022/01/30) 衝突チェック処理を修正
+- ver.1.6.0 (2022/01/31) 全イベント衝突チェックを追加
+- ver.1.7.0 (2022/02/02) イベント発射サポート関数を作成
+- ver.1.7.1 (2022/02/02) anyCollision関数をリファクタリング
+- ver.1.7.2 (2022/02/06) anyCollision関数に引数を追加
+- ver.1.8.0 (2022/02/07) イベント移動可能チェックを追加
+- ver.1.9.0 (2022/02/09) 自分用 TinyGetInfoWndMZ 併用処理を追加
+- ver.1.10.0 (2022/02/10) ステート効果を反映。ゲームオーバー処理追加
+- ver.1.10.1 (2022/02/11) ダメージ表示位置をリセットするようにした
+- ver.1.11.0 (2022/02/27) 敵玉の処理を追加
+- ver.1.11.1 (2022/03/03) 玉のリファクタリング
+- ver.1.11.2 (2022/03/15) 一部数値の定数化
+- ver.1.12.0 (2022/03/21) 常時プレイヤーHPゲージ表示追加
+- ver.1.13.0 (2022/03/23) フォロワーのHPゲージ表示追加
+- ver.1.13.1 (2022/03/27) Scene_Scheduleに対応
+- ver.1.13.2 (2022/04/04) 戦闘テストでエラーになる件を修正
+- ver.1.14.0 (2022/04/12) KRD_MZ_DirectionFix を内蔵した
+- ver.1.15.0 (2022/04/12) checkRangeCollision を追加した
+- ver.1.15.1 (2022/05/02) パラメータ初期値変更
+- ver.1.15.2 (2022/06/02) ゲージ幅をパラメータ化
+- ver.1.16.0 (2022/06/25) パラメータ常時ポップアップ追加
+- ver.1.16.1 (2022/08/04) 少しリファクタリング
+- ver.1.16.2 (2022/10/17) hasTag 関数追加
+- ver.1.17.0 (2023/02/07) 攻撃スキルIDに 0 を指定可能にした
+- ver.1.18.0 (2023/02/07) プラグインコマンド削除と追加
+- ver.1.19.0 (2023/02/08) 玉の連続ダメージ防止用パラメータ追加
+- ver.1.20.0 (2023/03/08) 玉を元の位置に戻す関数追加
+- ver.1.21.0 (2023/04/29) 敵玉リファクタリング
+- ver.1.22.0 (2023/04/30) 玉リファクタリング
+- ver.1.23.0 (2023/06/13) 敵イベントの床ダメージ処理を追加
+- ver.1.23.1 (2023/06/13) hasTag 関数を変更
+- ver.1.23.2 (2023/06/13) 敵イベントの床ダメージ処理を変更
+- ver.1.23.3 (2023/06/25) 敵イベントの床ダメージ処理を修正
+- ver.1.24.0 (2023/06/25) ゲームオーバー処理を修正
 
  * 
  * 
@@ -616,10 +613,6 @@ PluginManager.registerCommand(PLUGIN_NAME, "resetGroupSelfSwitches", args => {
 
 PluginManager.registerCommand(PLUGIN_NAME, "eraseMapEnemy", args => {
 	$gameMap.eraseMapEnemy();
-});
-
-PluginManager.registerCommand(PLUGIN_NAME, "clearGameOver", args => {
-	$gameMap._gameOver = false;
 });
 
 // -------------------------------------
@@ -1806,8 +1799,9 @@ Game_Enemy.prototype.turnEndOnMap = function() {
 const KRD_Scene_Map_checkGameover = Scene_Map.prototype.checkGameover;
 Scene_Map.prototype.checkGameover = function() {
 	if (this.isMapGameOver()) {
-		$gameMap._gameOver = true;
-		$gameTemp.reserveCommonEvent(CMN_GAME_OVER);
+		if ($gameMap._gameOver === 0) {
+			$gameTemp.reserveCommonEvent(CMN_GAME_OVER);
+		}
 	} else {
 		KRD_Scene_Map_checkGameover.apply(this, arguments);
 	}
@@ -1818,13 +1812,13 @@ Game_Party.prototype.isAlwaysMapGameover = function() {
 };
 
 Scene_Map.prototype.isMapGameOver = function() {
-	if (!$gameMap._gameOver) {
-		if ($gameParty.inMapBattle() && $gameParty.leader().isDead()) {
-			return true;
-		}
-		if ($gameParty.isAlwaysMapGameover() && $gameParty.isAllDead()) {
-			return true;
-		}
+	if ($gameParty.inMapBattle() && $gameParty.leader().isDead()) {
+		$gameMap._gameOver = $gameTemp._commonEventQueue.length;
+		return true;
+	}
+	if ($gameParty.isAlwaysMapGameover() && $gameParty.isAllDead()) {
+		$gameMap._gameOver = $gameTemp._commonEventQueue.length;
+		return true;
 	}
 	return false;
 };

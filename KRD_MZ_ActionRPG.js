@@ -443,6 +443,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.23.0 (2023/06/13) 敵イベントの床ダメージ処理を追加。
 - ver.1.23.1 (2023/06/13) hasTag 関数を変更。
 - ver.1.23.2 (2023/06/13) 敵イベントの床ダメージ処理を変更。
+- ver.1.23.3 (2023/06/25) 敵イベントの床ダメージ処理を修正。
 
  * 
  * 
@@ -640,9 +641,9 @@ KRD_Game_MapEnemy = class extends Game_Enemy {
 	executeFloorDamage() {
 		const floorDamage = Math.floor(this.basicFloorDamage() * this.fdr);
 		const realDamage = Math.min(floorDamage, this.maxFloorDamage());
-		this.gainHp(-realDamage);
 
 		if (realDamage > 0) {
+			this.gainHp(-realDamage);
 			$gameTemp.mapPopupEnemy(this.eventId());
 		}
 	}

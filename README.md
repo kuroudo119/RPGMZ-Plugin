@@ -4,6 +4,11 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。  
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_StateMaxCount （ステート付与上限数）
+
+良性・悪性ステートごとに付与可能な上限数を設定できるようにします。
+
+[KRD_MZ_StateMaxCountをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_StateMaxCount.js)
 
 ## KRD_MZ_DrainRate （HP吸収率）
 

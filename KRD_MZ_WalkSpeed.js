@@ -7,13 +7,19 @@
  * 
  * @param swUseThisPlugin
  * @text 機能利用スイッチ番号
- * @desc 本プラグインの利用有無切替スイッチ番号。0 の場合は常時利用する。
+ * @desc 歩行スピード変更の利用有無切替スイッチ番号。スイッチ番号なしの場合は常時利用する。
  * @default 0
  * @type switch
  * 
  * @param useClassMeta
  * @text 職業メモ欄使用
- * @desc 職業のメモ欄 <moveSpeed:5> を使用する：true ／ 使用しない：false。
+ * @desc 歩行スピード変更のために職業のメモ欄 <moveSpeed:5> を使用する：true ／ 使用しない：false。
+ * @default false
+ * @type boolean
+ * 
+ * @param TOUCH_MOVE_NO_DASH
+ * @text タッチ移動ダッシュしない
+ * @desc コンフィグの常時ダッシュによる可変にする：true ／ 常にダッシュする：false。
  * @default false
  * @type boolean
  * 
@@ -44,6 +50,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.1.1 (2022/10/09) 移動ルートの設定内スクリプト用フラグ追加
 - ver.1.2.0 (2023/01/29) 本プラグインのON/OFFをできるようにした
 - ver.1.2.1 (2023/06/30) 本プラグインのON/OFF処理を修正
+- ver.1.3.0 (2023/06/30) タッチ移動ダッシュしないを追加
 
 ## 機能概要
 
@@ -53,6 +60,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 ### プラグインパラメータ「職業メモ欄使用」
 
+機能利用スイッチ番号で利用する状態かつ、
 プラグインパラメータ「職業メモ欄使用」が true の時、
 タグ <moveSpeed:5> が使用可能になります。
 
@@ -65,6 +73,14 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 移動スピード設定処理を実行します。
 移動ルートの設定コマンド後などに使用してください。
+
+### タッチ移動ダッシュしない
+
+通常、タッチ移動の場合は常にダッシュで移動しますが、
+これをコンフィグの常時ダッシュの値によって
+通常速度とダッシュを切り替えるものとします。
+
+「機能利用スイッチ番号」のtrue/falseと関係なく動作します。
 
  * 
  * 
@@ -83,6 +99,8 @@ const USE_CLASS_META = PARAM["useClassMeta"] === "true";
 const DEFAULT_WALK_SPEED = 4;
 const NEW_WALK_SPEED = 4.5;
 const MAX_DASH_SPEED = 5;
+
+const TOUCH_MOVE_NO_DASH = PARAM["TOUCH_MOVE_NO_DASH"] === "true";
 
 //--------------------------------------
 // プラグインコマンド
@@ -172,6 +190,25 @@ Game_Actor.prototype.changeClass = function(classId, keepExp) {
 	KRD_Game_Actor_changeClass.apply(this, arguments);
 	if ($gameTemp.useWalkSpeedPlugin()) {
 		$gamePlayer.setMoveSpeed($gamePlayer._moveSpeed);
+	}
+};
+
+//--------------------------------------
+// タッチ移動ダッシュしない
+
+const KRD_Game_Player_updateDashing = Game_Player.prototype.updateDashing;
+Game_Player.prototype.updateDashing = function() {
+	if (TOUCH_MOVE_NO_DASH) {
+		if (this.isMoving()) {
+			return;
+		}
+		if (this.canMove() && !this.isInVehicle() && !$gameMap.isDashDisabled()) {
+			this._dashing = this.isDashButtonPressed() || ($gameTemp.isDestinationValid() && ConfigManager.alwaysDash);
+		} else {
+			this._dashing = false;
+		}
+	} else {
+		KRD_Game_Player_updateDashing.apply(this, arguments);
 	}
 };
 

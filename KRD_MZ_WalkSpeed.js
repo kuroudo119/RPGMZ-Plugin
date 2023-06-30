@@ -40,9 +40,10 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2022/10/06) 作成開始
 - ver.0.1.0 (2022/10/06) 非公開版完成
 - ver.1.0.0 (2022/10/06) 公開
-- ver.1.1.0 (2022/10/07) 乗り物などに対応した。
-- ver.1.1.1 (2022/10/09) 移動ルートの設定内スクリプト用フラグ追加。
-- ver.1.2.0 (2023/01/29) 本プラグインのON/OFFをできるようにした。
+- ver.1.1.0 (2022/10/07) 乗り物などに対応した
+- ver.1.1.1 (2022/10/09) 移動ルートの設定内スクリプト用フラグ追加
+- ver.1.2.0 (2023/01/29) 本プラグインのON/OFFをできるようにした
+- ver.1.2.1 (2023/06/30) 本プラグインのON/OFF処理を修正
 
 ## 機能概要
 
@@ -76,7 +77,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
-const SW_USE_THIS_PLUGIN = PARAM["swUseThisPlugin"] || 0;
+const SW_USE_THIS_PLUGIN = Number(PARAM["swUseThisPlugin"]) || 0;
 const USE_CLASS_META = PARAM["useClassMeta"] === "true";
 
 const DEFAULT_WALK_SPEED = 4;

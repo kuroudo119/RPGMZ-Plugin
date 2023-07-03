@@ -4,6 +4,12 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。  
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_PropertiesDefense （クリティカル防御力パーセント）
+
+クリティカル時に防御力および魔法防御を変更します（パーセント指定）。
+
+[KRD_MZ_PropertiesDefenseをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_PropertiesDefense.js)
+
 ## KRD_MZ_Critical （クリティカル）
 
 クリティカルのダメージ倍率を変更します。  

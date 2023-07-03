@@ -4,6 +4,13 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。  
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_Critical （クリティカル）
+
+クリティカルのダメージ倍率を変更するプラグイン。  
+ダメージ計算式にクリティカル有無 cri を使えるようにする。
+
+[KRD_MZ_Criticalをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Critical.js)
+
 ## KRD_MZ_StateMaxCount （ステート付与上限数）
 
 良性・悪性ステートごとに付与可能な上限数を設定できるようにします。

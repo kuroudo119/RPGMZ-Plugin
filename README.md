@@ -6,8 +6,8 @@
 
 ## KRD_MZ_Critical （クリティカル）
 
-クリティカルのダメージ倍率を変更するプラグイン。  
-ダメージ計算式にクリティカル有無 cri を使えるようにする。
+クリティカルのダメージ倍率を変更します。  
+ダメージ計算式にクリティカル有無 cri を使えるようになります。
 
 [KRD_MZ_Criticalをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Critical.js)
 

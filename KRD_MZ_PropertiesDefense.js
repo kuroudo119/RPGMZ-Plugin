@@ -37,6 +37,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2023/07/03) 作成開始
 - ver.0.1.0 (2023/07/03) 非公開版完成
 - ver.1.0.0 (2023/07/03) 公開
+- ver.1.0.1 (2023/07/03) 処理後にフラグ初期化するようにした
 
  * 
  * 
@@ -75,7 +76,10 @@ const KRD_Game_Action_makeDamageValue = Game_Action.prototype.makeDamageValue;
 Game_Action.prototype.makeDamageValue = function(target, critical) {
 	this.subject()._critical = !!critical;
 	target._critical = !!critical;
-	return KRD_Game_Action_makeDamageValue.apply(this, arguments);
+	const value = KRD_Game_Action_makeDamageValue.apply(this, arguments);
+	this.subject()._critical = false;
+	target._critical = false;
+	return value;
 };
 
 //--------------------------------------

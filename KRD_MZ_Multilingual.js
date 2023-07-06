@@ -335,6 +335,7 @@ UniqueDataLoader のプロパティ名は「db_99」とします。
 - ver.3.5.1 (2023/06/19) FORCE_LANGUAGE パラメータを修正
 - ver.4.0.0 (2023/07/05) 制御文字 LANG の元関数を変更
 - ver.4.1.0 (2023/07/06) 制御文字 LANGF の仕様変更
+- ver.4.1.1 (2023/07/07) 数値 0 が空文字になるのを修正
 
  * 
  * 
@@ -1556,44 +1557,32 @@ KRD_MULTILINGUAL.canConfig = function() {
 // 制御文字 LANG
 
 KRD_MULTILINGUAL.getLangText = function(baseText, flag) {
-	if (baseText) {
-		if (!this.checkLangZero(baseText, flag)) {
-			return baseText;
-		}
-
-		const language = this.multilingual();
-		const matched = this.isLangText(baseText, flag, language);
-		const result = this.getLangTextMain(baseText, flag, matched);
-		return result;
-	} else {
-		return "";
+	if (!this.checkLangZero(baseText, flag)) {
+		return baseText;
 	}
+
+	const language = this.multilingual();
+	const matched = this.isLangText(baseText, flag, language);
+	const result = this.getLangTextMain(baseText, flag, matched);
+	return result;
 };
 
 KRD_MULTILINGUAL.checkLangZero = function(baseText, flag) {
-	if (baseText) {
-		const escape = escapeText(flag);
-		const langText = "0";
-		const string = escape + START_WORD + "\\[" + langText + "\\]";
-		const regex = new RegExp(string);
-		const matched = baseText.toString().match(regex);
-		return matched;
-	} else {
-		return false;
-	}
+	const escape = escapeText(flag);
+	const langText = "0";
+	const string = escape + START_WORD + "\\[" + langText + "\\]";
+	const regex = new RegExp(string);
+	const matched = baseText.toString().match(regex);
+	return matched;
 };
 
 KRD_MULTILINGUAL.isLangText = function(baseText, flag, language) {
-	if (baseText) {
-		const escape = escapeText(flag);
-		const langText = language >= 0 ? language : "\\d+?";
-		const string = escape + START_WORD + "\\[" + langText + "\\]";
-		const regex = new RegExp(string, "gs");
-		const matched = baseText.toString().match(regex);
-		return matched;
-	} else {
-		return false;
-	}
+	const escape = escapeText(flag);
+	const langText = language >= 0 ? language : "\\d+?";
+	const string = escape + START_WORD + "\\[" + langText + "\\]";
+	const regex = new RegExp(string, "gs");
+	const matched = baseText.toString().match(regex);
+	return matched;
 };
 
 KRD_MULTILINGUAL.getLangTextMain = function(baseText, flag, matched) {
@@ -1627,14 +1616,10 @@ function escapeText(flag) {
 
 KRD_MULTILINGUAL.cutEscapeLang = function(baseText, flag) {
 	const escape = escapeText(flag);
-	if (baseText) {
-		const string = escape + START_WORD + "\\[(?<language>\\d+?)\\](?<text>.*?)" + escape + END_WORD;
-		const regex = new RegExp(string, "gs");
-		const result = baseText.toString().replace(regex, "");
-		return result;
-	} else {
-		return "";
-	}
+	const string = escape + START_WORD + "\\[(?<language>\\d+?)\\](?<text>.*?)" + escape + END_WORD;
+	const regex = new RegExp(string, "gs");
+	const result = baseText.toString().replace(regex, "");
+	return result;
 };
 
 KRD_MULTILINGUAL.cutHeadReturn = function(text) {

@@ -443,6 +443,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.13.0 (2023/06/16) 多言語プラグイン処理を修正
 - ver.1.14.0 (2023/06/19) タイトルと本文の間パラメータを追加
 - ver.1.14.1 (2023/06/23) 表示のフォントサイズを修正
+- ver.1.14.2 (2023/07/07) ドロップアイテム名の変換対応
 
  * 
  * 
@@ -1566,7 +1567,8 @@ class Window_InfoText extends Window_InfoTextBase {
 				if (data) {
 					if (data[drop.dataId].iconIndex > 0) {
 						this.drawIcon(data[drop.dataId].iconIndex, x, y);
-						this.drawTextExFontSize(data[drop.dataId].name, x + ImageManager.iconWidth, y);
+						const itemName = this.convertEscapeCharacters(data[drop.dataId].name);
+						this.drawTextExFontSize(itemName, x + ImageManager.iconWidth, y);
 					} else {
 						this.drawTextExFontSize(data[drop.dataId].name, x, y);
 					}
@@ -1635,14 +1637,16 @@ class Window_InfoText extends Window_InfoTextBase {
 					if (i % 2 === 0) {
 						if (data[drop.dataId].iconIndex > 0) {
 							this.drawIcon(data[drop.dataId].iconIndex, x + iconPlusX, y + iconPlusY);
-							this.drawTextExFontSize(data[drop.dataId].name, x + iconPlusX + ImageManager.iconWidth, y);
+							const itemName = this.convertEscapeCharacters(data[drop.dataId].name);
+							this.drawTextExFontSize(itemName, x + iconPlusX + ImageManager.iconWidth, y);
 						} else {
 							this.drawTextExFontSize(data[drop.dataId].name, x, y);
 						}
 					} else {
 						if (data[drop.dataId].iconIndex > 0) {
 							this.drawIcon(data[drop.dataId].iconIndex, x + xx + iconPlusX, y + iconPlusY);
-							this.drawTextExFontSize(data[drop.dataId].name, x + xx + iconPlusX + ImageManager.iconWidth, y);
+							const itemName = this.convertEscapeCharacters(data[drop.dataId].name);
+							this.drawTextExFontSize(itemName, x + xx + iconPlusX + ImageManager.iconWidth, y);
 						} else {
 							this.drawTextExFontSize(data[drop.dataId].name, x + xx, y);
 						}

@@ -4,6 +4,14 @@
 バグ修正は行う可能性がありますが、ヘルプおよび私からのサポートは有償です。  
 ただし、他者によるサポートを禁止するものではありません。
 
+## KRD_MZ_VoiceOutput （音声出力（音声合成））
+
+Web Speech API を使用して音声出力（音声合成）を行います。
+
+[KRD_MZ_VoiceOutputをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_VoiceOutput.js)
+
+https://github.com/kuroudo119/RPGMZ-Plugin/assets/43639887/8e75ae64-ad7a-48e9-8da1-e2f63f1b5b8d
+
 ## KRD_MZ_PropertiesDefense （クリティカル防御力パーセント）
 
 クリティカル時に防御力および魔法防御を変更します（パーセント指定）。

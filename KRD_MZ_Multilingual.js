@@ -336,6 +336,7 @@ UniqueDataLoader のプロパティ名は「db_99」とします。
 - ver.4.0.0 (2023/07/05) 制御文字 LANG の元関数を変更
 - ver.4.1.0 (2023/07/06) 制御文字 LANGF の仕様変更
 - ver.4.1.1 (2023/07/07) 数値 0 が空文字になるのを修正
+- ver.4.1.2 (2023/07/09) 文字列 undefined 対応
 
  * 
  * 
@@ -1216,9 +1217,14 @@ Window_Base.prototype.drawText = function(text, x, y, maxWidth, align) {
 const KRD_Window_Command_commandName = Window_Command.prototype.commandName;
 Window_Command.prototype.commandName = function(index) {
 	const base = KRD_Window_Command_commandName.apply(this, arguments);
-	const result = KRD_MULTILINGUAL.getLangText(base);
-	const result2 = KRD_MULTILINGUAL.getLangText(result, true);
-	return result2;
+
+	if (base !== undefined) {
+		const result = KRD_MULTILINGUAL.getLangText(base);
+		const result2 = KRD_MULTILINGUAL.getLangText(result, true);
+		return result2;
+	} else {
+		return "";
+	}
 };
 
 // 上書き

@@ -31,6 +31,18 @@
  * @default false
  * @type boolean
  * 
+ * @param OPTION_SPEAK_VOLUME
+ * @text 音声合成音量オプション
+ * @desc 音声合成の音量をオプションに追加します。追加しない場合は文字を消してください。
+ * @default 音声合成
+ * 
+ * @param DEFAULT_SPEAK
+ * @text 音声合成音量既定値
+ * @desc 音声合成音量のデフォルト値（0 ～ 100）。初期値：100
+ * @default 100
+ * @type number
+ * @max 100
+ * 
  * @help
 # KRD_MZ_Volume.js
 
@@ -57,6 +69,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.6.2 (2022/04/30) 音量Window処理を修正。
 - ver.1.0.0 (2022/05/01) 公開
 - ver.1.0.1 (2022/05/15) メソッドがfunctionになっていたので修正。
+- ver.1.0.2 (2022/06/29) 表示位置を修正。
+- ver.1.1.0 (2023/07/09) 音声合成プラグイン対応
 
  * 
  * 
@@ -81,6 +95,12 @@ const DEFAULT_VOLUME_COMMANDS = 4;
 const THIS_VOLUME_COMMANDS = 2;
 const VOLUME_COMMANDS = USE_VOLUME_WINDOW ? DEFAULT_VOLUME_COMMANDS : THIS_VOLUME_COMMANDS;
 
+const PADDING = 12;
+
+const OPTION_SPEAK_VOLUME = PARAM["OPTION_SPEAK_VOLUME"];
+const DEFAULT_SPEAK = Number(PARAM["DEFAULT_SPEAK"]) || 0;
+const PLUS_COMMANDS = OPTION_SPEAK_VOLUME && !USE_VOLUME_WINDOW ? 1 : 0;
+
 //--------------------------------------
 // オプション初期値
 
@@ -95,6 +115,8 @@ ConfigManager.readVolume = function(config, name) {
 	} else {
 		if (name === "bgmVolume") {
 			return DEFAULT_BGM;
+		} else if (OPTION_SPEAK_VOLUME && name === "speakVolume") {
+			return DEFAULT_SPEAK;
 		} else {
 			return DEFAULT_SE;
 		}
@@ -121,12 +143,15 @@ Object.defineProperty(ConfigManager, "seVolume", {
 
 const KRD_Scene_Options_maxCommands = Scene_Options.prototype.maxCommands;
 Scene_Options.prototype.maxCommands = function() {
-	return KRD_Scene_Options_maxCommands.apply(this, arguments) - VOLUME_COMMANDS;
+	return KRD_Scene_Options_maxCommands.apply(this, arguments) - VOLUME_COMMANDS + PLUS_COMMANDS;
 };
 
 Window_Options.prototype.addVolumeOptions = function() {
 	this.addCommand(TextManager.bgmVolume, "bgmVolume");
 	this.addCommand(TextManager.seVolume, "seVolume");
+	if (OPTION_SPEAK_VOLUME) {
+		this.addCommand(OPTION_SPEAK_VOLUME, "speakVolume");
+	}
 };
 
 //--------------------------------------
@@ -163,6 +188,12 @@ Window_VolumeOptions = class extends Window_Options {
 		this.addCommand("", "seVolume", false);
 		this.addCommand("", "seVolumeDown");
 		this.addCommand("", "seVolumeUp");
+		if (OPTION_SPEAK_VOLUME) {
+			this.addCommand(OPTION_SPEAK_VOLUME, "header", false);
+			this.addCommand("", "speakVolume", false);
+			this.addCommand("", "speakVolumeDown");
+			this.addCommand("", "speakVolumeUp");
+		}
 	}
 
 	maxCols() {
@@ -432,7 +463,7 @@ Scene_Options.prototype.optionsWindowRect = function() {
 		const vWh = this.calcWindowHeight(vn, true);
 		const fullWh = this.calcWindowHeight(n + vn, true);
 		const wx = (Graphics.boxWidth - ww) / 2;
-		const vWy = (Graphics.boxHeight - fullWh) / 2;
+		const vWy = ((Graphics.boxHeight - fullWh) / 2) - PADDING;
 		const wy = vWy + vWh;
 		return new Rectangle(wx, wy, ww, wh);
 	} else {
@@ -454,12 +485,12 @@ Scene_Options.prototype.volumeWindowRect = function() {
 	const wh = this.calcWindowHeight(vn, true);
 	const fullWh = this.calcWindowHeight(n + vn, true);
 	const wx = (Graphics.boxWidth - ww) / 2;
-	const wy = (Graphics.boxHeight - fullWh) / 2;
+	const wy = ((Graphics.boxHeight - fullWh) / 2) - PADDING;
 	return new Rectangle(wx, wy, ww, wh);
 };
 
 Scene_Options.prototype.maxVolumeCommands = function() {
-	return 2;
+	return OPTION_SPEAK_VOLUME ? 3 : 2;
 };
 
 //--------------------------------------

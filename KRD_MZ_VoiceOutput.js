@@ -147,9 +147,9 @@ Object.defineProperty(ConfigManager, "speakVolume", {
 
 const KRD_ConfigManager_makeData = ConfigManager.makeData;
 ConfigManager.makeData = function() {
-		const config = KRD_ConfigManager_makeData.apply(this, arguments);
-		config.speakVolume = this.speakVolume;
-		return config;
+	const config = KRD_ConfigManager_makeData.apply(this, arguments);
+	config.speakVolume = this.speakVolume;
+	return config;
 };
 
 const KRD_ConfigManager_applyData = ConfigManager.applyData;

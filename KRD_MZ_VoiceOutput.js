@@ -16,6 +16,12 @@
  * @type number
  * @max 100
  * 
+ * @param AUTO_CANCEL
+ * @text 自動キャンセル
+ * @desc メッセージWindowを閉じる時に音声合成の再生を終了します。
+ * @default true
+ * @type boolean
+ * 
  * @command VOICE_OUTPUT
  * @text 音声出力
  * @desc 音声出力（音声合成）するコマンドです。
@@ -94,6 +100,7 @@ Web Speech API に対応したブラウザで音声が流れます。
 - ver.1.0.0 (2023/07/08) 公開
 - ver.1.1.0 (2023/07/09) 音量オプションを追加
 - ver.1.2.0 (2023/07/10) デフォルト音量、ピッチ、速度、キャンセルを追加
+- ver.1.3.0 (2023/07/11) 自動キャンセルを追加
 
  * 
  * 
@@ -112,6 +119,8 @@ const OPTION_SPEAK_VOLUME = PARAM["OPTION_SPEAK_VOLUME"];
 const DEFAULT_SPEAK = Number(PARAM["DEFAULT_SPEAK"]) || 0;
 
 const JAPANESE = "ja-JP";
+
+const AUTO_CANCEL = PARAM["AUTO_CANCEL"] === "true";
 
 //--------------------------------------
 // プラグインコマンド
@@ -229,6 +238,17 @@ Window_Options.prototype.addVolumeOptions = function() {
 	KRD_Window_Options_addVolumeOptions.apply(this, arguments);
 	if (OPTION_SPEAK_VOLUME) {
 		this.addCommand(OPTION_SPEAK_VOLUME, "speakVolume");
+	}
+};
+
+//--------------------------------------
+// 自動キャンセル
+
+const KRD_Window_Message_terminateMessage = Window_Message.prototype.terminateMessage;
+Window_Message.prototype.terminateMessage = function() {
+	KRD_Window_Message_terminateMessage.apply(this, arguments);
+	if (AUTO_CANCEL) {
+		KRD_VOICE_OUTPUT.cancel();
 	}
 };
 

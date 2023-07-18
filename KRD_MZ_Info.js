@@ -444,6 +444,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.14.0 (2023/06/19) タイトルと本文の間パラメータを追加
 - ver.1.14.1 (2023/06/23) 表示のフォントサイズを修正
 - ver.1.14.2 (2023/07/07) ドロップアイテム名の変換対応
+- ver.1.15.0 (2023/07/18) 一部 Window_Selectable の継承に変更
 
  * 
  * 
@@ -985,32 +986,21 @@ class Scene_InfoBase extends Scene_MenuBase {
 		this._subCommandWindow[index].show()
 		this._subCommandWindow[index].activate();
 		this._subCommandWindow[index].refresh();
+		this._subCommandWindow[index].select(0);
 	}
 
 	backToCommand() {
-		this._infoWindow.clear();
 		this._subCommandWindow.forEach(sub => {
 			sub.deactivate();
 			sub.hide();
 		});
+		this._helpWindow.clear();
 		this._commandWindow.show();
 		this._commandWindow.activate();
 	}
 
 	drawInfo(symbol, i) {
 		this._subCommandWindow[i].activate();
-	}
-
-	update() {
-		super.update();
-		if (this._subCommandWindow[this._i].isOpenAndActive()) {
-			this._infoWindow.clear();
-			const index = this._subCommandWindow[this._i]._index;
-			const symbol = this._subCommandWindow[this._i]._symbol + index;
-			const i = this._subCommandWindow[this._i]._i;
-			this._infoWindow.drawInfo(symbol, i);
-			this._subCommandWindow[this._i].activate();
-		}
 	}
 }
 
@@ -1027,10 +1017,10 @@ class Scene_Info extends Scene_InfoBase {
 		KRD_INFO.command = [];
 		this.createAllInfo();
 
+		this.createHelpWindow();
 		this.createCommandWindow();
 		this._subCommandWindow = [];
 		this.createSubCommandWindow();
-		this.createInfoWindow();
 	}
 
 	createAllInfo() {
@@ -1109,13 +1099,13 @@ class Scene_Info extends Scene_InfoBase {
 		return new Rectangle(wx, wy, ww, wh);
 	}
 
-	createInfoWindow() {
-		const rect = this.infoWindowRect();
-		this._infoWindow = new Window_InfoText(rect);
-		this.addWindow(this._infoWindow);
+	createHelpWindow() {
+		const rect = this.helpWindowRect();
+		this._helpWindow = new Window_InfoText(rect);
+		this.addWindow(this._helpWindow);
 	}
 
-	infoWindowRect() {
+	helpWindowRect() {
 		if (CMD_HORIZON) {
 			return this.infoWindowRectHorizontal();
 		} else {
@@ -1150,13 +1140,10 @@ class Scene_Info extends Scene_InfoBase {
 	}
 
 	createSubCommandWindowIn(sub, i) {
-		const subSymbol = sub.subSymbol;
 		const rect = this.subCommandWindowRect();
 		const subCommandWindow = new Window_InfoSubCommand(rect, i);
-		sub.data.forEach((data, index) => {
-			subCommandWindow.setHandler(subSymbol + index, this.drawInfo.bind(this, subSymbol + index, i, index));
-		}, this);
 		subCommandWindow.setHandler("cancel", this.backToCommand.bind(this));
+		subCommandWindow.setHelpWindow(this._helpWindow);
 		this.addWindow(subCommandWindow);
 		this._subCommandWindow.push(subCommandWindow);
 	}
@@ -1199,25 +1186,31 @@ class Window_InfoCommand extends Window_Command {
 //--------------------------------------
 // 情報ウィンドウ：サブコマンド部（新規）
 
-class Window_InfoSubCommand extends Window_Command {
+class Window_InfoSubCommand extends Window_Selectable {
 	initialize(rect, index) {
 		super.initialize(...arguments);
 		this._i = index;
 		this._symbol = "";
-		this._infoWindow = null;
-		this.makeCommandList();
+		this.setSubSymbol(index);
 	}
 
-	makeCommandList() {
-		if (this._i >= 0) {
-			const language = multilingual();
-			const subSymbol = KRD_INFO.command[this._i].subSymbol;
-			KRD_INFO.command[this._i].data.forEach((data, index) => {
-				const commandName = data[`name_${language}`] || data.name || "";
-				const name = this.convertEscapeCharacters(commandName) || "";
-				this.addCommand(name, subSymbol + index);
-			}, this);
-			this._symbol = subSymbol;
+	drawItem(index) {
+		const rect = this.itemLineRect(index);
+		const language = multilingual();
+		const data = KRD_INFO.command[this._i].data[index];
+		const commandName = data[`name_${language}`] || data.name || "";
+		const name = this.convertEscapeCharacters(this.convertEscapeCharacters(commandName)) || "";
+		this.changePaintOpacity(true);
+		this.drawText(name, rect.x, rect.y, rect.width, "center");
+	}
+
+	setSubSymbol(index) {
+		this._symbol = KRD_INFO.command[index].subSymbol;
+	}
+
+	updateHelp() {
+		if (this._helpWindow) {
+			this._helpWindow.drawInfo(this._symbol + this._index, this._i);
 		}
 	}
 
@@ -1241,7 +1234,7 @@ class Window_InfoSubCommand extends Window_Command {
 //--------------------------------------
 // 情報ウィンドウ基礎：メッセージ部（新規）
 
-class Window_InfoTextBase extends Window_Base {
+class Window_InfoTextBase extends Window_Help {
 	initialize(rect) {
 		super.initialize(...arguments);
 
@@ -1320,19 +1313,21 @@ class Window_InfoTextBase extends Window_Base {
 
 class Window_InfoText extends Window_InfoTextBase {
 	drawInfo(symbol, i) {
-		const subSymbol = KRD_INFO.command[i].subSymbol;
-		const found = KRD_INFO.command[i].data.find((data, index) => symbol === subSymbol + index);
-
-		this.clear();
-		if (found) {
-			if (this.havePicture(found)) {
-				this.drawPicture(found);
-			} else if (this.isActor(found)) {
-				this.drawActorStart(found);
-			} else if (this.isEnemy(found)) {
-				this.drawEnemy(found);
-			} else {
-				this.drawInfoText(found);
+		if (symbol !== "" && i >= 0) {
+			const subSymbol = KRD_INFO.command[i].subSymbol;
+			const found = KRD_INFO.command[i].data.find((data, index) => symbol === subSymbol + index);
+	
+			this.clear();
+			if (found) {
+				if (this.havePicture(found)) {
+					this.drawPicture(found);
+				} else if (this.isActor(found)) {
+					this.drawActorStart(found);
+				} else if (this.isEnemy(found)) {
+					this.drawEnemy(found);
+				} else {
+					this.drawInfoText(found);
+				}
 			}
 		}
 	}

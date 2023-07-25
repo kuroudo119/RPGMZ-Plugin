@@ -22,31 +22,42 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 ## 概要
 
 プレイヤーの隣にイベントがあると、
-そのイベントにフキダシが表示されます。
+そのイベントにフキダシアイコンが表示されます。
 
 ## 使い方
 
-フキダシを表示させたいマップイベントの
+フキダシアイコンを表示させたいマップイベントの
 メモ欄に <balloonId:番号> を記述します。
-「番号」はフキダシの番号です。
+「番号」はフキダシアイコンの番号です。
 
-## 使い方（イベントページ毎にバルーン変更）
+## 使い方（イベントページ毎にフキダシアイコン変更）
 
-フキダシを表示させたいマップイベントの
+フキダシアイコンを表示させたいマップイベントの
 メモ欄に <balloonPage:番号, 番号, 番号…> を記述します。
 「番号」はフキダシの番号です。
 カンマ区切りでイベントページ番号の順番に記述します。
 
 フキダシを表示しないページは番号の代わりに false を記述してください。
 
+## 使い方（フキダシアイコン表示範囲）
+
+前述の balloonPage と併用します。
+
+メモ欄に <zonePage:範囲, 範囲, 範囲…> を記述します。
+「範囲」はプレイヤーとの距離の数値です。
+カンマ区切りでイベントページ番号の順番に記述します。
+
+フキダシを表示しないページは範囲として 0 を記述してください。
+
 ## 更新履歴
 
 - ver.0.0.1 (2022/07/23) 作成開始
 - ver.0.1.0 (2022/07/23) 非公開版完成
 - ver.1.0.0 (2022/07/23) 公開
-- ver.1.1.0 (2022/07/23) イベント出現条件を満たしていない時は実行しない。
-- ver.1.2.0 (2022/07/25) イベントページ毎にバルーン変更。
-- ver.1.2.1 (2022/07/25) parseInt に修正。
+- ver.1.1.0 (2022/07/23) イベント出現条件を満たしていない時は実行しない
+- ver.1.2.0 (2022/07/25) イベントページ毎にバルーン変更
+- ver.1.2.1 (2022/07/25) parseInt に修正
+- ver.1.3.0 (2023/07/25) タグ zonePage を追加、リファクタリング
 
  * 
  * 
@@ -55,6 +66,10 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 (() => {
 
 "use strict";
+
+const TAG_BALLOON_ID = "balloonId";
+const TAG_BALLOON_PAGE = "balloonPage";
+const TAG_ZONE_PAGE = "zonePage";
 
 //--------------------------------------
 const KRD_Game_Event_refresh = Game_Event.prototype.refresh;
@@ -74,45 +89,39 @@ Game_Event.prototype.doNeighborBalloon = function() {
 		return;
 	}
 
-	const tagBalloonPage = this.event().meta.balloonPage;
-	const tagBalloonId = this.event().meta.balloonId;
+	const tagBalloonPage = this.event().meta[TAG_BALLOON_PAGE];
+	const tagBalloonId = this.event().meta[TAG_BALLOON_ID];
+	const tagZonePage = this.event().meta[TAG_ZONE_PAGE];
 	if (tagBalloonPage || tagBalloonId) {
 		const balloonPage = tagBalloonPage ? JSON.parse("[" + tagBalloonPage + "]") : null;
 		const balloonId = balloonPage ? parseInt(balloonPage[this._pageIndex], 10) : parseInt(tagBalloonId, 10);
 
-		this.doBalloon(balloonId);
+		const zonePage = tagZonePage ? JSON.parse("[" + tagZonePage + "]") : null;
+		const zone = zonePage ? parseInt(zonePage[this._pageIndex]) : 1;
+
+		this.doBalloon(balloonId, zone);
 	}
 };
 
-Game_Event.prototype.doBalloon = function(balloonId) {
+Game_Event.prototype.doBalloon = function(balloonId, zone = 1) {
 	if (!isNaN(balloonId)) {
-		this._oldPosition = this._oldPosition ? this._oldPosition : 0;
-		const newPosition = this.neighborPlayer();
-		if (this._oldPosition !== newPosition && newPosition > 0) {
+		this._oldPosition = this._oldPosition ? this._oldPosition : false;
+		const newPosition = this.playerIsInZone(zone);
+		if (newPosition && this._oldPosition !== newPosition) {
 			$gameTemp.requestBalloon(this, balloonId);
 		}
 		this._oldPosition = newPosition;
 	}
 };
 
-Game_Event.prototype.neighborPlayer = function() {
-	if (this.x === $gamePlayer.x && this.y === $gamePlayer.y + 1) {
-		// console.log("プレイヤーの下にイベントあるよ！");
-		return 2;
-	}
-	if (this.x === $gamePlayer.x - 1 && this.y === $gamePlayer.y) {
-		// console.log("プレイヤーの左にイベントあるよ！");
-		return 4;
-	}
-	if (this.x === $gamePlayer.x + 1 && this.y === $gamePlayer.y) {
-		// console.log("プレイヤーの右にイベントあるよ！");
-		return 6;
-	}
-	if (this.x === $gamePlayer.x && this.y === $gamePlayer.y - 1) {
-		// console.log("プレイヤーの上にイベントあるよ！");
-		return 8;
-	}
-	return 0;
+Game_Event.prototype.playerIsInZone = function(zone) {
+	return this.distanceToPlayer() <= zone;
+};
+
+Game_Event.prototype.distanceToPlayer = function() {
+	const diffX = Math.abs(this.x - $gamePlayer.x);
+	const diffY = Math.abs(this.y - $gamePlayer.y);
+	return diffX + diffY;
 };
 
 //--------------------------------------

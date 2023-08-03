@@ -17,8 +17,14 @@
  * @max 100
  * 
  * @param AUTO_CANCEL
- * @text 自動キャンセル
- * @desc メッセージWindowを閉じる時に音声合成の再生を終了します。
+ * @text メッセージ自動キャンセル
+ * @desc 「文章の表示」を閉じる時に音声合成の再生を終了します。
+ * @default true
+ * @type boolean
+ * 
+ * @param AUTO_CANCEL_SCROLL
+ * @text スクロール自動キャンセル
+ * @desc 「文章のスクロール表示」を閉じる時に音声合成の再生を終了します。
  * @default true
  * @type boolean
  * 
@@ -101,6 +107,7 @@ Web Speech API に対応したブラウザで音声が流れます。
 - ver.1.1.0 (2023/07/09) 音量オプションを追加
 - ver.1.2.0 (2023/07/10) デフォルト音量、ピッチ、速度、キャンセルを追加
 - ver.1.3.0 (2023/07/11) 自動キャンセルを追加
+- ver.1.4.0 (2023/08/03) 音声キャンセル時の不具合修正、パラメータ追加
 
  * 
  * 
@@ -121,6 +128,7 @@ const DEFAULT_SPEAK = Number(PARAM["DEFAULT_SPEAK"]) || 0;
 const JAPANESE = "ja-JP";
 
 const AUTO_CANCEL = PARAM["AUTO_CANCEL"] === "true";
+const AUTO_CANCEL_SCROLL = PARAM["AUTO_CANCEL_SCROLL"] === "true";
 
 //--------------------------------------
 // プラグインコマンド
@@ -137,6 +145,8 @@ PluginManager.registerCommand(PLUGIN_NAME, "VOICE_OUTPUT_VAR", args => {
 
 PluginManager.registerCommand(PLUGIN_NAME, "VOICE_CANCEL", args => {
 	KRD_VOICE_OUTPUT.cancel();
+	Input.clear();
+	TouchInput.clear();
 });
 
 //--------------------------------------
@@ -144,42 +154,27 @@ PluginManager.registerCommand(PLUGIN_NAME, "VOICE_CANCEL", args => {
 
 KRD_VOICE_OUTPUT.speak = function(text, language = JAPANESE, volume, pitch, rate) {
 	if ("speechSynthesis" in window) {
-		try {
-			const synth = window.speechSynthesis;
-			const utterThis = new SpeechSynthesisUtterance(text);
-			utterThis.lang = language;
+		const synth = window.speechSynthesis;
+		const utterThis = new SpeechSynthesisUtterance(text);
+		utterThis.lang = language;
 
-			if (volume !== undefined) {
-				utterThis.volume = (Number(volume) || 0) / 100;
-			}
-			if (pitch !== undefined) {
-				utterThis.pitch = (Number(pitch) || 0) / 100;
-			}
-			if (rate !== undefined) {
-				utterThis.rate = (Number(rate) || 0) / 100;
-			}
-
-			synth.speak(utterThis);
-			return true;
-		} catch (e) {
-			return false;
+		if (volume !== undefined) {
+			utterThis.volume = (Number(volume) || 0) / 100;
 		}
-	} else {
-		return false;
+		if (pitch !== undefined) {
+			utterThis.pitch = (Number(pitch) || 0) / 100;
+		}
+		if (rate !== undefined) {
+			utterThis.rate = (Number(rate) || 0) / 100;
+		}
+
+		synth.speak(utterThis);
 	}
 };
 
 KRD_VOICE_OUTPUT.cancel = function() {
 	if ("speechSynthesis" in window) {
-		try {
-			const synth = window.speechSynthesis;
-			synth.cancel();
-			return true;
-		} catch (e) {
-			return false;
-		}
-	} else {
-		return false;
+		window.speechSynthesis.cancel();
 	}
 };
 
@@ -249,6 +244,18 @@ Window_Message.prototype.terminateMessage = function() {
 	KRD_Window_Message_terminateMessage.apply(this, arguments);
 	if (AUTO_CANCEL) {
 		KRD_VOICE_OUTPUT.cancel();
+		Input.clear();
+		TouchInput.clear();
+	}
+};
+
+const KRD_Window_ScrollText_terminateMessage = Window_ScrollText.prototype.terminateMessage;
+Window_ScrollText.prototype.terminateMessage = function() {
+	KRD_Window_ScrollText_terminateMessage.apply(this, arguments);
+	if (AUTO_CANCEL_SCROLL) {
+		KRD_VOICE_OUTPUT.cancel();
+		Input.clear();
+		TouchInput.clear();
 	}
 };
 

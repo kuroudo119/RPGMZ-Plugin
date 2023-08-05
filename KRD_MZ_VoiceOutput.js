@@ -108,6 +108,7 @@ Web Speech API に対応したブラウザで音声が流れます。
 - ver.1.2.0 (2023/07/10) デフォルト音量、ピッチ、速度、キャンセルを追加
 - ver.1.3.0 (2023/07/11) 自動キャンセルを追加
 - ver.1.4.0 (2023/08/03) 音声キャンセル時の不具合修正、パラメータ追加
+- ver.1.5.0 (2023/08/05) 選択肢ありでの音声キャンセル時の不具合修正
 
  * 
  * 
@@ -147,6 +148,7 @@ PluginManager.registerCommand(PLUGIN_NAME, "VOICE_CANCEL", args => {
 	KRD_VOICE_OUTPUT.cancel();
 	Input.clear();
 	TouchInput.clear();
+	KRD_VOICE_OUTPUT._canceled = true;
 });
 
 //--------------------------------------
@@ -246,6 +248,7 @@ Window_Message.prototype.terminateMessage = function() {
 		KRD_VOICE_OUTPUT.cancel();
 		Input.clear();
 		TouchInput.clear();
+		KRD_VOICE_OUTPUT._canceled = true;
 	}
 };
 
@@ -257,6 +260,18 @@ Window_ScrollText.prototype.terminateMessage = function() {
 		Input.clear();
 		TouchInput.clear();
 	}
+};
+
+//--------------------------------------
+// 自動キャンセルの二重クリック対応
+
+const KRD_Window_ChoiceList_onTouchOk = Window_ChoiceList.prototype.onTouchOk;
+Window_ChoiceList.prototype.onTouchOk = function() {
+	if (AUTO_CANCEL && KRD_VOICE_OUTPUT._canceled) {
+		TouchInput.clear();
+		KRD_VOICE_OUTPUT._canceled = false;
+	}
+	KRD_Window_ChoiceList_onTouchOk.apply(this, arguments);
 };
 
 //--------------------------------------

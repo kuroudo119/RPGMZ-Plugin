@@ -114,6 +114,11 @@
  * @text 玉ダメージ後セルフスイッチ
  * @desc 玉による敵イベントの被ダメージ後にONにするセルフスイッチ。連続ダメージ防止用。使用しない場合は記述なしとする。
  * 
+ * @param SELF_SWITCH_DEAD
+ * @text 戦闘不能セルフスイッチ
+ * @desc 敵イベントを戦闘不能扱いにするセルフスイッチ。「KO敵キャラ消去セルフスイッチ」コマンドで使用。
+ * @default D
+ * 
  * @command clearInput
  * @text 入力クリア
  * @desc 入力バッファを空にします。押しっぱなし等の入力を一旦無しにします。
@@ -274,6 +279,10 @@
  * @text KO敵キャラ消去
  * @desc 戦闘不能の敵キャラを「イベントの一時消去」します。
  * 
+ * @command setSelfSwitchAllDeadEvent
+ * @text KO敵キャラ消去セルフスイッチ
+ * @desc 戦闘不能の敵キャラのセルフスイッチ D を ON にして、「イベントの一時消去」します。
+ * 
  * @command processTroopCollapse
  * @text 敵キャラ撃破報酬獲得
  * @desc 敵キャラ戦闘不能時にこのコマンドを使うと経験値、お金、宝物を獲得します。
@@ -387,6 +396,16 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 プレイヤーのダメージポップアップを表示するためには、
 データベース「システム1」の「戦闘画面」を「サイドビュー」にすること。
 
+### 戦闘不能セルフスイッチ
+
+敵イベントを戦闘不能扱いにするセルフスイッチです。
+「KO敵キャラ消去セルフスイッチ」コマンドで使用します。
+
+画面を切り替えても復活しない敵イベントを作る場合に使用します。
+
+敵イベント側にもセルフスイッチを指定したページを作る必要があります。
+その際、オプション「すり抜け」をONにしてください。
+
 ## 更新履歴
 
 - ver.0.0.1 (2022/01/04) 作成開始
@@ -441,6 +460,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.23.2 (2023/06/13) 敵イベントの床ダメージ処理を変更
 - ver.1.23.3 (2023/06/25) 敵イベントの床ダメージ処理を修正
 - ver.1.24.0 (2023/06/25) ゲームオーバー処理を修正
+- ver.1.25.0 (2023/08/07) セルフスイッチDを戦闘不能に使用
+- ver.1.26.0 (2023/08/07) 戦闘不能セルフスイッチを追加
 
  * 
  * 
@@ -501,6 +522,8 @@ const GAUGE_BOTTOM = Number(PARAM["gaugeBottom"]) || 0;
 const SELF_AFTER_ENEMY_DAMAGE = PARAM["selfAfterEnemyDamage"];
 
 const PLAYER_ID = -1;
+
+const SELF_SWITCH_DEAD = PARAM["SELF_SWITCH_DEAD"];
 
 // -------------------------------------
 // プラグインコマンド
@@ -590,6 +613,10 @@ PluginManager.registerCommand(PLUGIN_NAME, "isDeadTroop", args => {
 
 PluginManager.registerCommand(PLUGIN_NAME, "eraseAllDeadEvent", args => {
 	$gameTemp.eraseAllDeadEvent();
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "setSelfSwitchAllDeadEvent", args => {
+	$gameTemp.setSelfSwitchAllDeadEvent();
 });
 
 PluginManager.registerCommand(PLUGIN_NAME, "processTroopCollapse", args => {
@@ -1027,15 +1054,26 @@ Game_Temp.prototype.itemMapDamageTroop = function(itemId) {
 // -------------------------------------
 // 残HPチェック
 
-Game_Temp.prototype.isDeadEnemy = function(eventId) {
+Game_Temp.prototype.isDyingEnemy = function(eventId) {
 	const event = $gameMap.event(eventId);
-	return event && !event._erased && $gameMap.enemy(eventId).isDead();
+	return event && !event.isDeadEnemy() && $gameMap.enemy(eventId).isDead();
 };
 
 Game_Temp.prototype.isDeadTroop = function() {
 	const metaIdList = $gameMap.metaIdList(META_ENEMY);
-	this._deadList = metaIdList.filter(id => this.isDeadEnemy(id), this);
+	this._deadList = metaIdList.filter(id => this.isDyingEnemy(id), this);
 	return !!this._deadList.length;
+};
+
+// -------------------------------------
+// 戦闘不能の敵イベント
+
+Game_Event.prototype.isDeadEnemy = function() {
+	const mapId = $gameMap.mapId();
+	const eventId = this.eventId();
+	const alphabet = SELF_SWITCH_DEAD;
+	const self = $gameSelfSwitches.value([mapId, eventId, alphabet]);
+	return this._erased || self;
 };
 
 // -------------------------------------
@@ -1045,6 +1083,23 @@ Game_Temp.prototype.eraseAllDeadEvent = function() {
 	if (this._deadList) {
 		this._deadList.forEach(id => {
 			$gameMap.enemy(id).performCollapse();
+			$gameMap.eraseEvent(id);
+		});
+	}
+};
+
+// -------------------------------------
+// 戦闘不能の敵イベントのセルフスイッチONと一時消去
+
+Game_Temp.prototype.setSelfSwitchAllDeadEvent = function() {
+	if (this._deadList) {
+		this._deadList.forEach(id => {
+			$gameMap.enemy(id).performCollapse();
+			const mapId = $gameMap.mapId();
+			const eventId = id;
+			const alphabet = SELF_SWITCH_DEAD;
+			const value = true;
+			$gameTemp.setSelfSwitch(mapId, eventId, alphabet, value);
 			$gameMap.eraseEvent(id);
 		});
 	}
@@ -1064,7 +1119,7 @@ Game_Temp.prototype.checkCollision = function(attackId, defenseId) {
 };
 
 Game_Temp.prototype.checkCollisionMain = function(player, event) {
-	if (event._erased) {
+	if (event.isDeadEnemy && event.isDeadEnemy()) {
 		return 0;
 	}
 	if (event.eventId) {
@@ -1156,7 +1211,7 @@ Game_Temp.prototype.checkRangeCollision = function(attackId, defenseId) {
 };
 
 Game_Temp.prototype.checkRangeCollisionMain = function(player, event) {
-	if (event._erased) {
+	if (event.isDeadEnemy && event.isDeadEnemy()) {
 		return 0;
 	} 
 
@@ -1846,7 +1901,7 @@ Game_Temp.prototype.bossId = function() {
 };
 
 Game_Temp.prototype.isDeadBoss = function() {
-	return !!this.isDeadEnemy(this.bossId());
+	return !!this.isDyingEnemy(this.bossId());
 };
 
 // -------------------------------------

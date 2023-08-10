@@ -321,6 +321,10 @@
  * @text 全敵イベント消去
  * @desc 全ての敵イベントを一時消去します。
  * 
+ * @command eraseMapEnemyAndSelfSwitch
+ * @text 全敵イベント消去セルフスイッチ
+ * @desc 全ての敵イベントのセルフスイッチをONにして、一時消去します。
+ * 
  * @help
 # KRD_MZ_ActionRPG.js
 
@@ -382,7 +386,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 -400 : 敵イベントからプレイヤーの左右に衝突
 -800 : 正面衝突
 
-敵イベントのメモ欄に <DirectionFix> と書くこと。
+敵イベントのメモ欄に <DirectionFix> と書きます。
+書かない場合、
 接触したイベントがプレイヤー側を向くので、正面衝突しか発生しません。
 
 ## 補足
@@ -394,7 +399,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 ### ダメージポップアップ
 
 プレイヤーのダメージポップアップを表示するためには、
-データベース「システム1」の「戦闘画面」を「サイドビュー」にすること。
+データベース「システム1」の「戦闘画面」を「サイドビュー」にします。
 
 ### 戦闘不能セルフスイッチ
 
@@ -462,6 +467,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.24.0 (2023/06/25) ゲームオーバー処理を修正
 - ver.1.25.0 (2023/08/07) セルフスイッチDを戦闘不能に使用
 - ver.1.26.0 (2023/08/07) 戦闘不能セルフスイッチを追加
+- ver.1.27.0 (2023/08/10) 敵イベント消去セルフスイッチコマンド追加
 
  * 
  * 
@@ -640,6 +646,10 @@ PluginManager.registerCommand(PLUGIN_NAME, "resetGroupSelfSwitches", args => {
 
 PluginManager.registerCommand(PLUGIN_NAME, "eraseMapEnemy", args => {
 	$gameMap.eraseMapEnemy();
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "eraseMapEnemyAndSelfSwitch", args => {
+	$gameMap.eraseMapEnemyAndSelfSwitch();
 });
 
 // -------------------------------------
@@ -1911,13 +1921,24 @@ Game_Map.prototype.eraseMapEnemy = function() {
 	this.eraseAllMetaEvent(META_ENEMY);
 };
 
-Game_Map.prototype.eraseAllMetaEvent = function(tag) {
-	const metaIdList = this.metaIdList(tag);
-	this.eraseAllListEvent(metaIdList);
+Game_Map.prototype.eraseMapEnemyAndSelfSwitch = function() {
+	this.eraseAllMetaEvent(META_ENEMY, SELF_SWITCH_DEAD);
 };
 
-Game_Map.prototype.eraseAllListEvent = function(idList) {
+Game_Map.prototype.eraseAllMetaEvent = function(tag, selfSwitch) {
+	const metaIdList = this.metaIdList(tag);
+	this.eraseAllListEvent(metaIdList, selfSwitch);
+};
+
+Game_Map.prototype.eraseAllListEvent = function(idList, selfSwitch) {
 	for (const id of idList) {
+		if (selfSwitch) {
+			const mapId = this.mapId();
+			const eventId = id;
+			const alphabet = selfSwitch;
+			const value = true;
+			$gameTemp.setSelfSwitch(mapId, eventId, alphabet, value);
+		}
 		this.eraseEvent(id);
 	}
 };

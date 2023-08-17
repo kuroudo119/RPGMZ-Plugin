@@ -99,6 +99,13 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 プラグインコマンドを使用すると、
 Web Speech API に対応したブラウザで音声が流れます。
 
+## 既知の事象
+
+文章の表示の次に選択肢がある場合、
+マウスカーソルが選択肢上にあると、
+合成音声のキャンセルのタイミングによっては、
+その選択肢が決定される場合があります。
+
 ## 更新履歴
 
 - ver.0.0.1 (2023/07/08) 作成開始
@@ -110,6 +117,8 @@ Web Speech API に対応したブラウザで音声が流れます。
 - ver.1.4.0 (2023/08/03) 音声キャンセル時の不具合修正、パラメータ追加
 - ver.1.5.0 (2023/08/05) 選択肢ありでの音声キャンセル時の不具合修正
 - ver.1.5.1 (2023/08/05) 選択肢ありでの音声キャンセル時の不具合修正
+- ver.1.5.2 (2023/08/17) 修正が適切か不明なのでコメントアウト
+- ver.1.6.0 (2023/08/17) speak の引数に null を使用可能にした
 
  * 
  * 
@@ -161,13 +170,13 @@ KRD_VOICE_OUTPUT.speak = function(text, language = JAPANESE, volume, pitch, rate
 		const utterThis = new SpeechSynthesisUtterance(text);
 		utterThis.lang = language;
 
-		if (volume !== undefined) {
+		if (volume !== null && !isNaN(volume)) {
 			utterThis.volume = (Number(volume) || 0) / 100;
 		}
-		if (pitch !== undefined) {
+		if (pitch !== null && !isNaN(pitch)) {
 			utterThis.pitch = (Number(pitch) || 0) / 100;
 		}
-		if (rate !== undefined) {
+		if (rate !== null && !isNaN(rate)) {
 			utterThis.rate = (Number(rate) || 0) / 100;
 		}
 
@@ -266,24 +275,24 @@ Window_ScrollText.prototype.terminateMessage = function() {
 //--------------------------------------
 // 自動キャンセルの二重クリック対応
 
-KRD_VOICE_OUTPUT._canceled = false;
+// KRD_VOICE_OUTPUT._canceled = false;
 
-const KRD_Window_ChoiceList_onTouchOk = Window_ChoiceList.prototype.onTouchOk;
-Window_ChoiceList.prototype.onTouchOk = function() {
-	if (AUTO_CANCEL && KRD_VOICE_OUTPUT._canceled) {
-		TouchInput.clear();
-		KRD_VOICE_OUTPUT._canceled = false;
-	}
-	KRD_Window_ChoiceList_onTouchOk.apply(this, arguments);
-};
+// const KRD_Window_ChoiceList_onTouchOk = Window_ChoiceList.prototype.onTouchOk;
+// Window_ChoiceList.prototype.onTouchOk = function() {
+// 	if (AUTO_CANCEL && KRD_VOICE_OUTPUT._canceled) {
+// 		TouchInput.clear();
+// 		KRD_VOICE_OUTPUT._canceled = false;
+// 	}
+// 	KRD_Window_ChoiceList_onTouchOk.apply(this, arguments);
+// };
 
-const KRD_Window_ChoiceList_onTouchSelect = Window_ChoiceList.prototype.onTouchSelect;
-Window_ChoiceList.prototype.onTouchSelect = function() {
-	if (AUTO_CANCEL && KRD_VOICE_OUTPUT._canceled) {
-		KRD_VOICE_OUTPUT._canceled = false;
-	}
-	KRD_Window_ChoiceList_onTouchSelect.apply(this, arguments);
-};
+// const KRD_Window_ChoiceList_onTouchSelect = Window_ChoiceList.prototype.onTouchSelect;
+// Window_ChoiceList.prototype.onTouchSelect = function() {
+// 	if (AUTO_CANCEL && KRD_VOICE_OUTPUT._canceled) {
+// 		KRD_VOICE_OUTPUT._canceled = false;
+// 	}
+// 	KRD_Window_ChoiceList_onTouchSelect.apply(this, arguments);
+// };
 
 //--------------------------------------
 })();

@@ -445,6 +445,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.14.1 (2023/06/23) 表示のフォントサイズを修正
 - ver.1.14.2 (2023/07/07) ドロップアイテム名の変換対応
 - ver.1.15.0 (2023/07/18) 一部 Window_Selectable の継承に変更
+- ver.1.16.0 (2023/08/19) 敵キャラの命中率と回避率を非表示
+- ver.1.17.0 (2023/08/20) 画像を枠内に表示
 
  * 
  * 
@@ -583,8 +585,8 @@ const SUB_CMD_COLS = Number(PARAM["subCommandCols"]) || SUB_CMD_COLS_BASE;
 const PARAMS_COLS = PARAM["paramsCols"] === "true";
 const ENEMY_PARAMS = JSON.parse(`[${PARAM["enemyParams"]}]`) || [];
 
-const ENEMY_HIT_RATE = true;
-const ENEMY_EVASION_RATE = true;
+const ENEMY_HIT_RATE = false;
+const ENEMY_EVASION_RATE = false;
 const ENEMY_ELEMENTS = JSON.parse(`[${PARAM["enemyElements"]}]`) || [];
 
 const DOWN_LETTER = 8;
@@ -1424,25 +1426,11 @@ class Window_InfoText extends Window_InfoTextBase {
 			const sx = 0;
 			const sy = 0;
 
-			const larger = pw > this.innerWidth;
-			const higher = ph > this.innerHeight;
-			const bigger = larger && higher;
-			const rate = this.innerWidth / this.innerHeight;
+			const rate = this.scaleRate();
+			const dw = pw * rate;
+			const dh = ph * rate;
 
-			let dw = pw;
-			let dh = ph;
-			if (bigger) {
-				dw = pw * rate;
-				dh = ph * rate;
-			} else if (larger) {
-				dw = this.innerWidth;
-				dh = ph * (this.innerWidth / pw);
-			} else if (higher) {
-				dw = pw * (this.innerHeight / ph);
-				dh = this.innerHeight;
-			}
-
-			const x = larger ? 0 : this.innerWidth - dw;
+			const x = this.innerWidth - dw;
 			const y = 0;
 			this.contents.blt(this._bitmap, sx, sy, pw, ph, x, y, dw, dh);
 		}
@@ -1474,19 +1462,9 @@ class Window_InfoText extends Window_InfoTextBase {
 
 	scaleRate() {
 		if (this._bitmap) {
-			const pw = this._bitmap.width;
-			const ph = this._bitmap.height;
-			const larger = pw > this.innerWidth;
-			const maxHeight = TEXT_OVER ? this.innerHeight : Math.floor(this.innerHeight * 0.3);
-			const higher = ph > maxHeight;
-	
-			if (larger) {
-				return this.innerWidth / pw;
-			} else if (higher) {
-				return maxHeight / ph;
-			} else {
-				return 1;
-			}
+			const pw = this.innerWidth / this._bitmap.width;
+			const ph = this.innerHeight / this._bitmap.height;
+			return Math.min(1, pw, ph);
 		}
 		return 1;
 	}

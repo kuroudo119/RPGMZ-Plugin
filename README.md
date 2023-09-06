@@ -7,6 +7,14 @@
 
 [マシュマロはこちら](https://marshmallow-qa.com/uxnvf71gp8ibzus?utm_medium=url_text&utm_source=promotion)
 
+## KRD_MZ_Toast（トースト）
+
+トースト風のメッセージを表示します。
+
+[KRD_MZ_Toastをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Toast.js)
+
+https://github.com/kuroudo119/RPGMZ-Plugin/assets/43639887/a510221b-72e0-4f53-b51e-35fb6dfc1c8d
+
 ## KRD_MZ_VoiceOutput （音声出力（音声合成））
 
 Web Speech API を使用して音声出力（音声合成）を行います。

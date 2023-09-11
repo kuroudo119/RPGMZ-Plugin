@@ -7,6 +7,13 @@
 
 [マシュマロはこちら](https://marshmallow-qa.com/uxnvf71gp8ibzus?utm_medium=url_text&utm_source=promotion)
 
+## KRD_MZ_AreaSensor（エリア感知センサー）
+
+プレイヤーがイベントの指定距離内にいるかどうかチェックするスクリプトを提供します。  
+追いかけっこなどに使用できます。
+
+[KRD_MZ_AreaSensorをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_AreaSensor.js)
+
 ## KRD_MZ_Toast（トースト）
 
 トースト風のメッセージを表示します。

@@ -7,12 +7,27 @@
 
 [マシュマロはこちら](https://marshmallow-qa.com/uxnvf71gp8ibzus?utm_medium=url_text&utm_source=promotion)
 
+## KRD_MZ_FrontTimer（タイマーを最前面に表示する）
+
+タイマーをメッセージウィンドウより前面に表示します。  
+マップとバトルで有効です。
+
+[KRD_MZ_FrontTimerをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_FrontTimer.js)
+
+通常  
+![FrontTimerOFF](img/FrontTimerOFF.png)
+
+本プラグイン適用時  
+![FrontTimerON](img/FrontTimerON.png)
+
 ## KRD_MZ_AreaSensor（エリア感知センサー）
 
 プレイヤーがイベントの指定距離内にいるかどうかチェックするスクリプトを提供します。  
 追いかけっこなどに使用できます。
 
 [KRD_MZ_AreaSensorをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_AreaSensor.js)
+
+![エリア感知センサー](img/AreaSensor.png)
 
 ## KRD_MZ_Toast（トースト）
 

@@ -152,6 +152,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.5.0 (2023/09/23) パラメータ追加
 - ver.1.6.0 (2023/09/23) パラメータ追加
 - ver.1.7.0 (2023/09/23) パラメータ追加 (スキル習得時自動ON)
+- ver.1.8.0 (2023/09/24) 戦闘で使えるスキルのみON可能
 
  * 
  * 
@@ -314,7 +315,8 @@ Game_Actor.prototype.onUseSkill = function(id, stypeId) {
 	if (!this._useSkills[stypeId]) {
 		this._useSkills[stypeId] = [];
 	}
-	if (this.canSkillAdd(id, stypeId)) {
+	const occasion = $dataSkills[stypeId].occasion;
+	if ($gameTemp.isBattleSkill(occasion) && this.canSkillAdd(id, stypeId)) {
 		this._useSkills[stypeId].push(id);
 	}
 };
@@ -366,7 +368,10 @@ Game_Actor.prototype.learnSkill = function(skillId) {
 		if (!this.isLearnedSkill(skillId)) {
 			KRD_Game_Actor_learnSkill.apply(this, arguments);
 			const stypeId = $dataSkills[skillId].stypeId;
-			this.onUseSkill(skillId, stypeId);
+			const occasion = $dataSkills[skillId].occasion;
+			if ($gameTemp.isBattleSkill(occasion)) {
+				this.onUseSkill(skillId, stypeId);
+			}
 		}
 	} else {
 		KRD_Game_Actor_learnSkill.apply(this, arguments);
@@ -417,10 +422,18 @@ Window_SkillList.prototype.selectLast = function() {
 const KRD_Window_SkillList_isEnabled = Window_SkillList.prototype.isEnabled;
 Window_SkillList.prototype.isEnabled = function(item) {
 	if (SceneManager._scene.constructor.name === "Scene_SkillSelect") {
-		return true;
+		if (item) {
+			return $gameTemp.isBattleSkill(item.occasion);
+		} else {
+			return true;
+		}
 	} else {
 		return KRD_Window_SkillList_isEnabled.apply(this, arguments);
 	}
+};
+
+Game_Temp.prototype.isBattleSkill = function(occasion) {
+	return [0, 1].includes(occasion);
 };
 
 const KRD_Window_SkillList_drawItem = Window_SkillList.prototype.drawItem;
@@ -504,7 +517,9 @@ Window_SkillList.prototype.isCurrentItemEnabled = function() {
 			if (data) {
 				const id = data.id;
 				const stypeId = data.stypeId;
-				return this._actor.canSkillAdd(id, stypeId) || this._actor.canSkillMinus(id, stypeId);
+				const occasion = data.occasion;
+				const canSkillSelect = this._actor.canSkillAdd(id, stypeId) || this._actor.canSkillMinus(id, stypeId);
+				return $gameTemp.isBattleSkill(occasion) && canSkillSelect;
 			}
 		}
 	}

@@ -57,6 +57,12 @@
  * @desc メニュー画面のコマンド名です。初期値「習得」
  * @default 習得
  * 
+ * @param AFTER_SKILL_COMMAND
+ * @text スキルコマンド直後
+ * @desc コマンドをスキルの直後に表示する（他プラグインと競合します）: true ／ しない: false
+ * @default false
+ * @type boolean
+ * 
  * @param clearName
  * @text 初期化コマンド名
  * @desc 選択をリセットする選択肢名。初期値「全て外す」
@@ -138,6 +144,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.4.0 (2022/08/21) スキルタイプを指定可能
 - ver.1.4.1 (2023/09/23) 指定スキルタイプを持ってないエラー修正など
 - ver.1.5.0 (2023/09/23) パラメータ追加
+- ver.1.6.0 (2023/09/23) パラメータ追加
 
  * 
  * 
@@ -166,6 +173,8 @@ const COUNTER_Y = Number(PARAM["COUNTER_Y"]) || 0;
 
 const COMMAND_NAME = PARAM["commandName"];
 const CLEAR_NAME = PARAM["clearName"];
+
+const AFTER_SKILL_COMMAND = PARAM["AFTER_SKILL_COMMAND"] === "true";
 
 // -------------------------------------
 // プラグインコマンド
@@ -517,24 +526,35 @@ Window_SkillType.prototype.select = function(index) {
 //--------------------------------------
 // メニューコマンド
 
+const KRD_Window_MenuCommand_addMainCommands = Window_MenuCommand.prototype.addMainCommands;
 Window_MenuCommand.prototype.addMainCommands = function() {
-	const enabled = this.areMainCommandsEnabled();
-	if (this.needsCommand("item")) {
-		this.addCommand(TextManager.item, "item", enabled);
-	}
-	if (this.needsCommand("skill")) {
-		this.addCommand(TextManager.skill, "skill", enabled);
-	}
+	if (AFTER_SKILL_COMMAND) {
+		const enabled = this.areMainCommandsEnabled();
+		if (this.needsCommand("item")) {
+			this.addCommand(TextManager.item, "item", enabled);
+		}
+		if (this.needsCommand("skill")) {
+			this.addCommand(TextManager.skill, "skill", enabled);
+		}
 
+		this.addSkillOnOffCommand();
+
+		if (this.needsCommand("equip")) {
+			this.addCommand(TextManager.equip, "equip", enabled);
+		}
+		if (this.needsCommand("status")) {
+			this.addCommand(TextManager.status, "status", enabled);
+		}
+	} else {
+		KRD_Window_MenuCommand_addMainCommands.apply(this, arguments);
+		this.addSkillOnOffCommand();
+	}
+};
+
+Window_MenuCommand.prototype.addSkillOnOffCommand = function() {
+	const enabled = this.areMainCommandsEnabled();
 	if (COMMAND_NAME) {
 		this.addCommand(COMMAND_NAME, "skillSelect", enabled);
-	}
-
-	if (this.needsCommand("equip")) {
-		this.addCommand(TextManager.equip, "equip", enabled);
-	}
-	if (this.needsCommand("status")) {
-		this.addCommand(TextManager.status, "status", enabled);
 	}
 };
 

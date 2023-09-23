@@ -337,6 +337,7 @@ UniqueDataLoader のプロパティ名は「db_99」とします。
 - ver.4.1.0 (2023/07/06) 制御文字 LANGF の仕様変更
 - ver.4.1.1 (2023/07/07) 数値 0 が空文字になるのを修正
 - ver.4.1.2 (2023/07/09) 文字列 undefined 対応
+- ver.4.1.3 (2023/09/23) Window_Baseに追加した制御文字処理を削除
 
  * 
  * 
@@ -1194,23 +1195,19 @@ Scene_Title.prototype.drawGameTitle = function() {
 
 const KRD_Window_Base_convertEscapeCharacters = Window_Base.prototype.convertEscapeCharacters;
 Window_Base.prototype.convertEscapeCharacters = function(text) {
-	text = this.getFileText(text);
-	text = this.getFileText(text, true);
+	text = KRD_MULTILINGUAL.getFileText(text);
+	text = KRD_MULTILINGUAL.getFileText(text, true);
 
-	text = this.getLangText(text);
-	text = this.getLangText(text, true);
+	text = KRD_MULTILINGUAL.getLangText(text);
+	text = KRD_MULTILINGUAL.getLangText(text, true);
 	text = KRD_Window_Base_convertEscapeCharacters.call(this, text);
 	return text;
 };
 
-Window_Base.prototype.getLangText = function(baseText, flag) {
-	return KRD_MULTILINGUAL.getLangText(baseText, flag);
-};
-
 const KRD_Window_Base_drawText = Window_Base.prototype.drawText;
 Window_Base.prototype.drawText = function(text, x, y, maxWidth, align) {
-	text = this.getLangText(text);
-	text = this.getLangText(text, true);
+	text = KRD_MULTILINGUAL.getLangText(text);
+	text = KRD_MULTILINGUAL.getLangText(text, true);
 	KRD_Window_Base_drawText.call(this, text, x, y, maxWidth, align);
 };
 
@@ -1260,13 +1257,6 @@ Game_Actor.prototype.showRemovedStates = function() {
 			  $gameMessage.add(state.message4.format(this.name()));
 		 }
 	}
-};
-
-//--------------------------------------
-// 外部ファイル読込：制御文字 LANGF
-
-Window_Base.prototype.getFileText = function(baseText, flag) {
-	return KRD_MULTILINGUAL.getFileText(baseText, flag);
 };
 
 //--------------------------------------

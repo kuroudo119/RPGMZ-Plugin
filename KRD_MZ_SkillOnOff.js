@@ -68,6 +68,12 @@
  * @desc 選択をリセットする選択肢名。初期値「全て外す」
  * @default 全て外す
  * 
+ * @param LEARN_SKILL_ON
+ * @text スキル習得時自動ON
+ * @desc スキル習得時に自動でONにする: true ／ しない: false
+ * @default false
+ * @type boolean
+ * 
  * @command onUseSkill
  * @text スキルON
  * @desc 指定したスキルをONにします。
@@ -145,6 +151,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.4.1 (2023/09/23) 指定スキルタイプを持ってないエラー修正など
 - ver.1.5.0 (2023/09/23) パラメータ追加
 - ver.1.6.0 (2023/09/23) パラメータ追加
+- ver.1.7.0 (2023/09/23) パラメータ追加 (スキル習得時自動ON)
 
  * 
  * 
@@ -175,6 +182,8 @@ const COMMAND_NAME = PARAM["commandName"];
 const CLEAR_NAME = PARAM["clearName"];
 
 const AFTER_SKILL_COMMAND = PARAM["AFTER_SKILL_COMMAND"] === "true";
+
+const LEARN_SKILL_ON = PARAM["LEARN_SKILL_ON"] === "true";
 
 // -------------------------------------
 // プラグインコマンド
@@ -228,11 +237,11 @@ Scene_SkillSelect = class extends Scene_Skill {
 	onItemOkMain() {
 		const actor = this.actor();
 		const id = this.item().id;
-		const typeId = this.item().stypeId;
-		if (!actor.isOnSkill(id, typeId)) {
-			actor.onUseSkill(id, typeId);
+		const stypeId = this.item().stypeId;
+		if (!actor.isOnSkill(id, stypeId)) {
+			actor.onUseSkill(id, stypeId);
 		} else {
-			actor.offUseSkill(id, typeId);
+			actor.offUseSkill(id, stypeId);
 		}
 		this._itemWindow.refresh();
 		this._statusWindow.refresh();
@@ -255,9 +264,9 @@ Scene_SkillSelect = class extends Scene_Skill {
 //--------------------------------------
 // 内部データ
 
-Game_Actor.prototype.cannotSelectSkillType = function(typeId) {
-	if (SceneManager._scene.constructor.name === "Scene_SkillSelect" || SceneManager._scene.constructor.name === "Scene_Map") {
-		if (SKILL_TYPE.includes(typeId)) {
+Game_Actor.prototype.cannotSelectSkillType = function(stypeId) {
+	if (SceneManager._scene.constructor.name !== "Scene_Skill") {
+		if (SKILL_TYPE.includes(stypeId)) {
 			return false;
 		} else {
 			return true;
@@ -277,61 +286,61 @@ Game_Actor.prototype.maxUseSkills = function() {
 	return MAX_SKILLS;
 };
 
-Game_Actor.prototype.canSkillAdd = function(id, typeId) {
-	return this._useSkills[typeId]?.length < this.maxUseSkills() && !this.isOnSkill(id, typeId);
+Game_Actor.prototype.canSkillAdd = function(id, stypeId) {
+	return this._useSkills[stypeId]?.length < this.maxUseSkills() && !this.isOnSkill(id, stypeId);
 };
 
-Game_Actor.prototype.canSkillMinus = function(id, typeId) {
-	return this._useSkills[typeId]?.length > 0 && this.isOnSkill(id, typeId);
+Game_Actor.prototype.canSkillMinus = function(id, stypeId) {
+	return this._useSkills[stypeId]?.length > 0 && this.isOnSkill(id, stypeId);
 };
 
-Game_Actor.prototype.clearUseSkills = function(typeId) {
-	if (this.cannotSelectSkillType(typeId)) {
+Game_Actor.prototype.clearUseSkills = function(stypeId) {
+	if (this.cannotSelectSkillType(stypeId)) {
 		return;
 	}
 
-	if (typeId !== undefined) {
-		this._useSkills[typeId] = [];
+	if (stypeId !== undefined) {
+		this._useSkills[stypeId] = [];
 	} else {
 		this._useSkills = {};
 	}
 };
 
-Game_Actor.prototype.onUseSkill = function(id, typeId) {
-	if (this.cannotSelectSkillType(typeId)) {
+Game_Actor.prototype.onUseSkill = function(id, stypeId) {
+	if (this.cannotSelectSkillType(stypeId)) {
 		return;
 	}
 
-	if (!this._useSkills[typeId]) {
-		this._useSkills[typeId] = [];
+	if (!this._useSkills[stypeId]) {
+		this._useSkills[stypeId] = [];
 	}
-	if (this.canSkillAdd(id, typeId)) {
-		this._useSkills[typeId].push(id);
+	if (this.canSkillAdd(id, stypeId)) {
+		this._useSkills[stypeId].push(id);
 	}
 };
 
-Game_Actor.prototype.offUseSkill = function(id, typeId) {
-	if (this.cannotSelectSkillType(typeId)) {
+Game_Actor.prototype.offUseSkill = function(id, stypeId) {
+	if (this.cannotSelectSkillType(stypeId)) {
 		return;
 	}
 
-	const index = this._useSkills[typeId].indexOf(id);
+	const index = this._useSkills[stypeId].indexOf(id);
 	if (index >= 0) {
-		this._useSkills[typeId].splice(index, 1);
+		this._useSkills[stypeId].splice(index, 1);
 	}
 };
 
-Game_Actor.prototype.isOnSkill = function(id, typeId) {
+Game_Actor.prototype.isOnSkill = function(id, stypeId) {
 	if (SceneManager._scene.constructor.name === "Scene_SkillSelect") {
-		if (SKILL_TYPE.includes(typeId)) {
-			if (!this._useSkills[typeId]) {
-				this._useSkills[typeId] = [];
+		if (SKILL_TYPE.includes(stypeId)) {
+			if (!this._useSkills[stypeId]) {
+				this._useSkills[stypeId] = [];
 			}
-			return this._useSkills[typeId].includes(id);
+			return this._useSkills[stypeId].includes(id);
 		}
 	} else {
-		if (SKILL_TYPE.includes(typeId)) {
-			return this._useSkills[typeId]?.includes(id);
+		if (SKILL_TYPE.includes(stypeId)) {
+			return this._useSkills[stypeId]?.includes(id);
 		}
 	}
 
@@ -350,6 +359,19 @@ Game_Actor.prototype.onAllSkill = function() {
 Game_Party.prototype.onAllSkill = function() {
 	this.members().forEach(actor => actor.onAllSkill());
 }
+
+const KRD_Game_Actor_learnSkill = Game_Actor.prototype.learnSkill;
+Game_Actor.prototype.learnSkill = function(skillId) {
+	if (LEARN_SKILL_ON) {
+		if (!this.isLearnedSkill(skillId)) {
+			KRD_Game_Actor_learnSkill.apply(this, arguments);
+			const stypeId = $dataSkills[skillId].stypeId;
+			this.onUseSkill(skillId, stypeId);
+		}
+	} else {
+		KRD_Game_Actor_learnSkill.apply(this, arguments);
+	}
+};
 
 //--------------------------------------
 // スキルタイプ画面
@@ -481,8 +503,8 @@ Window_SkillList.prototype.isCurrentItemEnabled = function() {
 			const data = this._data[this.index()];
 			if (data) {
 				const id = data.id;
-				const typeId = data.stypeId;
-				return this._actor.canSkillAdd(id, typeId) || this._actor.canSkillMinus(id, typeId);
+				const stypeId = data.stypeId;
+				return this._actor.canSkillAdd(id, stypeId) || this._actor.canSkillMinus(id, stypeId);
 			}
 		}
 	}

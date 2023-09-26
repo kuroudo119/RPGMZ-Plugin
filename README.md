@@ -9,7 +9,7 @@
 
 ## KRD_MZ_RoundBar（長押し円形バー）
 
-長押しすることでキャンセルまたはコモンイベント呼出を行うプラグインです。
+長押しすることでキャンセルまたはコモンイベント呼出を行うプラグインです。  
 cssフォルダにCSSファイルも必要です。
 
 [KRD_MZ_RoundBarをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_RoundBar.js)

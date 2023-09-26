@@ -16,6 +16,8 @@ cssフォルダにCSSファイルも必要です。
 
 [krdRoundBar.cssをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/krdRoundBar.css)
 
+![長押し円形バー](img/roundBar.png)
+
 ## KRD_MZ_FrontTimer（タイマーを最前面に表示する）
 
 タイマーをメッセージウィンドウより前面に表示します。  

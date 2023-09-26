@@ -7,6 +7,15 @@
 
 [マシュマロはこちら](https://marshmallow-qa.com/uxnvf71gp8ibzus?utm_medium=url_text&utm_source=promotion)
 
+## KRD_MZ_RoundBar（長押し円形バー）
+
+長押しすることでキャンセルまたはコモンイベント呼出を行うプラグインです。
+cssフォルダにCSSファイルも必要です。
+
+[KRD_MZ_RoundBarをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_RoundBar.js)
+
+[krdRoundBar.cssをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/krdRoundBar.css)
+
 ## KRD_MZ_FrontTimer（タイマーを最前面に表示する）
 
 タイマーをメッセージウィンドウより前面に表示します。  

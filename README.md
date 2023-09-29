@@ -7,6 +7,13 @@
 
 [マシュマロはこちら](https://marshmallow-qa.com/uxnvf71gp8ibzus?utm_medium=url_text&utm_source=promotion)
 
+## KRD_MZ_HpDodge（HP回避率連動）
+
+HPの最大HPとの割合によって回避率が変わるようにします。  
+飛んでいる敵にダメージを与えると動きがにぶくなるイメージです。
+
+[KRD_MZ_HpDodgeをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_HpDodge.js)
+
 ## KRD_MZ_RoundBar（長押し円形バー）
 
 長押しすることでキャンセルまたはコモンイベント呼出を行うプラグインです。  

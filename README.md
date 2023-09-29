@@ -10,7 +10,7 @@
 ## KRD_MZ_HpDodge（HP回避率連動）
 
 HPの最大HPとの割合によって回避率が変わるようにします。  
-飛んでいる敵にダメージを与えると動きがにぶくなるイメージです。
+素早い敵に魔法ダメージを与えると動きがにぶくなって物理攻撃が当たるようになるイメージです。
 
 [KRD_MZ_HpDodgeをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_HpDodge.js)
 

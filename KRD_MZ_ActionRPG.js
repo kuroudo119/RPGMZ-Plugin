@@ -468,6 +468,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.25.0 (2023/08/07) セルフスイッチDを戦闘不能に使用
 - ver.1.26.0 (2023/08/07) 戦闘不能セルフスイッチを追加
 - ver.1.27.0 (2023/08/10) 敵イベント消去セルフスイッチコマンド追加
+- ver.1.28.0 (2023/09/30) 玉発射座標を保持する処理を追加
 
  * 
  * 
@@ -825,6 +826,19 @@ Game_Event.prototype.createEnemy = function(eventId) {
 	if (enemyId) {
 		this._enemy = new KRD_Game_MapEnemy(enemyId, 0, 0, eventId);
 	}
+};
+
+// -------------------------------------
+// 玉の発射位置を保持
+
+Game_Event.prototype.setLaunchPosition = function(x, y) {
+	this._launch = {};
+	this._launch.x = x;
+	this._launch.y = y;
+};
+
+Game_Event.prototype.getLaunchPosition = function() {
+	return this._launch || {x:0, y:0};
 };
 
 // -------------------------------------
@@ -1643,8 +1657,11 @@ Game_Temp.prototype.moveHomeAll = function(tag = META_BALL) {
 
 Game_Interpreter.prototype.checkOverStep = function(step, launchEventId) {
 	const event = $gameMap.event(this.eventId());
-	const launchId = launchEventId ? launchEventId : this.launchEventId(this.eventId());
-	const launch = $gameMap.event(launchId);
+	// 旧処理 ここから
+	// const launchId = launchEventId ? launchEventId : this.launchEventId(this.eventId());
+	// const launch = $gameMap.event(launchId);
+	// 旧処理 ここまで
+	const launch = event.getLaunchPosition();
 	const direction = event.direction();
 	const diffX = Math.abs(event.x - launch.x);
 	const diffY = Math.abs(event.y - launch.y);
@@ -1772,6 +1789,11 @@ Game_Interpreter.prototype.getLaunchData = function(launchTag, ballTag) {
 Game_Interpreter.prototype.launchBall = function(launch, ballId, alphabet, direction) {
 	$gameTemp.setEventLocation(ballId, launch.x, launch.y, direction);
 	$gameTemp.setSelfSwitch($gameMap.mapId(), ballId, alphabet, true);
+	this.setLaunchPosition(launch, ballId);
+};
+
+Game_Interpreter.prototype.setLaunchPosition = function(launch, ballId) {
+	$gameMap.event(ballId)?.setLaunchPosition(launch.x, launch.y);
 };
 
 // -------------------------------------

@@ -153,6 +153,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.6.0 (2023/09/23) パラメータ追加
 - ver.1.7.0 (2023/09/23) パラメータ追加 (スキル習得時自動ON)
 - ver.1.8.0 (2023/09/24) 戦闘で使えるスキルのみON可能
+- ver.1.8.1 (2023/09/30) KRD_RUBY 周りの処理を修正
 
  * 
  * 
@@ -497,7 +498,7 @@ Window_SkillList.prototype.drawCheck = function(skill, x, y) {
 		return;
 	}
 
-	const rubyY = KRD_RUBY.isRuby(skill.name) ? 0 : 2;
+	const rubyY = (typeof KRD_RUBY !== "undefined" && KRD_RUBY.isRuby(skill.name)) ? 0 : 2;
 	if (this.isOnSkill(skill)) {
 		this.drawIcon(ON_ICON, x, y + rubyY);
 	} else {

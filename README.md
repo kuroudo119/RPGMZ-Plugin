@@ -442,9 +442,6 @@ RPGツクールMZのオートセーブ機能をプレイヤーが任意にON／O
 
 [KRD_MZ_Scheduleをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Schedule.js)
 
-動作サンプル (ゲームアツマール)  
-https://game.nicovideo.jp/atsumaru/games/gm21562
-
 【参考】JavaScript の日付(Date)について  
 https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Date
 
@@ -517,9 +514,6 @@ https://user-images.githubusercontent.com/43639887/128059052-c605e088-c863-4df6-
 
 自動で翻訳するわけではないので、翻訳データはゲーム作者が設定する必要があります。
 
-動作サンプル（ゲームアツマール）
-https://game.nicovideo.jp/atsumaru/games/gm21290
-
 [KRD_MZ_Multilingualをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_Multilingual.js)
 
 ![多言語プラグイン](img/Multilingual.png)
@@ -564,9 +558,6 @@ https://game.nicovideo.jp/atsumaru/games/gm21290
 以下の画像はイベントコマンドの設定例です。
 
 [KRD_MZ_VoiceInputをダウンロード](https://github.com/kuroudo119/RPGMZ-Plugin/raw/master/KRD_MZ_VoiceInput.js)
-
-動作サンプル (ゲームアツマール)
-https://game.nicovideo.jp/atsumaru/games/gm18946
 
 ![音声入力](img/speechEvent.png)
 

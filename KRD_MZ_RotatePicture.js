@@ -10,33 +10,52 @@
  * @desc ピクチャを指定角度まで回転させます。
  * @arg pictureId
  * @text ピクチャ番号
- * @desc 
- * @default 
+ * @desc 回転させるピクチャ番号です。
  * @type number
  * @arg speed
  * @text 回転スピード
- * @desc 
- * @default 
+ * @desc 右回転:正の数／左回転:負の数
  * @type number
  * @min -1000
  * @arg angle
  * @text 初期角度
- * @desc 
- * @default 
+ * @desc 回転開始時の角度です。
  * @type number
  * @min -1000
  * @arg maxAngle
  * @text 最大角度
- * @desc 
- * @default 
+ * @desc 回転を止める角度です。
  * @type number
  * @min -1000
  * @arg minAngle
  * @text 最小角度
- * @desc 
- * @default 
+ * @desc 回転を止める角度です。
  * @type number
  * @min -1000
+ * 
+ * @command ratateAngleVar
+ * @text 角度指定ピクチャ回転(変数版)
+ * @desc ピクチャを指定角度まで回転させます。
+ * @arg pictureId
+ * @text ピクチャ番号
+ * @desc 回転させるピクチャ番号です。
+ * @type variable
+ * @arg speed
+ * @text 回転スピード
+ * @desc 右回転:正の数／左回転:負の数
+ * @type variable
+ * @arg angle
+ * @text 初期角度
+ * @desc 回転開始時の角度です。
+ * @type variable
+ * @arg maxAngle
+ * @text 最大角度
+ * @desc 回転を止める角度です。
+ * @type variable
+ * @arg minAngle
+ * @text 最小角度
+ * @desc 回転を止める角度です。
+ * @type variable
  * 
  * @help
 # KRD_MZ_RotatePicture.js
@@ -63,6 +82,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2023/10/08) 作成開始
 - ver.0.1.0 (2023/10/08) 非公開版完成
 - ver.1.0.0 (2023/10/08) 公開
+- ver.1.1.0 (2023/10/08) 変数版プラグインコマンド追加
 
  * 
  * 
@@ -83,6 +103,15 @@ PluginManager.registerCommand(PLUGIN_NAME, "ratateAngle", args => {
 	const angle = Number(args.angle);
 	const maxAngle = Number(args.maxAngle);
 	const minAngle = Number(args.minAngle);
+	$gameScreen.picture(pictureId).rotateAngle(speed, angle, maxAngle, minAngle);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "ratateAngleVar", args => {
+	const pictureId = $gameVariables.value(Number(args.pictureId));
+	const speed = $gameVariables.value(Number(args.speed));
+	const angle = $gameVariables.value(Number(args.angle));
+	const maxAngle = $gameVariables.value(Number(args.maxAngle));
+	const minAngle = $gameVariables.value(Number(args.minAngle));
 	$gameScreen.picture(pictureId).rotateAngle(speed, angle, maxAngle, minAngle);
 });
 

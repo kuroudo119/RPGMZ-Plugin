@@ -7,6 +7,13 @@
 
 [マシュマロはこちら](https://marshmallow-qa.com/uxnvf71gp8ibzus?utm_medium=url_text&utm_source=promotion)
 
+## KRD_MZ_RotatePicture（ピクチャ回転）
+
+ピクチャの回転に限界を設定できます。  
+指定した角度で回転を止めることができます。
+
+[KRD_MZ_RotatePictureをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_RotatePicture.js)
+
 ## KRD_MZ_HpDodge（HP回避率連動）
 
 HPの最大HPとの割合によって回避率が変わるようにします。  

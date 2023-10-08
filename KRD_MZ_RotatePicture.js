@@ -5,7 +5,7 @@
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
  * 
- * @command ratateAngle
+ * @command rotateAngle
  * @text 角度指定ピクチャ回転
  * @desc ピクチャを指定角度まで回転させます。
  * @arg pictureId
@@ -33,7 +33,7 @@
  * @type number
  * @min -1000
  * 
- * @command ratateAngleVar
+ * @command rotateAngleVar
  * @text 角度指定ピクチャ回転(変数版)
  * @desc ピクチャを指定角度まで回転させます。
  * @arg pictureId
@@ -83,6 +83,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2023/10/08) 非公開版完成
 - ver.1.0.0 (2023/10/08) 公開
 - ver.1.1.0 (2023/10/08) 変数版プラグインコマンド追加
+- ver.1.1.1 (2023/10/08) 誤字修正
 
  * 
  * 
@@ -97,7 +98,7 @@ const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 //--------------------------------------
 // プラグインコマンド
 
-PluginManager.registerCommand(PLUGIN_NAME, "ratateAngle", args => {
+PluginManager.registerCommand(PLUGIN_NAME, "rotateAngle", args => {
 	const pictureId = Number(args.pictureId);
 	const speed = Number(args.speed);
 	const angle = Number(args.angle);
@@ -106,7 +107,7 @@ PluginManager.registerCommand(PLUGIN_NAME, "ratateAngle", args => {
 	$gameScreen.picture(pictureId).rotateAngle(speed, angle, maxAngle, minAngle);
 });
 
-PluginManager.registerCommand(PLUGIN_NAME, "ratateAngleVar", args => {
+PluginManager.registerCommand(PLUGIN_NAME, "rotateAngleVar", args => {
 	const pictureId = $gameVariables.value(Number(args.pictureId));
 	const speed = $gameVariables.value(Number(args.speed));
 	const angle = $gameVariables.value(Number(args.angle));

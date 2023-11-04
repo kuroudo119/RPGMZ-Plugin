@@ -74,12 +74,33 @@
  * @default 100
  * @type number
  * 
+ * @command VOICE_OUTPUT_VAR2
+ * @text 音声出力（変数版）2
+ * @desc 変数内の文字列を音声出力（音声合成）するコマンドです。
+ * @arg varText
+ * @text 音声出力文字列変数番号
+ * @desc テストとして表示する文字列が入っている変数の番号です。
+ * @type variable
+ * @arg language
+ * @text 出力言語
+ * @desc 音声出力する言語。日本語は「ja-JP」です。
+ * @default ja-JP
+ * @type string
+ * @arg pitch
+ * @text ピッチ
+ * @desc 音声合成のピッチ（音の高低）のパーセントが入っている変数の番号です。
+ * @type variable
+ * @arg rate
+ * @text レート
+ * @desc 音声合成のレート（速度）のパーセントが入っている変数の番号です。
+ * @type variable
+ * 
  * @command VOICE_CANCEL
  * @text 音声キャンセル
  * @desc 再生中の音声を取り消します。
  * 
  * @help
-KRD_MZ_VoiceOutput.js
+# KRD_MZ_VoiceOutput.js
 
 音声出力（音声合成）
 
@@ -119,6 +140,7 @@ Web Speech API に対応したブラウザで音声が流れます。
 - ver.1.5.1 (2023/08/05) 選択肢ありでの音声キャンセル時の不具合修正
 - ver.1.5.2 (2023/08/17) 修正が適切か不明なのでコメントアウト
 - ver.1.6.0 (2023/08/17) speak の引数に null を使用可能にした
+- ver.1.7.0 (2023/11/03) VOICE_OUTPUT_VAR2 コマンド追加
 
  * 
  * 
@@ -152,6 +174,13 @@ PluginManager.registerCommand(PLUGIN_NAME, "VOICE_OUTPUT_VAR", args => {
 	const id = Number(args.varText) || 0;
 	const text = $gameVariables.value(id);
 	KRD_VOICE_OUTPUT.speak(text, args.language, AudioManager.speakVolume, args.pitch, args.rate);
+});
+
+PluginManager.registerCommand(PLUGIN_NAME, "VOICE_OUTPUT_VAR2", args => {
+	const text = $gameVariables.value(Number(args.varText));
+	const pitch = $gameVariables.value(Number(args.pitch));
+	const rate = $gameVariables.value(Number(args.rate));
+	KRD_VOICE_OUTPUT.speak(text, args.language, AudioManager.speakVolume, pitch, rate);
 });
 
 PluginManager.registerCommand(PLUGIN_NAME, "VOICE_CANCEL", args => {
@@ -218,31 +247,31 @@ Object.defineProperty(ConfigManager, "speakVolume", {
 	configurable: true
 });
 
-const KRD_ConfigManager_makeData = ConfigManager.makeData;
+const _ConfigManager_makeData = ConfigManager.makeData;
 ConfigManager.makeData = function() {
-	const config = KRD_ConfigManager_makeData.apply(this, arguments);
+	const config = _ConfigManager_makeData.call(this, ...arguments);
 	config.speakVolume = this.speakVolume;
 	return config;
 };
 
-const KRD_ConfigManager_applyData = ConfigManager.applyData;
+const _ConfigManager_applyData = ConfigManager.applyData;
 ConfigManager.applyData = function(config) {
-	KRD_ConfigManager_applyData.apply(this, arguments);
+	_ConfigManager_applyData.call(this, ...arguments);
 	this.speakVolume = this.readVolume(config, "speakVolume");
 };
 
-const KRD_Scene_Options_maxCommands = Scene_Options.prototype.maxCommands;
+const _Scene_Options_maxCommands = Scene_Options.prototype.maxCommands;
 Scene_Options.prototype.maxCommands = function() {
 	if (OPTION_SPEAK_VOLUME) {
-		return KRD_Scene_Options_maxCommands.apply(this, arguments) + 1;
+		return _Scene_Options_maxCommands.call(this, ...arguments) + 1;
 	} else {
-		return KRD_Scene_Options_maxCommands.apply(this, arguments);
+		return _Scene_Options_maxCommands.call(this, ...arguments);
 	}
 };
 
-const KRD_Window_Options_addVolumeOptions = Window_Options.prototype.addVolumeOptions;
+const _Window_Options_addVolumeOptions = Window_Options.prototype.addVolumeOptions;
 Window_Options.prototype.addVolumeOptions = function() {
-	KRD_Window_Options_addVolumeOptions.apply(this, arguments);
+	_Window_Options_addVolumeOptions.call(this, ...arguments);
 	if (OPTION_SPEAK_VOLUME) {
 		this.addCommand(OPTION_SPEAK_VOLUME, "speakVolume");
 	}
@@ -251,9 +280,9 @@ Window_Options.prototype.addVolumeOptions = function() {
 //--------------------------------------
 // 自動キャンセル
 
-const KRD_Window_Message_terminateMessage = Window_Message.prototype.terminateMessage;
+const _Window_Message_terminateMessage = Window_Message.prototype.terminateMessage;
 Window_Message.prototype.terminateMessage = function() {
-	KRD_Window_Message_terminateMessage.apply(this, arguments);
+	_Window_Message_terminateMessage.call(this, ...arguments);
 	if (AUTO_CANCEL) {
 		KRD_VOICE_OUTPUT.cancel();
 		Input.clear();
@@ -262,9 +291,9 @@ Window_Message.prototype.terminateMessage = function() {
 	}
 };
 
-const KRD_Window_ScrollText_terminateMessage = Window_ScrollText.prototype.terminateMessage;
+const _Window_ScrollText_terminateMessage = Window_ScrollText.prototype.terminateMessage;
 Window_ScrollText.prototype.terminateMessage = function() {
-	KRD_Window_ScrollText_terminateMessage.apply(this, arguments);
+	_Window_ScrollText_terminateMessage.call(this, ...arguments);
 	if (AUTO_CANCEL_SCROLL) {
 		KRD_VOICE_OUTPUT.cancel();
 		Input.clear();
@@ -277,21 +306,21 @@ Window_ScrollText.prototype.terminateMessage = function() {
 
 // KRD_VOICE_OUTPUT._canceled = false;
 
-// const KRD_Window_ChoiceList_onTouchOk = Window_ChoiceList.prototype.onTouchOk;
+// const _Window_ChoiceList_onTouchOk = Window_ChoiceList.prototype.onTouchOk;
 // Window_ChoiceList.prototype.onTouchOk = function() {
 // 	if (AUTO_CANCEL && KRD_VOICE_OUTPUT._canceled) {
 // 		TouchInput.clear();
 // 		KRD_VOICE_OUTPUT._canceled = false;
 // 	}
-// 	KRD_Window_ChoiceList_onTouchOk.apply(this, arguments);
+// 	_Window_ChoiceList_onTouchOk.call(this, ...arguments);
 // };
 
-// const KRD_Window_ChoiceList_onTouchSelect = Window_ChoiceList.prototype.onTouchSelect;
+// const _Window_ChoiceList_onTouchSelect = Window_ChoiceList.prototype.onTouchSelect;
 // Window_ChoiceList.prototype.onTouchSelect = function() {
 // 	if (AUTO_CANCEL && KRD_VOICE_OUTPUT._canceled) {
 // 		KRD_VOICE_OUTPUT._canceled = false;
 // 	}
-// 	KRD_Window_ChoiceList_onTouchSelect.apply(this, arguments);
+// 	_Window_ChoiceList_onTouchSelect.call(this, ...arguments);
 // };
 
 //--------------------------------------

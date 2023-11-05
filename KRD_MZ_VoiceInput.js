@@ -30,6 +30,7 @@ ver.0.0.1 (2021/03/10) 作成開始
 ver.1.0.0 (2021/03/22) 公開
 ver.2.0.0 (2022/02/18) _MZ_Speech からファイル名変更
 ver.2.1.0 (2023/11/05) recognition.stop() 処理を追加
+ver.2.1.1 (2023/11/06) SpeechRecognition 取得元を修正
 
 【機能】
 本プラグインは Web Speech API を使用しています。
@@ -106,15 +107,15 @@ const PARAM = PluginManager.parameters(PLUGIN_NAME);
 const VAR_SPEECH = Number(PARAM["varSpeech"]) || 0;
 const LANGUAGE = PARAM["language"] || "ja-JP";
 
-KRD_VOICE_INPUT.start = function(verSpeech = VAR_SPEECH, language = LANGUAGE) {
+KRD_VOICE_INPUT.start = function(varSpeech = VAR_SPEECH, language = LANGUAGE) {
 	if ("speechSynthesis" in window) {
 		try {
-			const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+			const SpeechRecognition = window.SpeechRecognition || webkitSpeechRecognition;
 			const recognition = new SpeechRecognition();
 			recognition.lang = language;
 
 			recognition.onresult = (event) => {
-				$gameVariables.setValue(verSpeech, event.results[0][0].transcript);
+				$gameVariables.setValue(varSpeech, event.results[0][0].transcript);
 			};
 
 			recognition.onspeechend = () => {

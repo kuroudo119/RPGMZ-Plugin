@@ -16,7 +16,7 @@
  * @default ja-JP
  * 
  * @help
-KRD_MZ_VoiceInput.js
+_MZ_VoiceInput.js
 
 【権利表記】
 (c) 2021 kuroudo119
@@ -28,7 +28,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 【更新履歴】
 ver.0.0.1 (2021/03/10) 作成開始
 ver.1.0.0 (2021/03/22) 公開
-ver.2.0.0 (2022/02/18) KRD_MZ_Speech からファイル名変更
+ver.2.0.0 (2022/02/18) _MZ_Speech からファイル名変更
+ver.2.1.0 (2023/11/05) recognition.stop() 処理を追加
 
 【機能】
 本プラグインは Web Speech API を使用しています。
@@ -112,10 +113,14 @@ KRD_VOICE_INPUT.start = function(verSpeech = VAR_SPEECH, language = LANGUAGE) {
 			const recognition = new SpeechRecognition();
 			recognition.lang = language;
 
-			recognition.onresult = ((event) => {
+			recognition.onresult = (event) => {
 				$gameVariables.setValue(verSpeech, event.results[0][0].transcript);
-			});
-	
+			};
+
+			recognition.onspeechend = () => {
+				recognition.stop();
+			};
+
 			recognition.start();
 			return true;
 		} catch (e) {

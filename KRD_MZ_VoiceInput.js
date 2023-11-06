@@ -31,6 +31,7 @@ ver.1.0.0 (2021/03/22) 公開
 ver.2.0.0 (2022/02/18) _MZ_Speech からファイル名変更
 ver.2.1.0 (2023/11/05) recognition.stop() 処理を追加
 ver.2.1.1 (2023/11/06) SpeechRecognition 取得元を修正
+ver.2.2.0 (2023/11/06) KRD_VOICE_INPUT.stop() を追加
 
 【機能】
 本プラグインは Web Speech API を使用しています。
@@ -87,6 +88,7 @@ Chromeであっても、iPhone（iOS）では使用できません。
 　：　　：音声入力が出来ない環境のようです。
 　◆
 ：分岐終了
+◆スクリプト：KRD_VOICE_INPUT.stop();
 ◆文章：なし, なし, ウィンドウ, 中
 ：　　：音声入力の結果。
 ：　　：\C[6]\{\{\V[1]\}\}\C[0]
@@ -107,11 +109,13 @@ const PARAM = PluginManager.parameters(PLUGIN_NAME);
 const VAR_SPEECH = Number(PARAM["varSpeech"]) || 0;
 const LANGUAGE = PARAM["language"] || "ja-JP";
 
+let recognition = null;
+
 KRD_VOICE_INPUT.start = function(varSpeech = VAR_SPEECH, language = LANGUAGE) {
 	if ("speechSynthesis" in window) {
 		try {
 			const SpeechRecognition = window.SpeechRecognition || webkitSpeechRecognition;
-			const recognition = new SpeechRecognition();
+			recognition = new SpeechRecognition();
 			recognition.lang = language;
 
 			recognition.onresult = (event) => {
@@ -129,6 +133,12 @@ KRD_VOICE_INPUT.start = function(varSpeech = VAR_SPEECH, language = LANGUAGE) {
 		}
 	} else {
 		return false;
+	}
+};
+
+KRD_VOICE_INPUT.stop = function() {
+	if (recognition) {
+		recognition.stop();
 	}
 };
 

@@ -318,7 +318,7 @@ Window_ScrollText.prototype.terminateMessage = function() {
 //--------------------------------------
 // iPhone用ボタン
 
-if (BUTTON_IOS && Utils.isMobileSafari()) {
+if (BUTTON_IOS && isiPhone()) {
 	const button = document.createElement("button");
 	button.id = "speak";
 	button.textContent = "音声合成を使う";
@@ -335,6 +335,11 @@ if (BUTTON_IOS && Utils.isMobileSafari()) {
 		document.body.removeChild(button);
 	});
 }
+
+function isiPhone () {
+	const r = /iPhone|iPad|iPod/i;
+	return !!navigator.userAgent.match(r);
+};
 
 //--------------------------------------
 })();

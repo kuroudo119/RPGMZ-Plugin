@@ -28,6 +28,12 @@
  * @default true
  * @type boolean
  * 
+ * @param BUTTON_IOS
+ * @text iPhone用ボタン表示
+ * @desc iPhoneの場合に「iPhone用ボタン」を表示します。ユーザーが押すと音声合成が利用可能になります。
+ * @default true
+ * @type boolean
+ * 
  * @command VOICE_OUTPUT
  * @text 音声出力
  * @desc 音声出力（音声合成）するコマンドです。
@@ -120,6 +126,11 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 プラグインコマンドを使用すると、
 Web Speech API に対応したブラウザで音声が流れます。
 
+## iPhone用ボタン
+
+iPhoneではユーザー操作に伴うAPI実行を1回行う必要があります。
+そのためのボタンです。
+
 ## 既知の事象
 
 文章の表示の次に選択肢がある場合、
@@ -141,6 +152,7 @@ Web Speech API に対応したブラウザで音声が流れます。
 - ver.1.5.2 (2023/08/17) 修正が適切か不明なのでコメントアウト
 - ver.1.6.0 (2023/08/17) speak の引数に null を使用可能にした
 - ver.1.7.0 (2023/11/03) VOICE_OUTPUT_VAR2 コマンド追加
+- ver.1.8.0 (2023/11/06) iPhone用ボタン追加
 
  * 
  * 
@@ -162,6 +174,8 @@ const JAPANESE = "ja-JP";
 
 const AUTO_CANCEL = PARAM["AUTO_CANCEL"] === "true";
 const AUTO_CANCEL_SCROLL = PARAM["AUTO_CANCEL_SCROLL"] === "true";
+
+const BUTTON_IOS = PARAM["BUTTON_IOS"] === "true";
 
 //--------------------------------------
 // プラグインコマンド
@@ -302,26 +316,25 @@ Window_ScrollText.prototype.terminateMessage = function() {
 };
 
 //--------------------------------------
-// 自動キャンセルの二重クリック対応
+// iPhone用ボタン
 
-// KRD_VOICE_OUTPUT._canceled = false;
-
-// const _Window_ChoiceList_onTouchOk = Window_ChoiceList.prototype.onTouchOk;
-// Window_ChoiceList.prototype.onTouchOk = function() {
-// 	if (AUTO_CANCEL && KRD_VOICE_OUTPUT._canceled) {
-// 		TouchInput.clear();
-// 		KRD_VOICE_OUTPUT._canceled = false;
-// 	}
-// 	_Window_ChoiceList_onTouchOk.call(this, ...arguments);
-// };
-
-// const _Window_ChoiceList_onTouchSelect = Window_ChoiceList.prototype.onTouchSelect;
-// Window_ChoiceList.prototype.onTouchSelect = function() {
-// 	if (AUTO_CANCEL && KRD_VOICE_OUTPUT._canceled) {
-// 		KRD_VOICE_OUTPUT._canceled = false;
-// 	}
-// 	_Window_ChoiceList_onTouchSelect.call(this, ...arguments);
-// };
+if (BUTTON_IOS && Utils.isMobileSafari()) {
+	const button = document.createElement("button");
+	button.id = "speak";
+	button.textContent = "音声合成を使う";
+	button.style.position = "absolute";
+	button.style.width = "150px"
+	button.style.height = "50px"
+	button.style.top    = "0px";
+	button.style.right  = "0px";
+	button.style.zIndex = "12";
+	document.body.appendChild(button);
+	
+	document.getElementById("speak").addEventListener("click", function(){
+		window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+		document.body.removeChild(button);
+	});
+}
 
 //--------------------------------------
 })();

@@ -25,28 +25,28 @@
  * @param ATK_BUFF_RATE
  * @text 攻撃力 強化割合
  * @desc 攻撃力の強化・弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
- * @default 50
+ * @default 25
  * @type number
  * @parent RATE_GROUP
  * 
  * @param DEF_BUFF_RATE
  * @text 防御力 強化割合
  * @desc 防御力の強化・弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
- * @default 50
+ * @default 25
  * @type number
  * @parent RATE_GROUP
  * 
  * @param MAT_BUFF_RATE
  * @text 魔法力 強化割合
  * @desc 魔法力の強化・弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
- * @default 50
+ * @default 25
  * @type number
  * @parent RATE_GROUP
  * 
  * @param MDF_BUFF_RATE
  * @text 魔法防御 強化割合
  * @desc 魔法防御の強化・弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
- * @default 50
+ * @default 25
  * @type number
  * @parent RATE_GROUP
  * 
@@ -72,8 +72,8 @@
  * 
  * @param MAX_DEBUFF
  * @text 最大弱体回数
- * @desc 弱体を重ねがけできる回数です。システム値は 2 ですが初期値 4 です。
- * @default 4
+ * @desc 弱体を重ねがけできる回数です。システム値は 2 ですが初期値 3 です。
+ * @default 3
  * @type number
  * 
  * @param ICON_BUFF_START
@@ -113,6 +113,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.2.0 (2023/06/18) パラメータを能力値ごとに分けた
 - ver.1.0.0 (2023/06/18) 公開
 - ver.1.1.0 (2023/10/29) 最大回数を変更可能にした
+- ver.1.1.1 (2023/10/31) パラメータの初期値を変更した
+- ver.1.1.2 (2023/11/13) パラメータの初期値を変更した
 
  * 
  * 

@@ -14,7 +14,7 @@
  * @desc 指定タグを持つイベントのセルフスイッチを変更します。
  * @arg alphabet
  * @text アルファベット
- * @desc セルフスイッチのアルファベット A ～ D を指定します。
+ * @desc セルフスイッチのアルファベット A ～ D を指定します。カンマ区切りで複数記述できます。
  * @arg tag
  * @text タグ
  * @desc メモ欄に書いたタグ文字列。
@@ -50,9 +50,10 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2023/03/31) 作成開始
 - ver.0.1.0 (2023/03/31) 非公開版完成
 - ver.1.0.0 (2023/04/01) 公開
-- ver.2.0.0 (2023/04/11) 他マップを対象にできるようにした。
-- ver.2.0.1 (2023/05/19) 他マップについての制約事項を追記。
-- ver.3.0.0 (2023/06/01) 他マップ処理を修正。
+- ver.2.0.0 (2023/04/11) 他マップを対象にできるようにした
+- ver.2.0.1 (2023/05/19) 他マップについての制約事項を追記
+- ver.3.0.0 (2023/06/01) 他マップ処理を修正
+- ver.3.1.0 (2023/12/18) 複数アルファベットに対応
 
  * 
  * 
@@ -86,21 +87,27 @@ Game_Temp.prototype.setSelfSwitches = function(alphabet, tag, value, argMapIdLis
 Game_Temp.prototype.setSelfSwitchesCurrentMap = function(alphabet, tag, value) {
 	const mapId = $gameMap.mapId();
 	const eventIdList = this.eventIdList(tag);
+	const paramAlhabetList = alphabet.split(",");
 	for (const eventId of eventIdList) {
-		const key = [mapId, eventId, alphabet];
-		$gameSelfSwitches.setValue(key, !!value);
+		for (const alpha of paramAlhabetList) {
+			const key = [mapId, eventId, alpha];
+			$gameSelfSwitches.setValue(key, !!value);
+		}
 	}
 };
 
 Game_Temp.prototype.setSelfSwitchesSomeMap = function(alphabet, tag, value, argMapIdList) {
+	const paramAlhabetList = alphabet.split(",");
 	const paramMapIdList = argMapIdList.split(",");
 	for (const paramMapId of paramMapIdList) {
 		const data = $gameSystem._eventIdObjectList.find(e => e.mapId === Number(paramMapId) && e.tag === tag);
 
 		if (data) {
 			for (const eventId of data.eventIdList) {
-				const key = [data.mapId, eventId, alphabet];
-				$gameSelfSwitches.setValue(key, !!value);
+				for (const alpha of paramAlhabetList) {
+					const key = [data.mapId, eventId, alpha];
+					$gameSelfSwitches.setValue(key, !!value);
+				}
 			}
 		}
 	}
@@ -113,9 +120,9 @@ Game_Temp.prototype.eventIdList = function(tag) {
 //--------------------------------------
 // マップ遷移時イベントID自動登録
 
-const KRD_Scene_Map_start = Scene_Map.prototype.start;
+const _Scene_Map_start = Scene_Map.prototype.start;
 Scene_Map.prototype.start = function() {
-	KRD_Scene_Map_start.apply(this, arguments);
+	_Scene_Map_start.call(this, ...arguments);
 	this.setEventIdObjectList();
 };
 

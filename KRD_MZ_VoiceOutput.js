@@ -153,6 +153,8 @@ iPhoneではユーザー操作に伴うAPI実行を1回行う必要がありま�
 - ver.1.6.0 (2023/08/17) speak の引数に null を使用可能にした
 - ver.1.7.0 (2023/11/03) VOICE_OUTPUT_VAR2 コマンド追加
 - ver.1.8.0 (2023/11/06) iPhone用ボタン追加
+- ver.1.9.0 (2023/12/02) コンフィグの音量を優先（関数の直接使用対応）
+- ver.1.10.0 (2023/12/21) ゲームパッドでの音声キャンセル時の不具合を修正
 
  * 
  * 
@@ -199,9 +201,6 @@ PluginManager.registerCommand(PLUGIN_NAME, "VOICE_OUTPUT_VAR2", args => {
 
 PluginManager.registerCommand(PLUGIN_NAME, "VOICE_CANCEL", args => {
 	KRD_VOICE_OUTPUT.cancel();
-	Input.clear();
-	TouchInput.clear();
-	KRD_VOICE_OUTPUT._canceled = true;
 });
 
 //--------------------------------------
@@ -213,13 +212,13 @@ KRD_VOICE_OUTPUT.speak = function(text, language = JAPANESE, volume, pitch, rate
 		const utterThis = new SpeechSynthesisUtterance(text);
 		utterThis.lang = language;
 
-		if (volume !== null && !isNaN(volume)) {
-			utterThis.volume = (Number(volume) || 0) / 100;
-		}
-		if (pitch !== null && !isNaN(pitch)) {
+		const speakVolume = volume == null ? AudioManager.speakVolume : Number(volume) || 0;
+		utterThis.volume = speakVolume / 100;
+
+		if (pitch != null && !isNaN(pitch)) {
 			utterThis.pitch = (Number(pitch) || 0) / 100;
 		}
-		if (rate !== null && !isNaN(rate)) {
+		if (rate != null && !isNaN(rate)) {
 			utterThis.rate = (Number(rate) || 0) / 100;
 		}
 
@@ -299,9 +298,6 @@ Window_Message.prototype.terminateMessage = function() {
 	_Window_Message_terminateMessage.call(this, ...arguments);
 	if (AUTO_CANCEL) {
 		KRD_VOICE_OUTPUT.cancel();
-		Input.clear();
-		TouchInput.clear();
-		KRD_VOICE_OUTPUT._canceled = true;
 	}
 };
 
@@ -310,8 +306,6 @@ Window_ScrollText.prototype.terminateMessage = function() {
 	_Window_ScrollText_terminateMessage.call(this, ...arguments);
 	if (AUTO_CANCEL_SCROLL) {
 		KRD_VOICE_OUTPUT.cancel();
-		Input.clear();
-		TouchInput.clear();
 	}
 };
 

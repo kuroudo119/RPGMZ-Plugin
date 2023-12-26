@@ -7,6 +7,8 @@
 
 [マシュマロはこちら](https://marshmallow-qa.com/uxnvf71gp8ibzus?utm_medium=url_text&utm_source=promotion)
 
+[サンプルゲーム「クリスマス勤労」PLiCyさんにて公開中](https://plicy.net/GamePlay/170692)
+
 ## KRD_MZ_UI_Skill（スキル画面の挙動修正）
 
 - 味方全体が対象のスキルで先頭キャラしか選択決定できない件の修正

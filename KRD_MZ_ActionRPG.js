@@ -101,7 +101,7 @@
  * 
  * @param cmnGameOver
  * @text ゲームオーバーイベント
- * @desc マップバトルのゲームオーバー時に呼び出すコモンイベント。プラグインコマンド「ゲームオーバー状態初期化」と併用。
+ * @desc マップバトルのゲームオーバー時に呼び出すコモンイベント。コモンイベントの最初で戦闘不能を解除すること。
  * @type common_event
  * 
  * @param alwaysMapGameover
@@ -325,6 +325,53 @@
  * @text 全敵イベント消去セルフスイッチ
  * @desc 全ての敵イベントのセルフスイッチをONにして、一時消去します。
  * 
+ * @command ballStart
+ * @text 玉発射
+ * @desc 発射装置から玉を発射します。
+ * @arg alphabet
+ * @text アルファベット
+ * @desc セルフスイッチのアルファベット A ～ D を指定します。
+ * 
+ * @command moveForward
+ * @text 玉を前進
+ * @desc 玉を一歩前進させます。
+ * 
+ * @command moveHome
+ * @text 玉を初期位置に戻す
+ * @desc 玉を初期位置に戻します。
+ * 
+ * @command enemyLaunchBall4
+ * @text 敵玉発射4方向
+ * @desc 敵玉発射装置から4方向に玉を発射します。
+ * 
+ * @command playerLaunchBall4
+ * @text PC玉発射4方向
+ * @desc プレイヤーを発射装置として4方向に玉を発射します。
+ * 
+ * @command playerLaunchBall1
+ * @text PC玉発射正面
+ * @desc プレイヤーを発射装置として正面に玉を発射します。
+ * 
+ * @command enemyBallStart
+ * @text 敵玉発射
+ * @desc 敵玉発射装置から玉を発射します。
+ * 
+ * @command enemyBallNotStart
+ * @text 敵玉発射しない
+ * @desc 敵玉発射のelse時の処理です。
+ * 
+ * @command enemyHpByMap
+ * @text マップ敵HP
+ * @desc マップでの敵HPをバトルに持ち越すための処理です。
+ * @arg varEnemyDamage
+ * @text 敵ダメージ変数番号
+ * @desc 敵が受けたダメージを入れる変数の番号。
+ * @type variable
+ * 
+ * @command enemyHpByBattle
+ * @text バトル敵HP
+ * @desc バトルでの敵HPをマップに持ち越すための処理です。
+ * 
  * @help
 # KRD_MZ_ActionRPG.js
 
@@ -421,7 +468,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.6 (2022/01/17) ロード不可マップでセーブ不可にする一時的対処
 - ver.0.0.7 (2022/01/18) プラグインパラメータを追加
 - ver.0.0.8 (2022/01/19) ロード不可を解決した
-- ver.0.0.9 (2022/01/20) KRD_Game_MapAction クラスを追加
+- ver.0.0.9 (2022/01/20) _Game_MapAction クラスを追加
 - ver.0.1.0 (2022/01/21) 非公開版完成
 - ver.1.0.0 (2022/01/21) 公開
 - ver.1.1.0 (2022/01/21) 報酬獲得関数を作成
@@ -447,7 +494,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.13.0 (2022/03/23) フォロワーのHPゲージ表示追加
 - ver.1.13.1 (2022/03/27) Scene_Scheduleに対応
 - ver.1.13.2 (2022/04/04) 戦闘テストでエラーになる件を修正
-- ver.1.14.0 (2022/04/12) KRD_MZ_DirectionFix を内蔵した
+- ver.1.14.0 (2022/04/12) _MZ_DirectionFix を内蔵した
 - ver.1.15.0 (2022/04/12) checkRangeCollision を追加した
 - ver.1.15.1 (2022/05/02) パラメータ初期値変更
 - ver.1.15.2 (2022/06/02) ゲージ幅をパラメータ化
@@ -469,17 +516,21 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.26.0 (2023/08/07) 戦闘不能セルフスイッチを追加
 - ver.1.27.0 (2023/08/10) 敵イベント消去セルフスイッチコマンド追加
 - ver.1.28.0 (2023/09/30) 玉発射座標を保持する処理を追加
+- ver.1.28.1 (2023/10/09) ゲームオーバー処理のヘルプ修正
+- ver.1.29.0 (2023/12/27) 玉発射をプラグインコマンド化
+- ver.1.30.0 (2023/12/28) 一部スクリプトをプラグインコマンド化
+- ver.1.31.0 (2023/12/29) 一部スクリプトをプラグインコマンド化
 
  * 
  * 
  */
 
-let KRD_Game_MapEnemy = null;
-let KRD_Sprite_MapGauge = null;
-let KRD_Sprite_MapActor = null;
-let KRD_Sprite_MapEnemy = null;
-let KRD_Game_MapAction = null;
-let KRD_Sprite_MapStateIcon = null;
+let _Game_MapEnemy = null;
+let _Sprite_MapGauge = null;
+let _Sprite_MapActor = null;
+let _Sprite_MapEnemy = null;
+let _Game_MapAction = null;
+let _Sprite_MapStateIcon = null;
 
 (() => {
 
@@ -653,10 +704,61 @@ PluginManager.registerCommand(PLUGIN_NAME, "eraseMapEnemyAndSelfSwitch", args =>
 	$gameMap.eraseMapEnemyAndSelfSwitch();
 });
 
-// -------------------------------------
-// KRD_Game_MapEnemy クラス
+PluginManager.registerCommand(PLUGIN_NAME, "ballStart", args => {
+	$gameTemp.ballStart(args.alphabet);
+});
 
-KRD_Game_MapEnemy = class extends Game_Enemy {
+// Game_Interpreter の関数を使いたいので、アロー関数を使わない
+PluginManager.registerCommand(PLUGIN_NAME, "moveForward", function(args) {
+	const waitMode = true;
+	this.moveForward(waitMode);
+});
+
+// Game_Interpreter の関数を使いたいので、アロー関数を使わない
+PluginManager.registerCommand(PLUGIN_NAME, "moveHome", function(args) {
+	this.moveHome();
+});
+
+// Game_Interpreter の関数を使いたいので、アロー関数を使わない
+PluginManager.registerCommand(PLUGIN_NAME, "enemyLaunchBall4", function(args) {
+	this.enemyLaunchBall4();
+});
+
+// Game_Interpreter の関数を使いたいので、アロー関数を使わない
+PluginManager.registerCommand(PLUGIN_NAME, "playerLaunchBall4", function(args) {
+	this.playerLaunchBall4();
+});
+
+// Game_Interpreter の関数を使いたいので、アロー関数を使わない
+PluginManager.registerCommand(PLUGIN_NAME, "playerLaunchBall1", function(args) {
+	this.playerLaunchBall1();
+});
+
+// Game_Interpreter の関数を使いたいので、アロー関数を使わない
+PluginManager.registerCommand(PLUGIN_NAME, "enemyBallStart", function(args) {
+	this.enemyBallStart();
+});
+
+// Game_Interpreter の関数を使いたいので、アロー関数を使わない
+PluginManager.registerCommand(PLUGIN_NAME, "enemyBallNotStart", function(args) {
+	this.enemyBallNotStart();
+});
+
+// Game_Interpreter の関数を使いたいので、アロー関数を使わない
+PluginManager.registerCommand(PLUGIN_NAME, "enemyHpByMap", function(args) {
+	const varEnemyDamage = Number(args.varEnemyDamage) || 0;
+	this.enemyHpByMap(varEnemyDamage);
+});
+
+// Game_Interpreter の関数を使いたいので、アロー関数を使わない
+PluginManager.registerCommand(PLUGIN_NAME, "enemyHpByBattle", function(args) {
+	this.enemyHpByBattle();
+});
+
+// -------------------------------------
+// _Game_MapEnemy クラス
+
+_Game_MapEnemy = class extends Game_Enemy {
 	constructor(enemyId, x, y, eventId) {
 		super(...arguments);
 		this._eventId = eventId;
@@ -680,7 +782,7 @@ KRD_Game_MapEnemy = class extends Game_Enemy {
 	}
 
 	basicFloorDamage() {
-		return Game_Actor.prototype.basicFloorDamage.apply(this, arguments);
+		return Game_Actor.prototype.basicFloorDamage.call(this, ...arguments);
 	}
 
 	maxFloorDamage() {
@@ -696,12 +798,12 @@ KRD_Game_MapEnemy = class extends Game_Enemy {
 // グローバルで let で宣言した時、
 // windowオブジェクトのプロパティを生成しない事への対処。
 
-window[KRD_Game_MapEnemy.name] = KRD_Game_MapEnemy;
+window[_Game_MapEnemy.name] = _Game_MapEnemy;
 
 // -------------------------------------
-// KRD_Sprite_MapGauge クラス
+// _Sprite_MapGauge クラス
 
-KRD_Sprite_MapGauge = class extends Sprite_Gauge {
+_Sprite_MapGauge = class extends Sprite_Gauge {
 	bitmapWidth() {
 		return GAUGE_WIDTH;
 	}
@@ -735,18 +837,18 @@ KRD_Sprite_MapGauge = class extends Sprite_Gauge {
 };
 
 // -------------------------------------
-// KRD_Sprite_MapBattler クラス (ダメージポップアップ用)
+// _Sprite_MapBattler クラス (ダメージポップアップ用)
 
-KRD_Sprite_MapActor = class extends Sprite_Battler {
+_Sprite_MapActor = class extends Sprite_Battler {
 };
 
-KRD_Sprite_MapEnemy = class extends Sprite_Battler {
+_Sprite_MapEnemy = class extends Sprite_Battler {
 };
 
 // -------------------------------------
-// KRD_Sprite_MapStateIcon クラス (アイコン表示用)
+// _Sprite_MapStateIcon クラス (アイコン表示用)
 
-KRD_Sprite_MapStateIcon = class extends Sprite_StateIcon {
+_Sprite_MapStateIcon = class extends Sprite_StateIcon {
 	constructor(eventHeight = 0) {
 		super(...arguments);
 		this._eventHeight = eventHeight;
@@ -761,9 +863,9 @@ KRD_Sprite_MapStateIcon = class extends Sprite_StateIcon {
 };
 
 // -------------------------------------
-// KRD_Game_MapAction クラス (ダメージ計算用)
+// _Game_MapAction クラス (ダメージ計算用)
 
-KRD_Game_MapAction = class extends Game_Action {
+_Game_MapAction = class extends Game_Action {
 	setSubject(subject) {
 		if (subject.isActor()) {
 			super.setSubject(...arguments);
@@ -798,16 +900,16 @@ KRD_Game_MapAction = class extends Game_Action {
 
 // -------------------------------------
 // マップ移動衝突時の振り向き禁止
-// 同じ処理なので KRD_MZ_DirectionFix は不要
+// 同じ処理なので _MZ_DirectionFix は不要
 
-const KRD_Game_Event_turnTowardCharacter = Game_Event.prototype.turnTowardCharacter;
+const _Game_Event_turnTowardCharacter = Game_Event.prototype.turnTowardCharacter;
 Game_Event.prototype.turnTowardCharacter = function(character, flag) {
 	if (flag) {
 		// スクリプトから実行で DirectionFix の影響なし動作をしたい場合の処理
-		KRD_Game_Event_turnTowardCharacter.apply(this, arguments);
+		_Game_Event_turnTowardCharacter.call(this, ...arguments);
 	} else {
 		if (!this.event().meta.DirectionFix) {
-			KRD_Game_Event_turnTowardCharacter.apply(this, arguments);
+			_Game_Event_turnTowardCharacter.call(this, ...arguments);
 		}
 	}
 };
@@ -815,16 +917,16 @@ Game_Event.prototype.turnTowardCharacter = function(character, flag) {
 // -------------------------------------
 // 敵キャラデータ追加
 
-const KRD_Game_Event_initialize = Game_Event.prototype.initialize;
+const _Game_Event_initialize = Game_Event.prototype.initialize;
 Game_Event.prototype.initialize = function(mapId, eventId) {
-	KRD_Game_Event_initialize.apply(this, arguments);
+	_Game_Event_initialize.call(this, ...arguments);
 	this.createEnemy(eventId);
 };
 
 Game_Event.prototype.createEnemy = function(eventId) {
 	const enemyId = Number(this.event().meta[META_ENEMY]);
 	if (enemyId) {
-		this._enemy = new KRD_Game_MapEnemy(enemyId, 0, 0, eventId);
+		this._enemy = new _Game_MapEnemy(enemyId, 0, 0, eventId);
 	}
 };
 
@@ -876,9 +978,9 @@ Game_Event.prototype.enemy = function() {
 // HPゲージ追加
 // ステートアイコン追加
 
-const KRD_Scene_Map_start = Scene_Map.prototype.start;
+const _Scene_Map_start = Scene_Map.prototype.start;
 Scene_Map.prototype.start = function() {
-	KRD_Scene_Map_start.apply(this, arguments);
+	_Scene_Map_start.call(this, ...arguments);
 	this.createMapBattlerSprite();
 };
 
@@ -971,22 +1073,22 @@ Scene_Map.prototype.createMapFollowerSprite = function() {
 
 Scene_Map.prototype.createDamagePopup = function(characterSprite, battler) {
 	if (battler.isActor()) {
-		const sprite = new KRD_Sprite_MapActor(battler);
+		const sprite = new _Sprite_MapActor(battler);
 		characterSprite.addChild(sprite);
 	} else {
-		const sprite = new KRD_Sprite_MapEnemy(battler);
+		const sprite = new _Sprite_MapEnemy(battler);
 		characterSprite.addChild(sprite);
 	}
 };
 
 Scene_Map.prototype.createHpGauge = function(characterSprite, battler) {
-	const gauge = new KRD_Sprite_MapGauge();
+	const gauge = new _Sprite_MapGauge();
 	gauge.setup(battler, "hp");
 	characterSprite.addChild(gauge);
 };
 
 Scene_Map.prototype.createStateIcon = function(characterSprite, battler, h) {
-	const stateIcon = new KRD_Sprite_MapStateIcon(h);
+	const stateIcon = new _Sprite_MapStateIcon(h);
 	stateIcon.setup(battler);
 	characterSprite.addChild(stateIcon);
 };
@@ -1025,7 +1127,7 @@ Game_Temp.prototype.mapPopupTroop = function() {
 // マップダメージ
 
 Game_Temp.prototype.mapDamage = function(target, subject, skillId) {
-	this._action = new KRD_Game_MapAction(subject);
+	this._action = new _Game_MapAction(subject);
 	this._action.setSkill(skillId);
 	this._action.apply(target);
 };
@@ -1056,7 +1158,7 @@ Game_Temp.prototype.mapDamagePlayer = function(eventId, skillId) {
 // マップダメージ (アイテム版)
 
 Game_Temp.prototype.itemMapDamage = function(target, subject, itemId) {
-	this._action = new KRD_Game_MapAction(subject);
+	this._action = new _Game_MapAction(subject);
 	this._action.setItem(itemId);
 	this._action.apply(target);
 };
@@ -1409,23 +1511,23 @@ BattleManager.makeMapEnemyRewards = function(eventId) {
 	};
 };
 
-const KRD_Game_Actor_gainExp = Game_Actor.prototype.gainExp;
+const _Game_Actor_gainExp = Game_Actor.prototype.gainExp;
 Game_Actor.prototype.gainExp = function(exp) {
 	if ($gameParty.inBattle()) {
-		KRD_Game_Actor_gainExp.apply(this, arguments);
+		_Game_Actor_gainExp.call(this, ...arguments);
 	} else {
 		const newExp = this.currentExp() + Math.round(exp * this.finalExpRate());
 		this.changeExp(newExp, USE_DISPLAY_REWARDS || typeof KRD_TINY_GET_INFO !== "undefined");
 	}
 };
 
-const KRD_Game_Actor_displayLevelUp = Game_Actor.prototype.displayLevelUp;
+const _Game_Actor_displayLevelUp = Game_Actor.prototype.displayLevelUp;
 Game_Actor.prototype.displayLevelUp = function(newSkills) {
 	if (!$gameParty.inBattle() && typeof KRD_TINY_GET_INFO !== "undefined") {
 		KRD_TINY_GET_INFO.addLevelUpWindow(this.name(), this._level);
 		return;
 	}
-	KRD_Game_Actor_displayLevelUp.apply(this, arguments);
+	_Game_Actor_displayLevelUp.call(this, ...arguments);
 };
 
 // -------------------------------------
@@ -1548,12 +1650,16 @@ Game_Temp.prototype.turnTowardPlayer = function(eventId) {
 
 // -------------------------------------
 // 「移動ルートの設定(一歩前進)」のイベントID指定
-//
-// Game_Interpreter であることに注意！！
 
+// Game_Interpreter であることに注意！！
 Game_Interpreter.prototype.moveForward = function(waitMode) {
+	$gameTemp.moveForward(waitMode, this.eventId());
+};
+
+// Game_Temp 版
+Game_Temp.prototype.moveForward = function(waitMode, eventId) {
 	$gameMap.refreshIfNeeded();
-	const character = $gameMap.event(this.eventId());
+	const character = $gameMap.event(eventId);
 	if (character) {
 		const moveRoute = {
 			list: [
@@ -1632,11 +1738,9 @@ Game_Interpreter.prototype.canPass = function() {
 // -------------------------------------
 // 玉を元の位置に戻す
 
+// Game_Interpreter であることに注意！！
 Game_Interpreter.prototype.moveHome = function() {
-	const eventId = this.eventId();
-	const dataEvent = $dataMap.events[eventId] || {x : 0, y : 0};
-	const direction = 2;
-	$gameTemp.setEventLocation(eventId, dataEvent.x, dataEvent.y, direction);
+	$gameTemp.moveHome(this.eventId());
 };
 
 Game_Temp.prototype.moveHome = function(eventId) {
@@ -1657,10 +1761,6 @@ Game_Temp.prototype.moveHomeAll = function(tag = META_BALL) {
 
 Game_Interpreter.prototype.checkOverStep = function(step, launchEventId) {
 	const event = $gameMap.event(this.eventId());
-	// 旧処理 ここから
-	// const launchId = launchEventId ? launchEventId : this.launchEventId(this.eventId());
-	// const launch = $gameMap.event(launchId);
-	// 旧処理 ここまで
 	const launch = event.getLaunchPosition();
 	const direction = event.direction();
 	const diffX = Math.abs(event.x - launch.x);
@@ -1764,6 +1864,18 @@ Game_Temp.prototype.resetBallSelfSwitches = function(alphabet, tag = META_BALL) 
 // -------------------------------------
 // 4方向に玉を発射するスクリプト
 
+Game_Interpreter.prototype.enemyLaunchBall4 = function() {
+	this.launchBall4("EnemyLaunch", "EnemyBall", "D");
+};
+
+Game_Interpreter.prototype.playerLaunchBall4 = function() {
+	this.launchBall4("", "PlayerBall", "D");
+};
+
+Game_Interpreter.prototype.playerLaunchBall1 = function() {
+	this.launchBall1("", "PlayerBall", "D");
+};
+
 Game_Interpreter.prototype.launchBall4 = function(launchTag, ballTag, alphabet) {
 	const launchData = this.getLaunchData(launchTag, ballTag);
 	launchData.ballIdList.forEach((ballId, index) => {
@@ -1799,21 +1911,21 @@ Game_Interpreter.prototype.setLaunchPosition = function(launch, ballId) {
 // -------------------------------------
 // 行動不可ステート効果の反映
 
-const KRD_Game_Event_updateSelfMovement = Game_Event.prototype.updateSelfMovement;
+const _Game_Event_updateSelfMovement = Game_Event.prototype.updateSelfMovement;
 Game_Event.prototype.updateSelfMovement = function() {
 	if (!this.enemy()) {
-		KRD_Game_Event_updateSelfMovement.apply(this, arguments);
+		_Game_Event_updateSelfMovement.call(this, ...arguments);
 	} else if (this.enemy().canMove()) {
-		KRD_Game_Event_updateSelfMovement.apply(this, arguments);
+		_Game_Event_updateSelfMovement.call(this, ...arguments);
 	}
 };
 
 // -------------------------------------
 // マップでのターン終了処理
 
-const KRD_Game_Party_onPlayerWalk = Game_Party.prototype.onPlayerWalk;
+const _Game_Party_onPlayerWalk = Game_Party.prototype.onPlayerWalk;
 Game_Party.prototype.onPlayerWalk = function() {
-	KRD_Game_Party_onPlayerWalk.apply(this, arguments);
+	_Game_Party_onPlayerWalk.call(this, ...arguments);
 	$gameMap.onPlayerWalk();
 };
 
@@ -1846,9 +1958,9 @@ Game_Party.prototype.canMapDamagePopup = function() {
 	|| (USE_DAMAGE_POPUP && this.inMapBattle()));
 };
 
-const KRD_Game_Actor_turnEndOnMap = Game_Actor.prototype.turnEndOnMap;
+const _Game_Actor_turnEndOnMap = Game_Actor.prototype.turnEndOnMap;
 Game_Actor.prototype.turnEndOnMap = function() {
-	KRD_Game_Actor_turnEndOnMap.apply(this, arguments);
+	_Game_Actor_turnEndOnMap.call(this, ...arguments);
 	if ($gameParty.steps() % this.stepsForTurn() === 0) {
 		if (this.result().hpDamage < 0) {
 			this.performMapRecover();
@@ -1856,12 +1968,12 @@ Game_Actor.prototype.turnEndOnMap = function() {
 	}
 };
 
-const KRD_Game_Actor_performMapDamage = Game_Actor.prototype.performMapDamage;
+const _Game_Actor_performMapDamage = Game_Actor.prototype.performMapDamage;
 Game_Actor.prototype.performMapDamage = function() {
 	if ($gameParty.canMapDamagePopup()) {
 		this.startDamagePopup();
 	} else {
-		KRD_Game_Actor_performMapDamage.apply(this, arguments);
+		_Game_Actor_performMapDamage.call(this, ...arguments);
 	}
 };
 
@@ -1883,14 +1995,14 @@ Game_Enemy.prototype.turnEndOnMap = function() {
 // -------------------------------------
 // ゲームオーバー処理
 
-const KRD_Scene_Map_checkGameover = Scene_Map.prototype.checkGameover;
+const _Scene_Map_checkGameover = Scene_Map.prototype.checkGameover;
 Scene_Map.prototype.checkGameover = function() {
 	if (this.isMapGameOver()) {
 		if ($gameMap._gameOver === 0) {
 			$gameTemp.reserveCommonEvent(CMN_GAME_OVER);
 		}
 	} else {
-		KRD_Scene_Map_checkGameover.apply(this, arguments);
+		_Scene_Map_checkGameover.call(this, ...arguments);
 	}
 };
 
@@ -1913,9 +2025,9 @@ Scene_Map.prototype.isMapGameOver = function() {
 // -------------------------------------
 // ダメージスプライトの表示位置をリセット
 
-const KRD_Sprite_Battler_createDamageSprite = Sprite_Battler.prototype.createDamageSprite;
+const _Sprite_Battler_createDamageSprite = Sprite_Battler.prototype.createDamageSprite;
 Sprite_Battler.prototype.createDamageSprite = function() {
-	KRD_Sprite_Battler_createDamageSprite.apply(this, arguments);
+	_Sprite_Battler_createDamageSprite.call(this, ...arguments);
 
 	if ($gameParty.canMapDamagePopup()) {
 		const sprite = this._damages[this._damages.length - 1];
@@ -1978,10 +2090,67 @@ Game_Event.prototype.checkFloorEffect = function() {
 	}
 };
 
-const KRD_Game_Event_moveStraight = Game_Event.prototype.moveStraight;
+const _Game_Event_moveStraight = Game_Event.prototype.moveStraight;
 Game_Event.prototype.moveStraight = function(d) {
-	KRD_Game_Event_moveStraight.apply(this, arguments);
+	_Game_Event_moveStraight.call(this, ...arguments);
 	this.checkFloorEffect();
+};
+
+// -------------------------------------
+// 玉発射
+
+Game_Temp.prototype.ballStart = function(alphabet = "D") {
+	const interpreter = $gameMap._interpreter;
+	const launchId = interpreter.eventId();
+	const ballId = interpreter.ballEventId(launchId);
+	const launch = interpreter.character(launchId);
+	$gameTemp.setEventLocation(ballId, launch.x, launch.y);
+	$gameTemp.turnAwayFromPlayer(ballId);
+	$gameTemp.setSelfSwitch($gameMap.mapId(), ballId, alphabet, true);
+};
+
+// -------------------------------------
+// 敵玉発射
+
+// 発射する処理
+Game_Interpreter.prototype.enemyBallStart = function(tag = "EnemyBall", alphabet = "D") {
+	const launch = this.character(this.eventId());
+	const ballIdList = $gameMap.metaIdList(tag);
+	for (const ballId of ballIdList) {
+	  $gameTemp.setEventLocation(ballId, launch.x, launch.y);
+	  $gameTemp.setSelfSwitch($gameMap.mapId(), ballId, alphabet, true);
+	}
+};
+
+// 発射しない処理
+Game_Interpreter.prototype.enemyBallNotStart = function(tag = "EnemyBall", alphabet = "D") {
+	const ballIdList = $gameMap.metaIdList(tag);
+	for (const ballId of ballIdList) {
+	  $gameTemp.setEventLocation(ballId, 0, 0);
+	  $gameTemp.setSelfSwitch($gameMap.mapId(), ballId, alphabet, false);
+	}
+};
+
+// -------------------------------------
+// 戦闘開始時にマップの敵HPを反映させる処理
+
+Game_Interpreter.prototype.enemyHpByMap = function(varEnemyDamage) {
+	const enemy = $gameMap.enemy(this.eventId());
+	const damage = enemy.mhp - enemy.hp;
+	$gameVariables.setValue(varEnemyDamage, damage);
+};
+
+// -------------------------------------
+// 戦闘中断時にバトルの敵HPを反映させる処理
+
+Game_Interpreter.prototype.enemyHpByBattle = function() {
+	const index = 0;
+	const battler = $gameTroop.members()[index];
+	const enemy = $gameMap.enemy(this.eventId());
+	const damage = enemy.hp - battler.hp;
+	if (damage > 0) {
+	  enemy.gainHp(-damage);
+	}
 };
 
 // -------------------------------------

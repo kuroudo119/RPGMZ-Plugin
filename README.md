@@ -17,7 +17,7 @@
 
 [KRD_MZ_ShieldBlockをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_ShieldBlock.js)
 
-https://github.com/kuroudo119/RPGMZ-Plugin/assets/43639887/8c5a8cd9-81bc-4073-bbf9-9d8769a3e4d5
+https://github.com/kuroudo119/RPGMZ-Plugin/assets/43639887/b433d876-9e48-4857-bffe-36cfe5ba00f2
 
 ## KRD_MZ_UI_Skill（スキル画面の挙動修正）
 

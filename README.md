@@ -11,6 +11,12 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_RightNumberInput（右から数値入力）
+
+数値入力コマンドの初期入力ケタを1の位にします。
+
+[KRD_MZ_RightNumberInputをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_RightNumberInput.js)
+
 ## KRD_MZ_ShieldBlock（盾回避）
 
 盾の回避率で回避するとアニメーションを表示します。

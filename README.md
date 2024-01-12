@@ -11,6 +11,14 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_ShieldBlock（盾回避）
+
+盾の回避率で回避するとアニメーションを表示します。
+
+[KRD_MZ_ShieldBlockをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_ShieldBlock.js)
+
+https://github.com/kuroudo119/RPGMZ-Plugin/assets/43639887/8c5a8cd9-81bc-4073-bbf9-9d8769a3e4d5
+
 ## KRD_MZ_UI_Skill（スキル画面の挙動修正）
 
 - 味方全体が対象のスキルで先頭キャラしか選択決定できない件の修正

@@ -44,6 +44,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2024/01/12) 作成開始
 - ver.0.1.0 (2024/01/12) 非公開版完成
 - ver.1.0.0 (2024/01/12) 公開
+- ver.1.0.1 (2024/01/14) 誤字修正
 
  * 
  * 
@@ -101,9 +102,9 @@ Game_Action.prototype.block = function(target, result) {
 	result.blocked = false;
 	if (!result.missed && !result.evaded) {
 		if (this.isPhysical()) {
-			result.blocked = this.blockking(target, TAG_SHIELD);
+			result.blocked = this.blocking(target, TAG_SHIELD);
 		} else if (this.isMagical()) {
-			result.blocked = this.blockking(target, TAG_BARRIER);
+			result.blocked = this.blocking(target, TAG_BARRIER);
 		}
 	}
 	if (result.blocked) {
@@ -112,7 +113,7 @@ Game_Action.prototype.block = function(target, result) {
 };
 
 // 新規作成
-Game_Action.prototype.blockking = function(target, tag) {
+Game_Action.prototype.blocking = function(target, tag) {
 	if (target.isActor()) {
 		const shield = target.equips()[SHIELD_SLOT];
 		const blockPoint = shield?.meta[tag];

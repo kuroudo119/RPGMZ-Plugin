@@ -11,6 +11,13 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_SelectableCursor（端っこカーソル移動＋買い物数の増減変更）
+
+上下左右でのカーソル移動の際に一覧の上端と下端が繋がるようにカーソル移動するように変更する。  
+まとめ買いの時に10増減するのをやめる。
+
+[KRD_MZ_SelectableCursorをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_SelectableCursor.js)
+
 ## KRD_MZ_RightNumberInput（右から数値入力）
 
 数値入力コマンドの初期入力ケタを1の位にします。

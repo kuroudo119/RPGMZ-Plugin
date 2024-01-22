@@ -41,8 +41,8 @@
  * @parent BUTTON_IOS
  * 
  * @param MESSAGE_TOUCH
- * @text メッセージ表示時タッチ操作
- * @desc メッセージ表示中のタッチ操作を変更し、プラグインパラメータ「長押し時間」を使います。
+ * @text メッセージ送り対処
+ * @desc メッセージ表示中の入力処理を変更し、プラグインパラメータ「長押し時間」を使います。
  * @default true
  * @type boolean
  * 
@@ -150,12 +150,18 @@ Web Speech API に対応したブラウザで音声が流れます。
 iPhoneではユーザー操作に伴うAPI実行を1回行う必要があります。
 そのためのボタンです。
 
-## 既知の事象
+## 制約事項
 
-文章の表示の次に選択肢がある場合、
-マウスカーソルが選択肢上にあると、
-合成音声のキャンセルのタイミングによっては、
-その選択肢が決定される場合があります。
+音声終わりにメッセージ送りをすると
+次のメッセージも送られる場合があります。
+
+これは「メッセージ送り対処」を true にし、
+「長押し時間」をシステム値より長くすることで回避できます。
+
+この時、「選択肢の表示」コマンドの選択が
+クリックからトリガーに変わります。
+ちなみに、クリックはボタンを離した時、
+トリガーはボタンを押した時です。
 
 ## 更新履歴
 
@@ -175,6 +181,7 @@ iPhoneではユーザー操作に伴うAPI実行を1回行う必要がありま�
 - ver.1.9.0 (2023/12/02) コンフィグの音量を優先（関数の直接使用対応）
 - ver.1.10.0 (2023/12/21) ゲームパッドでの音声キャンセル時の不具合を修正
 - ver.1.11.0 (2024/01/22) iPhone用ボタンの文字列をパラメータ化
+- ver.1.12.0 (2024/01/22) 音声終わりメッセージ送りで連打扱いになる事象を修正
 
  * 
  * 
@@ -369,12 +376,28 @@ const _Window_Message_isTriggered = Window_Message.prototype.isTriggered;
 Window_Message.prototype.isTriggered = function() {
 	if (MESSAGE_TOUCH) {
 		return (
-			Input.isRepeated("ok") ||
-			Input.isRepeated("cancel") ||
+			Input.isRepeated2("ok") ||
+			Input.isRepeated2("cancel") ||
 			TouchInput.isRepeated2()
 		);
 	} else {
 		return _Window_Message_isTriggered.call(this, ...arguments);
+	}
+};
+
+Input.keyRepeatWait2 = KEY_REPEAT;
+Input.keyRepeatInterval2 = Input.keyRepeatInterval;
+
+Input.isRepeated2 = function(keyName) {
+	if (this._isEscapeCompatible(keyName) && this.isRepeated("escape")) {
+		 return true;
+	} else {
+		 return (
+			  this._latestButton === keyName &&
+			  (this._pressedTime === 0 ||
+					(this._pressedTime >= this.keyRepeatWait2 &&
+						 this._pressedTime % this.keyRepeatInterval2 === 0))
+		 );
 	}
 };
 
@@ -385,8 +408,8 @@ TouchInput.isRepeated2 = function() {
 	return (
 		this.isPressed() &&
 		(this._currentState.triggered ||
-			(this._pressedTime >= this.keyRepeatWait2 &&
-				this._pressedTime % this.keyRepeatInterval2 === 0))
+		(this._pressedTime >= this.keyRepeatWait2 &&
+		this._pressedTime % this.keyRepeatInterval2 === 0))
 	);
 };
 
@@ -399,8 +422,9 @@ Window_ChoiceList.prototype.processTouch = function() {
 			} else if (TouchInput.isTriggered()) {
 				this.onTouchSelect(true);
 			}
-			if (TouchInput.isTriggered()) { // 変更
+			if (TouchInput.isTriggered()) { // isClicked から変更
 				this.onTouchOk();
+				TouchInput.clear(); // 追加
 			} else if (TouchInput.isCancelled()) {
 				this.onTouchCancel();
 			}

@@ -34,6 +34,25 @@
  * @default true
  * @type boolean
  * 
+ * @param BUTTON_IOS_TEXT
+ * @text iPhone用ボタン文字列
+ * @desc 「iPhone用ボタン」を表示する文字列です。
+ * @default 音声合成を使う
+ * @parent BUTTON_IOS
+ * 
+ * @param MESSAGE_TOUCH
+ * @text メッセージ表示時タッチ操作
+ * @desc メッセージ表示中のタッチ操作を変更し、プラグインパラメータ「長押し時間」を使います。
+ * @default true
+ * @type boolean
+ * 
+ * @param KEY_REPEAT
+ * @text 長押し時間
+ * @desc 長押し扱いになる時間。システム値:24、プラグイン初期値:48
+ * @default 48
+ * @type number
+ * @parent MESSAGE_TOUCH
+ * 
  * @command VOICE_OUTPUT
  * @text 音声出力
  * @desc 音声出力（音声合成）するコマンドです。
@@ -155,6 +174,7 @@ iPhoneではユーザー操作に伴うAPI実行を1回行う必要がありま�
 - ver.1.8.0 (2023/11/06) iPhone用ボタン追加
 - ver.1.9.0 (2023/12/02) コンフィグの音量を優先（関数の直接使用対応）
 - ver.1.10.0 (2023/12/21) ゲームパッドでの音声キャンセル時の不具合を修正
+- ver.1.11.0 (2024/01/22) iPhone用ボタンの文字列をパラメータ化
 
  * 
  * 
@@ -178,6 +198,10 @@ const AUTO_CANCEL = PARAM["AUTO_CANCEL"] === "true";
 const AUTO_CANCEL_SCROLL = PARAM["AUTO_CANCEL_SCROLL"] === "true";
 
 const BUTTON_IOS = PARAM["BUTTON_IOS"] === "true";
+const BUTTON_IOS_TEXT = PARAM["BUTTON_IOS_TEXT"];
+
+const MESSAGE_TOUCH = PARAM["MESSAGE_TOUCH"] === "true";
+const KEY_REPEAT = Number(PARAM["KEY_REPEAT"]) || 0;
 
 //--------------------------------------
 // プラグインコマンド
@@ -315,7 +339,7 @@ Window_ScrollText.prototype.terminateMessage = function() {
 if (BUTTON_IOS && isiPhone()) {
 	const button = document.createElement("button");
 	button.id = "speak";
-	button.textContent = "音声合成を使う";
+	button.textContent = BUTTON_IOS_TEXT;
 	button.style.position = "absolute";
 	button.style.width = "150px"
 	button.style.height = "50px"
@@ -333,6 +357,57 @@ if (BUTTON_IOS && isiPhone()) {
 function isiPhone () {
 	const r = /iPhone|iPad|iPod/i;
 	return !!navigator.userAgent.match(r);
+};
+
+//--------------------------------------
+// メッセージのタッチ操作を修正
+//
+// 音声再生が終わるタイミングでクリックすると、
+// 長押し扱いになり連続決定されると思われる事象の対処。
+
+const _Window_Message_isTriggered = Window_Message.prototype.isTriggered;
+Window_Message.prototype.isTriggered = function() {
+	if (MESSAGE_TOUCH) {
+		return (
+			Input.isRepeated("ok") ||
+			Input.isRepeated("cancel") ||
+			TouchInput.isRepeated2()
+		);
+	} else {
+		return _Window_Message_isTriggered.call(this, ...arguments);
+	}
+};
+
+TouchInput.keyRepeatWait2 = KEY_REPEAT;
+TouchInput.keyRepeatInterval2 = TouchInput.keyRepeatInterval;
+
+TouchInput.isRepeated2 = function() {
+	return (
+		this.isPressed() &&
+		(this._currentState.triggered ||
+			(this._pressedTime >= this.keyRepeatWait2 &&
+				this._pressedTime % this.keyRepeatInterval2 === 0))
+	);
+};
+
+const _Window_ChoiceList_processTouch = Window_ChoiceList.prototype.processTouch;
+Window_ChoiceList.prototype.processTouch = function() {
+	if (MESSAGE_TOUCH) {
+		if (this.isOpenAndActive()) {
+			if (this.isHoverEnabled() && TouchInput.isHovered()) {
+				this.onTouchSelect(false);
+			} else if (TouchInput.isTriggered()) {
+				this.onTouchSelect(true);
+			}
+			if (TouchInput.isTriggered()) { // 変更
+				this.onTouchOk();
+			} else if (TouchInput.isCancelled()) {
+				this.onTouchCancel();
+			}
+		}
+	} else {
+		_Window_ChoiceList_processTouch.call(this, ...arguments);
+	}
 };
 
 //--------------------------------------

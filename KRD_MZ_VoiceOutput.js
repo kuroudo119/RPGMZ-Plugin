@@ -182,6 +182,7 @@ iPhoneではユーザー操作に伴うAPI実行を1回行う必要がありま�
 - ver.1.10.0 (2023/12/21) ゲームパッドでの音声キャンセル時の不具合を修正
 - ver.1.11.0 (2024/01/22) iPhone用ボタンの文字列をパラメータ化
 - ver.1.12.0 (2024/01/22) 音声終わりメッセージ送りで連打扱いになる事象を修正
+- ver.1.12.1 (2024/01/25) 上記の追加修正
 
  * 
  * 
@@ -389,7 +390,7 @@ Input.keyRepeatWait2 = KEY_REPEAT;
 Input.keyRepeatInterval2 = Input.keyRepeatInterval;
 
 Input.isRepeated2 = function(keyName) {
-	if (this._isEscapeCompatible(keyName) && this.isRepeated("escape")) {
+	if (this._isEscapeCompatible(keyName) && this.isRepeated2("escape")) {
 		 return true;
 	} else {
 		 return (

@@ -50,6 +50,11 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 フキダシを表示しないページは範囲として 0 を記述してください。
 
+## ループマップ対応
+
+ループマップの画面端に対応させる場合は、
+エリア感知センサー (KRD_MZ_AreaSensor) プラグインが必要です。
+
 ## 更新履歴
 
 - ver.0.0.1 (2022/07/23) 作成開始
@@ -59,6 +64,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.2.0 (2022/07/25) イベントページ毎にバルーン変更
 - ver.1.2.1 (2022/07/25) parseInt に修正
 - ver.1.3.0 (2023/07/25) タグ zonePage を追加、リファクタリング
+- ver.1.4.0 (2023/10/23) 不要部分をコメントアウト
+- ver.1.5.0 (2024/02/10) ループマップ対応
 
  * 
  * 
@@ -72,16 +79,21 @@ const TAG_BALLOON_ID = "balloonId";
 const TAG_BALLOON_PAGE = "balloonPage";
 const TAG_ZONE_PAGE = "zonePage";
 
-//--------------------------------------
-const KRD_Game_Event_refresh = Game_Event.prototype.refresh;
-Game_Event.prototype.refresh = function() {
-	KRD_Game_Event_refresh.apply(this, arguments);
-	this.doNeighborBalloon();
-};
+const NAME_AREA_SENSOR = "KRD_MZ_AreaSensor";
+const USE_AREA_SENSOR = PluginManager._scripts.includes(NAME_AREA_SENSOR);
 
-const KRD_Game_Event_updateStop = Game_Event.prototype.updateStop;
+//--------------------------------------
+
+// 不要なはずなので様子見でコメントアウト
+// const _Game_Event_refresh = Game_Event.prototype.refresh;
+// Game_Event.prototype.refresh = function() {
+// 	_Game_Event_refresh.call(this, ...arguments);
+// 	this.doNeighborBalloon();
+// };
+
+const _Game_Event_updateStop = Game_Event.prototype.updateStop;
 Game_Event.prototype.updateStop = function() {
-	KRD_Game_Event_updateStop.apply(this, arguments);
+	_Game_Event_updateStop.call(this, ...arguments);
 	this.doNeighborBalloon();
 };
 
@@ -120,9 +132,13 @@ Game_Event.prototype.playerIsInZone = function(zone) {
 };
 
 Game_Event.prototype.distanceToPlayer = function() {
-	const diffX = Math.abs(this.x - $gamePlayer.x);
-	const diffY = Math.abs(this.y - $gamePlayer.y);
-	return diffX + diffY;
+	if (USE_AREA_SENSOR) {
+		return this.vector();
+	} else {
+		const diffX = Math.abs(this.x - $gamePlayer.x);
+		const diffY = Math.abs(this.y - $gamePlayer.y);
+		return diffX + diffY;
+	}
 };
 
 //--------------------------------------

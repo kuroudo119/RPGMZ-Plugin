@@ -51,6 +51,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2023/05/15) 非公開版完成
 - ver.0.2.0 (2023/09/11) ループするマップに対応
 - ver.1.0.0 (2023/09/11) 公開
+- ver.1.1.0 (2024/02/10) ループマップ対応を修正
 
  * 
  * 
@@ -87,46 +88,57 @@ Game_Interpreter.prototype.senseOutPlayer = function(distance) {
 //--------------------------------------
 
 Game_Event.prototype.vector = function() {
-	const px = $gamePlayer.x;
-	const py = $gamePlayer.y;
-	const diffX = $gameMap.isLoopHorizontal() ? this.vectorX() : Math.abs(this.x - px);
-	const diffY = $gameMap.isLoopVertical() ? this.vectorY() : Math.abs(this.y - py);
-	return diffX + diffY;
+	const character = $gamePlayer;
+	const sx = Math.abs(this.deltaXFrom(character.x));
+	const sy = Math.abs(this.deltaYFrom(character.y));
+	return sx + sy;
 };
 
-Game_Event.prototype.vectorX = function() {
-	const px = $gamePlayer.x;
-	if (this.x === px) {
-		return 0;
-	} else if (this.x > px) {
-		const diffX = Math.abs(this.x - px);
-		const diffXLoop = Math.abs(px + $gameMap.width() - this.x);
-		const resultX = Math.min(diffX, diffXLoop);
-		return resultX;
-	} else {
-		const diffX = Math.abs(this.x - px);
-		const diffXLoop = Math.abs(this.x + $gameMap.width() - px);
-		const resultX = Math.min(diffX, diffXLoop);
-		return resultX;
-	}
-};
+//--------------------------------------
+// ループマップ対応の旧処理
+// コアスクリプトに関数があったので不要
 
-Game_Event.prototype.vectorY = function() {
-	const py = $gamePlayer.y;
-	if (this.y === py) {
-		return 0;
-	} else if (this.y > py) {
-		const diffY = Math.abs(this.y - py);
-		const diffYLoop = Math.abs(py + $gameMap.height() - this.y);
-		const resultY = Math.min(diffY, diffYLoop);
-		return resultY;
-	} else {
-		const diffY = Math.abs(this.y - py);
-		const diffYLoop = Math.abs(this.y + $gameMap.height() - py);
-		const resultY = Math.min(diffY, diffYLoop);
-		return resultY;
-	}
-};
+// Game_Event.prototype.vector = function() {
+// 	const px = $gamePlayer.x;
+// 	const py = $gamePlayer.y;
+// 	const diffX = $gameMap.isLoopHorizontal() ? this.vectorX() : Math.abs(this.x - px);
+// 	const diffY = $gameMap.isLoopVertical() ? this.vectorY() : Math.abs(this.y - py);
+// 	return diffX + diffY;
+// };
+
+// Game_Event.prototype.vectorX = function() {
+// 	const px = $gamePlayer.x;
+// 	if (this.x === px) {
+// 		return 0;
+// 	} else if (this.x > px) {
+// 		const diffX = Math.abs(this.x - px);
+// 		const diffXLoop = Math.abs(px + $gameMap.width() - this.x);
+// 		const resultX = Math.min(diffX, diffXLoop);
+// 		return resultX;
+// 	} else {
+// 		const diffX = Math.abs(this.x - px);
+// 		const diffXLoop = Math.abs(this.x + $gameMap.width() - px);
+// 		const resultX = Math.min(diffX, diffXLoop);
+// 		return resultX;
+// 	}
+// };
+
+// Game_Event.prototype.vectorY = function() {
+// 	const py = $gamePlayer.y;
+// 	if (this.y === py) {
+// 		return 0;
+// 	} else if (this.y > py) {
+// 		const diffY = Math.abs(this.y - py);
+// 		const diffYLoop = Math.abs(py + $gameMap.height() - this.y);
+// 		const resultY = Math.min(diffY, diffYLoop);
+// 		return resultY;
+// 	} else {
+// 		const diffY = Math.abs(this.y - py);
+// 		const diffYLoop = Math.abs(this.y + $gameMap.height() - py);
+// 		const resultY = Math.min(diffY, diffYLoop);
+// 		return resultY;
+// 	}
+// };
 
 //--------------------------------------
 })();

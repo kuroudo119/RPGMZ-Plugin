@@ -183,6 +183,7 @@ iPhoneではユーザー操作に伴うAPI実行を1回行う必要がありま�
 - ver.1.11.0 (2024/01/22) iPhone用ボタンの文字列をパラメータ化
 - ver.1.12.0 (2024/01/22) 音声終わりメッセージ送りで連打扱いになる事象を修正
 - ver.1.12.1 (2024/01/25) 上記の追加修正
+- ver.1.12.2 (2024/02/11) 選択肢のキャンセルボタンがタッチできないを修正
 
  * 
  * 
@@ -425,7 +426,6 @@ Window_ChoiceList.prototype.processTouch = function() {
 			}
 			if (TouchInput.isTriggered()) { // isClicked から変更
 				this.onTouchOk();
-				TouchInput.clear(); // 追加
 			} else if (TouchInput.isCancelled()) {
 				this.onTouchCancel();
 			}

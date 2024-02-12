@@ -214,10 +214,10 @@ const MESSAGE_TOUCH = PARAM["MESSAGE_TOUCH"] === "true";
 const KEY_REPEAT = Number(PARAM["KEY_REPEAT"]) || 0;
 
 // 動作確認用
-const FORCE_BUTTON_IOS = false;
+const FORCE_BUTTON_IOS = true;
 
 // Web Audio API 動作テスト
-const WEB_AUDIO = false;
+const WEB_AUDIO = true;
 const VERSION_PIXY = true;
 const AUDIO_SRC = "audio/se/Heal1.ogg";
 const AUDIO_ID = "test";

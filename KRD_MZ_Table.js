@@ -25,6 +25,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2021/08/12) 非公開版完成
 - ver.1.0.0 (2021/08/13) 公開
 - ver.1.0.1 (2021/08/21) 即時関数外の変数宣言をletに修正。
+- ver.1.1.0 (2024/02/20) カーソルプラグインに対応
 
  * 
  * 
@@ -35,6 +36,9 @@ let Window_Table = null;
 (() => {
 
 "use strict";
+
+const CURSOR_PLUGIN_NAME = "KRD_MZ_SelectableCursor";
+const USE_CURSOR_PLUGIN = PluginManager._scripts.includes(CURSOR_PLUGIN_NAME);
 
 Window_Table = class extends Window_Command {
 	makeCommandList() {
@@ -165,17 +169,25 @@ Window_Table = class extends Window_Command {
 	}
 
 	cursorUp(wrap) {
-		const index = Math.max(0, this.index());
-		const maxCols = this.maxCols();
-		if (this.isIndexOk(index - maxCols)) {
+		if (USE_CURSOR_PLUGIN) {
 			super.cursorUp(...arguments);
+		} else {
+			const index = Math.max(0, this.index());
+			const maxCols = this.maxCols();
+			if (this.isIndexOk(index - maxCols)) {
+				super.cursorUp(...arguments);
+			}
 		}
 	}
 
 	cursorLeft(wrap) {
-		const index = Math.max(0, this.index());
-		if (this.isIndexOk(index - 1)) {
+		if (USE_CURSOR_PLUGIN) {
 			super.cursorLeft(...arguments);
+		} else {
+			const index = Math.max(0, this.index());
+			if (this.isIndexOk(index - 1)) {
+				super.cursorLeft(...arguments);
+			}
 		}
 	}
 
@@ -184,6 +196,16 @@ Window_Table = class extends Window_Command {
 		if (this.isIndexOk(index - this.maxPageItems())) {
 			super.cursorPageup(...arguments);
 		}
+	}
+
+	// KRD_MZ_SelectableCursor
+	headIndex() {
+		return this.startIndex();
+	};
+
+	// KRD_MZ_SelectableCursor
+	headRow() {
+		return 1;
 	}
 };
 

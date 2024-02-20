@@ -33,6 +33,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.2.0 (2024/01/14) 数値入力への影響を修正
 - ver.0.3.0 (2024/01/16) 長押しの挙動を変更
 - ver.1.0.0 (2024/01/16) 公開
+- ver.1.1.0 (2024/02/09) デバッグ画面の挙動を修正
+- ver.1.2.0 (2024/02/20) マジックナンバーを関数化
 
  * 
  * 
@@ -54,6 +56,55 @@ Window_NumberInput.prototype.cursorDown = function(wrap) {
 const _Window_NumberInput_cursorUp = Window_NumberInput.prototype.cursorUp;
 Window_NumberInput.prototype.cursorUp = function(wrap) {
 	_Window_NumberInput_cursorUp.call(this, ...arguments);
+};
+
+//--------------------------------------
+// オプション画面
+// 元の挙動を使う
+
+const _Window_Options_cursorDown = Window_Options.prototype.cursorDown;
+Window_Options.prototype.cursorDown = function(wrap) {
+	_Window_Options_cursorDown.call(this, ...arguments);
+};
+
+const _Window_Options_cursorUp = Window_Options.prototype.cursorUp;
+Window_Options.prototype.cursorUp = function(wrap) {
+	_Window_Options_cursorUp.call(this, ...arguments);
+};
+
+const _Window_Options_cursorRight = Window_Options.prototype.cursorRight;
+Window_Options.prototype.cursorRight = function() {
+	_Window_Options_cursorRight.call(this, ...arguments);
+};
+
+const _Window_Options_cursorLeft = Window_Options.prototype.cursorLeft;
+Window_Options.prototype.cursorLeft = function() {
+	_Window_Options_cursorLeft.call(this, ...arguments);
+};
+
+//--------------------------------------
+// デバッグ画面
+
+// 元の挙動を使う
+const _Window_DebugEdit_cursorRight = Window_DebugEdit.prototype.cursorRight;
+Window_DebugEdit.prototype.cursorRight = function(wrap) {
+	_Window_DebugEdit_cursorRight.call(this, ...arguments);
+};
+
+// 元の挙動を使う
+const _Window_DebugEdit_cursorLeft = Window_DebugEdit.prototype.cursorLeft;
+Window_DebugEdit.prototype.cursorLeft = function(wrap) {
+	_Window_DebugEdit_cursorLeft.call(this, ...arguments);
+};
+
+// 挙動を修正
+Window_Selectable.prototype.cursorPagedown = function() {
+	// カーソル移動なし
+};
+
+// 挙動を修正
+Window_Selectable.prototype.cursorPageup = function() {
+	// カーソル移動なし
 };
 
 //--------------------------------------
@@ -79,18 +130,17 @@ Window_ShopNumber.prototype.processNumberChange = function() {
 };
 
 //--------------------------------------
+// カーソル移動処理
 
 const _Window_Selectable_cursorDown = Window_Selectable.prototype.cursorDown;
 Window_Selectable.prototype.cursorDown = function(wrap) {
-	const index = Math.max(0, this.index());
-	const maxItems = this.maxItems();
-	const maxCols = this.maxCols();
-	if (index === maxItems - 1) {
+	if (this.index() === this.tailIndex()) {
 		this.cursorHead();
-	} else if (index >= maxItems - maxCols) {
-		this.smoothSelect(index + 1);
-	} else if (this.row() === (this.maxRows() - 1)) {
-		this.smoothSelect(index + 1);
+	} else if (this.index() >= (this.maxItems() - this.maxCols())) {
+		// 下のindexが空欄の時
+		this.smoothSelect(this.nextIndex());
+	} else if (this.row() === this.tailRow()) {
+		this.smoothSelect(this.nextIndex());
 	} else {
 		_Window_Selectable_cursorDown.call(this, ...arguments);
 	}
@@ -98,10 +148,13 @@ Window_Selectable.prototype.cursorDown = function(wrap) {
 
 const _Window_Selectable_cursorUp = Window_Selectable.prototype.cursorUp;
 Window_Selectable.prototype.cursorUp = function(wrap) {
-	if (this.index() === 0) {
+	if (this.index() === this.headIndex()) {
 		this.cursorTail();
-	} else if (this.row() === 0) {
-		this.smoothSelect(this.index() - 1);
+	} else if (this.index() < (this.headIndex() + this.maxCols())) {
+		// 上のindexが空欄の時
+		this.smoothSelect(this.previousIndex());
+	} else if (this.row() === this.headRow()) {
+		this.smoothSelect(this.previousIndex());
 	} else {
 		_Window_Selectable_cursorUp.call(this, ...arguments);
 	}
@@ -109,10 +162,10 @@ Window_Selectable.prototype.cursorUp = function(wrap) {
 
 const _Window_Selectable_cursorRight = Window_Selectable.prototype.cursorRight;
 Window_Selectable.prototype.cursorRight = function(wrap) {
-	if (this.index() === this.maxItems() - 1) {
+	if (this.index() === this.tailIndex()) {
 		this.cursorHead();
-	} else if (this.maxCols() === 1 && this.index() < this.maxItems() - 1) {
-		this.smoothSelect(this.index() + 1);
+	} else if (this.maxCols() === this.minCols() && this.index() < this.tailIndex()) {
+		this.smoothSelect(this.nextIndex());
 	} else {
 		_Window_Selectable_cursorRight.call(this, ...arguments);
 	}
@@ -120,10 +173,10 @@ Window_Selectable.prototype.cursorRight = function(wrap) {
 
 const _Window_Selectable_cursorLeft = Window_Selectable.prototype.cursorLeft
 Window_Selectable.prototype.cursorLeft = function(wrap) {
-	if (this.index() === 0) {
+	if (this.index() === this.headIndex()) {
 		this.cursorTail();
-	} else if (this.maxCols() === 1 && this.index() > 0) {
-		this.smoothSelect(this.index() - 1);
+	} else if (this.maxCols() === this.minCols() && this.index() > this.headIndex()) {
+		this.smoothSelect(this.previousIndex());
 	} else {
 		_Window_Selectable_cursorLeft.call(this, ...arguments);
 	}
@@ -132,15 +185,53 @@ Window_Selectable.prototype.cursorLeft = function(wrap) {
 // 新規作成
 Window_Selectable.prototype.cursorHead = function() {
 	if (!Input.isLongPressed("down") && !Input.isLongPressed("right")) {
-		this.smoothSelect(0);
+		this.smoothSelect(this.headIndex());
 	}
 };
 
 // 新規作成
 Window_Selectable.prototype.cursorTail = function() {
 	if (!Input.isLongPressed("up") && !Input.isLongPressed("left")) {
-		this.smoothSelect(this.maxItems() - 1);
+		this.smoothSelect(this.tailIndex());
 	}
+};
+
+//--------------------------------------
+// カーソル移動用データ
+
+// 新規作成
+Window_Selectable.prototype.nextIndex = function() {
+	return this.index() + 1;
+};
+
+// 新規作成
+Window_Selectable.prototype.previousIndex = function() {
+	return this.index() - 1;
+};
+
+// 新規作成
+Window_Selectable.prototype.headIndex = function() {
+	return 0;
+};
+
+// 新規作成
+Window_Selectable.prototype.tailIndex = function() {
+	return this.maxItems() - 1;
+};
+
+// 新規作成
+Window_Selectable.prototype.headRow = function() {
+	return 0;
+};
+
+// 新規作成
+Window_Selectable.prototype.tailRow = function() {
+	return this.maxRows() - 1;
+};
+
+// 新規作成
+Window_Selectable.prototype.minCols = function() {
+	return 1;
 };
 
 //--------------------------------------

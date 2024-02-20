@@ -122,6 +122,13 @@
  * @type boolean
  * @parent fileSection
  * 
+ * @param USE_EX_WORD
+ * @text 外部用語取得機能
+ * @desc 用語の文字列をjsonファイル（word_99）から取得します。
+ * @default false
+ * @type boolean
+ * @parent fileSection
+ * 
  * @command setLanguage
  * @text 言語切替コマンド
  * @desc 指定された番号の言語に切り替えます。
@@ -258,50 +265,42 @@ UniqueDataLoader のプロパティ名は「db_99」とします。
 
 #### 【例】外部DB取得機能 jsonファイル
 
-- 下記 [ から ] をjsonファイルに記述します。
+- 全体 を { から } で囲みます。
+- 下記 type をキーとした [ から ] を記述します。
+- type : actor, class, item, skill, weapon, armor, enemy, state
 - ひとつのデータは { から } で挟みます。
 
 - 下記の中から必要なキーを設定します。
-- type : actor, class, item, skill, weapon, armor, enemy, state
 - id : アクターやアイテムなどの番号
 - name : アクターやアイテムなどの名前
 - nickname : 二つ名
 - profile_1st : プロフィールの1行目
 - profile_2nd : プロフィールの2行目
-- desc_1st : 説明の1行目
-- desc_2nd : 説明の2行目
+- description_1st : 説明の1行目
+- description_2nd : 説明の2行目
 - message1 : スキルのメッセージ1行目、ステートのメッセージ（アクター）
 - message2 : スキルのメッセージ2行目、ステートのメッセージ（敵キャラ）
 - message3 : ステートのメッセージ（継続）
 - message4 : ステートのメッセージ（解除）
 
 ```json
-[
-	{
-		"type": "actor",
-		"id": 1,
-		"name": "Hero",
-		"nickname": "Test Nickname",
-		"profile_1st": "Test text.",
-		"profile_2nd": "Test text2."
-	},
-	{
-		"type": "skill",
-		"id": 2,
-		"name": "Guard",
-		"desc_1st": "Test text.",
-		"desc_2nd": "Test text2."
-	},
-	{
-		"type": "state",
-		"id": 4,
-		"name": "Poison",
-		"message1": "Message1 test.",
-		"message2": "Message2 test.",
-		"message3": "Message3 test.",
-		"message4": "Message4 test."
-	}
-]
+{
+	"actor": [
+		{
+			"id": 1,
+			"name": "John Doe",
+			"nickname": "Test Nickname",
+			"profile_1st": "Test text.",
+			"profile_2nd": "Test text2."
+		}
+	],
+	"class": [
+		{
+			"id": 1,
+			"name": "Hero",
+		}
+	]
+}
 ```
 
 ## 更新履歴
@@ -338,6 +337,8 @@ UniqueDataLoader のプロパティ名は「db_99」とします。
 - ver.4.1.1 (2023/07/07) 数値 0 が空文字になるのを修正
 - ver.4.1.2 (2023/07/09) 文字列 undefined 対応
 - ver.4.1.3 (2023/09/23) Window_Baseに追加した制御文字処理を削除
+- ver.4.1.4 (2023/11/03) デバッグモードスクロール対応
+- ver.5.0.0 (2024/02/20) 外部ファイル機能を修正
 
  * 
  * 
@@ -821,6 +822,10 @@ const MSG_NAME = "msg_";
 const USE_EXTERNAL = PARAM["useExternal"] === "true";
 const EXTERNAL_NAME = "db_";
 
+const USE_EX_WORD = PARAM["USE_EX_WORD"] === "true";
+const EX_WORD_NAME = "word_";
+const EX_WORD_KEY = "word";
+
 const OPTION_DEFAULT = 0;
 ConfigManager.multilingual = OPTION_DEFAULT;
 
@@ -831,7 +836,7 @@ const FILE_START_WORD = "LANGF";
 const FILE_END_WORD = "LANGFEND";
 
 //--------------------------------------
-// Plugin Command for MZ
+// プラグインコマンド
 
 PluginManager.registerCommand(PLUGIN_NAME, "setLanguage", args => {
 	const varLanguage = Number(args.varLanguage);
@@ -858,33 +863,33 @@ PluginManager.registerCommand(PLUGIN_NAME, "getLanguage", args => {
 //--------------------------------------
 // オプション画面
 
-const KRD_Scene_Options_maxCommands = Scene_Options.prototype.maxCommands;
+const _Scene_Options_maxCommands = Scene_Options.prototype.maxCommands;
 Scene_Options.prototype.maxCommands = function() {
 	if (OPTION_TEXT && KRD_MULTILINGUAL.canConfig()) {
-		return KRD_Scene_Options_maxCommands.apply(this, arguments) + 1;
+		return _Scene_Options_maxCommands.call(this, ...arguments) + 1;
 	} else {
-		return KRD_Scene_Options_maxCommands.apply(this, arguments);
+		return _Scene_Options_maxCommands.call(this, ...arguments);
 	}
 };
 
-const KRD_Window_Options_addGeneralOptions = Window_Options.prototype.addGeneralOptions;
+const _Window_Options_addGeneralOptions = Window_Options.prototype.addGeneralOptions;
 Window_Options.prototype.addGeneralOptions = function() {
-	KRD_Window_Options_addGeneralOptions.apply(this, arguments);
+	_Window_Options_addGeneralOptions.call(this, ...arguments);
 	if (OPTION_TEXT && KRD_MULTILINGUAL.canConfig()) {
 		this.addCommand(OPTION_TEXT[ConfigManager.multilingual], "multilingual");
 	}
 };
 
-const KRD_ConfigManager_makeData = ConfigManager.makeData;
+const _ConfigManager_makeData = ConfigManager.makeData;
 ConfigManager.makeData = function() {
-	const config = KRD_ConfigManager_makeData.apply(this, arguments);
+	const config = _ConfigManager_makeData.call(this, ...arguments);
 	config.multilingual = this.multilingual;
 	return config;
 };
 
-const KRD_ConfigManager_applyData = ConfigManager.applyData;
+const _ConfigManager_applyData = ConfigManager.applyData;
 ConfigManager.applyData = function(config) {
-	KRD_ConfigManager_applyData.apply(this, arguments);
+	_ConfigManager_applyData.call(this, ...arguments);
 	this.multilingual = this.readIndex(config, "multilingual");
 };
 
@@ -896,45 +901,45 @@ ConfigManager.readIndex = function(config, name) {
 	}
 };
 
-const KRD_Window_Options_statusText = Window_Options.prototype.statusText;
+const _Window_Options_statusText = Window_Options.prototype.statusText;
 Window_Options.prototype.statusText = function(index) {
 	const symbol = this.commandSymbol(index);
 	if (symbol !== "multilingual") {
-		return KRD_Window_Options_statusText.apply(this, arguments);
+		return _Window_Options_statusText.call(this, ...arguments);
 	}
 	const value = this.getConfigValue(symbol);
 	return LANGUAGE[value];
 };
 
-const KRD_Window_Options_processOk = Window_Options.prototype.processOk;
+const _Window_Options_processOk = Window_Options.prototype.processOk;
 Window_Options.prototype.processOk = function() {
 	const index = this.index();
 	const symbol = this.commandSymbol(index);
 	if (symbol !== "multilingual") {
-		KRD_Window_Options_processOk.apply(this, arguments);
+		_Window_Options_processOk.call(this, ...arguments);
 		return;
 	}
 	this.changeIndex(symbol, this.getConfigValue(symbol) + 1);
 };
 
-const KRD_Window_Options_cursorRight = Window_Options.prototype.cursorRight;
+const _Window_Options_cursorRight = Window_Options.prototype.cursorRight;
 Window_Options.prototype.cursorRight = function() {
 	const index = this.index();
 	const symbol = this.commandSymbol(index);
 	if (symbol !== "multilingual") {
-		KRD_Window_Options_cursorRight.apply(this, arguments);
+		_Window_Options_cursorRight.call(this, ...arguments);
 		return;
 	}
 	const value = Math.min(this.getConfigValue(symbol) + 1, LANGUAGE.length - 1);
 	this.changeIndex(symbol, value);
 };
 
-const KRD_Window_Options_cursorLeft = Window_Options.prototype.cursorLeft;
+const _Window_Options_cursorLeft = Window_Options.prototype.cursorLeft;
 Window_Options.prototype.cursorLeft = function() {
 	const index = this.index();
 	const symbol = this.commandSymbol(index);
 	if (symbol !== "multilingual") {
-		KRD_Window_Options_cursorLeft.apply(this, arguments);
+		_Window_Options_cursorLeft.call(this, ...arguments);
 		return;
 	}
 	const value = Math.max(this.getConfigValue(symbol) - 1, 0);
@@ -958,37 +963,37 @@ Window_Options.prototype.changeIndex = function(symbol, value) {
 //--------------------------------------
 // 取得：アクター情報
 
-const KRD_Game_Actor_setup = Game_Actor.prototype.setup;
+const _Game_Actor_setup = Game_Actor.prototype.setup;
 Game_Actor.prototype.setup = function(actorId) {
-	KRD_Game_Actor_setup.apply(this, arguments);
+	_Game_Actor_setup.call(this, ...arguments);
 	this._initName = this._name;
 	this._initNickname = this._nickname;
 	this._initProfile = this._profile;
 };
 
-const KRD_Game_Actor_name = Game_Actor.prototype.name;
+const _Game_Actor_name = Game_Actor.prototype.name;
 Game_Actor.prototype.name = function() {
 	if (this._name !== this._initName) {
 		// イベントで変更した場合は変更を優先する。
-		return KRD_Game_Actor_name.apply(this, arguments);
+		return _Game_Actor_name.call(this, ...arguments);
 	}
 	return KRD_MULTILINGUAL.getData($dataActors[this.actorId()]).name;
 };
 
-const KRD_Game_Actor_nickname = Game_Actor.prototype.nickname;
+const _Game_Actor_nickname = Game_Actor.prototype.nickname;
 Game_Actor.prototype.nickname = function() {
 	if (this._nickname !== this._initNickname) {
 		// イベントで変更した場合は変更を優先する。
-		return KRD_Game_Actor_nickname.apply(this, arguments);
+		return _Game_Actor_nickname.call(this, ...arguments);
 	}
 	return KRD_MULTILINGUAL.getData($dataActors[this.actorId()]).nickname;
 };
 
-const KRD_Game_Actor_profile = Game_Actor.prototype.profile;
+const _Game_Actor_profile = Game_Actor.prototype.profile;
 Game_Actor.prototype.profile = function() {
 	if (this._profile !== this._initProfile) {
 		// イベントで変更した場合は変更を優先する。
-		return KRD_Game_Actor_profile.apply(this, arguments);
+		return _Game_Actor_profile.call(this, ...arguments);
 	}
 	return KRD_MULTILINGUAL.getData($dataActors[this.actorId()]).profile;
 };
@@ -996,74 +1001,98 @@ Game_Actor.prototype.profile = function() {
 //--------------------------------------
 // 取得：用語
 
-const KRD_TextManager_basic = TextManager.basic;
+const _TextManager_basic = TextManager.basic;
 TextManager.basic = function(id) {
 	const language = KRD_MULTILINGUAL.multilingual();
 	if (language <= 0) {
-		return KRD_TextManager_basic.apply(this, arguments);
+		return _TextManager_basic.call(this, ...arguments);
 	}
+
+	const exWord = this.getExWord("basic", id);
+	if (exWord) {
+		return exWord;
+	}
+
 	if (BASIC) {
 		const preData = BASIC[language - 1] ? JSON.parse(BASIC[language - 1]) : null;
 		if (preData && preData.basic) {
 			const data = JSON.parse(preData.basic);
-			return data[id] || KRD_TextManager_basic.apply(this, arguments);
+			return data[id] || _TextManager_basic.call(this, ...arguments);
 		} else {
-			return KRD_TextManager_basic.apply(this, arguments);
+			return _TextManager_basic.call(this, ...arguments);
 		}
 	} else {
-		return KRD_TextManager_basic.apply(this, arguments);
+		return _TextManager_basic.call(this, ...arguments);
 	}
 };
 
-const KRD_TextManager_param = TextManager.param;
+const _TextManager_param = TextManager.param;
 TextManager.param = function(id) {
 	const language = KRD_MULTILINGUAL.multilingual();
 	if (language <= 0) {
-		return KRD_TextManager_param.apply(this, arguments);
+		return _TextManager_param.call(this, ...arguments);
 	}
+
+	const exWord = this.getExWord("params", id);
+	if (exWord) {
+		return exWord;
+	}
+
 	if (PARAMS) {
 		const preData = PARAMS[language - 1] ? JSON.parse(PARAMS[language - 1]) : null;
 		if (preData && preData.params) {
 			const data = JSON.parse(preData.params);
-			return data[id] || KRD_TextManager_param.apply(this, arguments);
+			return data[id] || _TextManager_param.call(this, ...arguments);
 		} else {
-			return KRD_TextManager_param.apply(this, arguments);
+			return _TextManager_param.call(this, ...arguments);
 		}
 	} else {
-		return KRD_TextManager_param.apply(this, arguments);
+		return _TextManager_param.call(this, ...arguments);
 	}
 };
 
-const KRD_TextManager_command = TextManager.command;
+const _TextManager_command = TextManager.command;
 TextManager.command = function(id) {
 	const language = KRD_MULTILINGUAL.multilingual();
 	if (language <= 0) {
-		return KRD_TextManager_command.apply(this, arguments);
+		return _TextManager_command.call(this, ...arguments);
 	}
+
+	const exWord = this.getExWord("commands", id);
+	if (exWord) {
+		return exWord;
+	}
+
 	if (COMMANDS) {
 		const preData = COMMANDS[language - 1] ? JSON.parse(COMMANDS[language - 1]) : null;
 		if (preData && preData.commands) {
 			const data = JSON.parse(preData.commands);
-			return data[id] || KRD_TextManager_command.apply(this, arguments);
+			return data[id] || _TextManager_command.call(this, ...arguments);
 		} else {
-			return KRD_TextManager_command.apply(this, arguments);
+			return _TextManager_command.call(this, ...arguments);
 		}
 	} else {
-		return KRD_TextManager_command.apply(this, arguments);
+		return _TextManager_command.call(this, ...arguments);
 	}
 };
 
-const KRD_TextManager_message = TextManager.message;
+const _TextManager_message = TextManager.message;
 TextManager.message = function(id) {
 	const language = KRD_MULTILINGUAL.multilingual();
 	if (language <= 0) {
-		return KRD_TextManager_message.apply(this, arguments);
+		return _TextManager_message.call(this, ...arguments);
 	}
+
+	const exWord = this.getExWord("messages", id);
+	if (exWord) {
+		return exWord;
+	}
+
 	if (MESSAGES) {
 		const data = MESSAGES[language - 1] ? JSON.parse(MESSAGES[language - 1]) : null;
-		return data ? data[id] : KRD_TextManager_message.apply(this, arguments);
+		return data ? data[id] : _TextManager_message.call(this, ...arguments);
 	} else {
-		return KRD_TextManager_message.apply(this, arguments);
+		return _TextManager_message.call(this, ...arguments);
 	}
 };
 
@@ -1073,6 +1102,12 @@ Object.defineProperty(TextManager, "currencyUnit", {
 		if (language <= 0) {
 			return $dataSystem.currencyUnit;
 		}
+
+		const exWord = this.getExWord("currencyUnit", "currencyUnit");
+		if (exWord) {
+			return exWord;
+		}
+	
 		if (CURRENCY_UNIT) {
 			const data = CURRENCY_UNIT[language - 1] ? JSON.parse(CURRENCY_UNIT[language - 1]) : null;
 			return data && data.currencyUnit ? data.currencyUnit : $dataSystem.currencyUnit;
@@ -1084,6 +1119,25 @@ Object.defineProperty(TextManager, "currencyUnit", {
 });
 
 //--------------------------------------
+// 用語を外部ファイルから取得
+
+TextManager.getExWord = function(type, id){
+	if (USE_EX_WORD) {
+		const exFileData = window[GLOBAL_NAME][EX_WORD_NAME + KRD_MULTILINGUAL.multilingual()];
+		if (exFileData) {
+			const exData = exFileData[type];
+			if (exData) {
+				const found = exData.find(ex => ex.id === id);
+				if (found) {
+					return found[EX_WORD_KEY];
+				}
+			}
+		}
+	}
+	return null;
+};
+
+//--------------------------------------
 // 取得：用語（追加関数）
 
 TextManager.skillType = function(id) {
@@ -1091,6 +1145,12 @@ TextManager.skillType = function(id) {
 	if (language <= 0) {
 		return $dataSystem.skillTypes[id];
 	}
+
+	const exWord = this.getExWord("skillTypes", id);
+	if (exWord) {
+		return exWord;
+	}
+
 	if (SKILL_TYPES) {
 		const preData = SKILL_TYPES[language - 1] ? JSON.parse(SKILL_TYPES[language - 1]) : null;
 		if (preData && preData.skillTypes) {
@@ -1104,6 +1164,7 @@ TextManager.skillType = function(id) {
 	}
 };
 
+// 上書き
 Window_SkillType.prototype.makeCommandList = function() {
 	if (this._actor) {
 		const skillTypes = this._actor.skillTypes();
@@ -1114,6 +1175,7 @@ Window_SkillType.prototype.makeCommandList = function() {
 	}
 };
 
+// 上書き
 Window_ActorCommand.prototype.addSkillCommands = function() {
 	const skillTypes = this._actor.skillTypes();
 	for (const stypeId of skillTypes) {
@@ -1127,6 +1189,12 @@ TextManager.equipType = function(id) {
 	if (language <= 0) {
 		return $dataSystem.equipTypes[id];
 	}
+
+	const exWord = this.getExWord("equipTypes", id);
+	if (exWord) {
+		return exWord;
+	}
+
 	if (EQUIP_TYPES) {
 		const preData = EQUIP_TYPES[language - 1] ? JSON.parse(EQUIP_TYPES[language - 1]) : null;
 		if (preData && preData.equipTypes) {
@@ -1140,6 +1208,7 @@ TextManager.equipType = function(id) {
 	}
 };
 
+// 上書き
 Window_StatusBase.prototype.actorSlotName = function(actor, index) {
 	const slots = actor.equipSlots();
 	return TextManager.equipType(slots[index]);
@@ -1150,6 +1219,12 @@ TextManager.element = function(id) {
 	if (language <= 0) {
 		return $dataSystem.elements[id];
 	}
+
+	const exWord = this.getExWord("elements", id);
+	if (exWord) {
+		return exWord;
+	}
+
 	if (ELEMENTS) {
 		const preData = ELEMENTS[language - 1] ? JSON.parse(ELEMENTS[language - 1]) : null;
 		if (preData && preData.elements) {
@@ -1166,11 +1241,11 @@ TextManager.element = function(id) {
 //--------------------------------------
 // ゲームタイトル
 
-const KRD_Scene_Title_drawGameTitle = Scene_Title.prototype.drawGameTitle;
+const _Scene_Title_drawGameTitle = Scene_Title.prototype.drawGameTitle;
 Scene_Title.prototype.drawGameTitle = function() {
 	const language = KRD_MULTILINGUAL.multilingual();
 	if (language <= 0) {
-		KRD_Scene_Title_drawGameTitle.apply(this, arguments);
+		_Scene_Title_drawGameTitle.call(this, ...arguments);
 	} else {
 		if (GAME_TITLE) {
 			const x = 20;
@@ -1185,7 +1260,7 @@ Scene_Title.prototype.drawGameTitle = function() {
 			bitmap.fontSize = 72;
 			bitmap.drawText(text, x, y, maxWidth, 48, "center");
 		} else {
-			KRD_Scene_Title_drawGameTitle.apply(this, arguments);
+			_Scene_Title_drawGameTitle.call(this, ...arguments);
 		}
 	}
 };
@@ -1193,27 +1268,27 @@ Scene_Title.prototype.drawGameTitle = function() {
 //--------------------------------------
 // 制御文字 LANG
 
-const KRD_Window_Base_convertEscapeCharacters = Window_Base.prototype.convertEscapeCharacters;
+const _Window_Base_convertEscapeCharacters = Window_Base.prototype.convertEscapeCharacters;
 Window_Base.prototype.convertEscapeCharacters = function(text) {
 	text = KRD_MULTILINGUAL.getFileText(text);
 	text = KRD_MULTILINGUAL.getFileText(text, true);
 
 	text = KRD_MULTILINGUAL.getLangText(text);
 	text = KRD_MULTILINGUAL.getLangText(text, true);
-	text = KRD_Window_Base_convertEscapeCharacters.call(this, text);
+	text = _Window_Base_convertEscapeCharacters.call(this, text);
 	return text;
 };
 
-const KRD_Window_Base_drawText = Window_Base.prototype.drawText;
+const _Window_Base_drawText = Window_Base.prototype.drawText;
 Window_Base.prototype.drawText = function(text, x, y, maxWidth, align) {
 	text = KRD_MULTILINGUAL.getLangText(text);
 	text = KRD_MULTILINGUAL.getLangText(text, true);
-	KRD_Window_Base_drawText.call(this, text, x, y, maxWidth, align);
+	_Window_Base_drawText.call(this, text, x, y, maxWidth, align);
 };
 
-const KRD_Window_Command_commandName = Window_Command.prototype.commandName;
+const _Window_Command_commandName = Window_Command.prototype.commandName;
 Window_Command.prototype.commandName = function(index) {
-	const base = KRD_Window_Command_commandName.apply(this, arguments);
+	const base = _Window_Command_commandName.call(this, ...arguments);
 
 	if (base !== undefined) {
 		const result = KRD_MULTILINGUAL.getLangText(base);
@@ -1262,9 +1337,9 @@ Game_Actor.prototype.showRemovedStates = function() {
 //--------------------------------------
 // プロパティをゲッターに差し替え
 
-const KRD_Scene_Title_create = Scene_Title.prototype.create;
+const _Scene_Title_create = Scene_Title.prototype.create;
 Scene_Title.prototype.create = function() {
-	KRD_Scene_Title_create.apply(this, arguments);
+	_Scene_Title_create.call(this, ...arguments);
 	$gameSystem.resetAllData();
 };
 
@@ -1331,7 +1406,7 @@ Game_System.prototype.resetDataSkills = function() {
 	$dataSkills.forEach(data => {
 		if (data) {
 			data.name_0 = data.name_0 ? data.name_0 : data.name;
-			data.desc_0 = data.desc_0 ? data.desc_0 : data.description;
+			data.description_0 = data.description_0 ? data.description_0 : data.description;
 			data.message1_0 = data.message1_0 ? data.message1_0 : data.message1;
 			data.message2_0 = data.message2_0 ? data.message2_0 : data.message2;
 
@@ -1369,7 +1444,7 @@ Game_System.prototype.resetDatabase = function(database) {
 	database.forEach(data => {
 		if (data) {
 			data.name_0 = data.name_0 ? data.name_0 : data.name;
-			data.desc_0 = data.desc_0 ? data.desc_0 : data.description;
+			data.description_0 = data.description_0 ? data.description_0 : data.description;
 
 			Object.defineProperties(data, {
 				name: {
@@ -1437,9 +1512,9 @@ Game_System.prototype.resetDataStates = function() {
 //--------------------------------------
 // テストプレイ用の処理
 
-const KRD_Scene_Boot_start = Scene_Boot.prototype.start;
+const _Scene_Boot_start = Scene_Boot.prototype.start;
 Scene_Boot.prototype.start = function() {
-	KRD_Scene_Boot_start.apply(this, arguments);
+	_Scene_Boot_start.call(this, ...arguments);
 	if (DataManager.isBattleTest() || DataManager.isEventTest()) {
 		$gameSystem.resetDataActors();
 	}
@@ -1451,28 +1526,28 @@ Scene_Boot.prototype.start = function() {
 KRD_MULTILINGUAL.getData = function(data) {
 	return {
 		get name() {
-			return KRD_MULTILINGUAL.getReturnData(data, "name_", "name");
+			return KRD_MULTILINGUAL.getReturnData(data, "name");
 		},
 		get nickname() {
-			return KRD_MULTILINGUAL.getReturnData(data, "nickname_", "nickname");
+			return KRD_MULTILINGUAL.getReturnData(data, "nickname");
 		},
 		get profile() {
-			return KRD_MULTILINGUAL.getReturnData(data, "profile_", "profile_1st", "profile_2nd");
+			return KRD_MULTILINGUAL.getReturnData(data, "profile");
 		},
 		get description() {
-			return KRD_MULTILINGUAL.getReturnData(data, "desc_", "desc_1st", "desc_2nd");
+			return KRD_MULTILINGUAL.getReturnData(data, "description");
 		},
 		get message1() {
-			return KRD_MULTILINGUAL.getReturnData(data, "message1_", "message1");
+			return KRD_MULTILINGUAL.getReturnData(data, "message1");
 		},
 		get message2() {
-			return KRD_MULTILINGUAL.getReturnData(data, "message2_", "message2");
+			return KRD_MULTILINGUAL.getReturnData(data, "message2");
 		},
 		get message3() {
-			return KRD_MULTILINGUAL.getReturnData(data, "message3_", "message3");
+			return KRD_MULTILINGUAL.getReturnData(data, "message3");
 		},
 		get message4() {
-			return KRD_MULTILINGUAL.getReturnData(data, "message4_", "message4");
+			return KRD_MULTILINGUAL.getReturnData(data, "message4");
 		},
 		get iconIndex() {
 			return data.iconIndex;
@@ -1483,30 +1558,45 @@ KRD_MULTILINGUAL.getData = function(data) {
 	};
 };
 
-KRD_MULTILINGUAL.getReturnData = function(data, key, exKey1, exKey2) {
-	if (USE_EXTERNAL && KRD_MULTILINGUAL.multilingual() > 0 && exKey1) {
-		const find = KRD_MULTILINGUAL.getExternalData(data, exKey1, exKey2);
-		if (find) {
-			return find;
+KRD_MULTILINGUAL.getReturnData = function(data, key) {
+	if (USE_EXTERNAL && KRD_MULTILINGUAL.multilingual() > 0) {
+		const found = KRD_MULTILINGUAL.getExternalData(data, key);
+		if (found) {
+			return found;
 		}
 	}
-	return data.meta[key + KRD_MULTILINGUAL.multilingual()] || data[key + "0"] || "";
+	return KRD_MULTILINGUAL.getNoteData(data, key);
 };
 
-KRD_MULTILINGUAL.getExternalData = function(data, key, key2) {
+KRD_MULTILINGUAL.getNoteData = function(data, key) {
+	const noteData = data.meta[key + "_" + KRD_MULTILINGUAL.multilingual()];
+	if (noteData) {
+		return noteData;
+	} else {
+		return data[key + "_0"] || "";
+	}
+};
+
+KRD_MULTILINGUAL.getExternalData = function(data, key) {
 	const type = KRD_MULTILINGUAL.getType(data);
 	if (!type) {
 		return null;
 	}
-	const find = window[GLOBAL_NAME][EXTERNAL_NAME + KRD_MULTILINGUAL.multilingual()].find(ex => ex.type === type && ex.id === data.id);
-	if (find) {
-		if (key2) {
-			const text1 = find[key] || "";
-			const text2 = find[key2] || "";
-			return text1 + "\n" + text2;
-		} else {
-			const text1 = find[key] || "";
-			return text1;
+
+	const exFileData = window[GLOBAL_NAME][EXTERNAL_NAME + KRD_MULTILINGUAL.multilingual()];
+	if (exFileData) {
+		const exData = exFileData[type];
+		if (exData) {
+			const found = exData.find(ex => ex.id === data.id);
+			if (found) {
+				if (key === "profile" || key === "description") {
+					const text1 = found[key + "_1st"] || "";
+					const text2 = found[key + "_2nd"] || "";
+					return text1 + "\n" + text2;
+				} else {
+					return found[key] || "";
+				}
+			} 
 		}
 	}
 	return null;
@@ -1552,7 +1642,8 @@ KRD_MULTILINGUAL.canConfig = function() {
 //--------------------------------------
 // 制御文字 LANG
 
-KRD_MULTILINGUAL.getLangText = function(baseText, flag) {
+// デバッグモード(F9)で undefined が入ることがあるので初期値を入れてる。
+KRD_MULTILINGUAL.getLangText = function(baseText = "", flag) {
 	if (!this.checkLangZero(baseText, flag)) {
 		return baseText;
 	}
@@ -1649,7 +1740,7 @@ function fileReplacer(match, p1, p2, offset, string, groups) {
 		const result1 = window[GLOBAL_NAME][MSG_NAME + language][groups.key];
 		const result2 = result1.toString().replace("\\n", "\n");
 		return result2;
-}
+	}
 	return groups.default;
 }
 

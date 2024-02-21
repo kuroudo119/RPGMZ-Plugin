@@ -339,6 +339,7 @@ UniqueDataLoader のプロパティ名は「db_99」とします。
 - ver.4.1.3 (2023/09/23) Window_Baseに追加した制御文字処理を削除
 - ver.4.1.4 (2023/11/03) デバッグモードスクロール対応
 - ver.5.0.0 (2024/02/20) 外部ファイル機能を修正
+- ver.5.1.0 (2024/02/21) 外部用語ファイルを System.json 準拠にした
 
  * 
  * 
@@ -1008,7 +1009,7 @@ TextManager.basic = function(id) {
 		return _TextManager_basic.call(this, ...arguments);
 	}
 
-	const exWord = this.getExWord("basic", id);
+	const exWord = this.getExWordTerms("basic", id);
 	if (exWord) {
 		return exWord;
 	}
@@ -1033,7 +1034,7 @@ TextManager.param = function(id) {
 		return _TextManager_param.call(this, ...arguments);
 	}
 
-	const exWord = this.getExWord("params", id);
+	const exWord = this.getExWordTerms("params", id);
 	if (exWord) {
 		return exWord;
 	}
@@ -1058,7 +1059,7 @@ TextManager.command = function(id) {
 		return _TextManager_command.call(this, ...arguments);
 	}
 
-	const exWord = this.getExWord("commands", id);
+	const exWord = this.getExWordTerms("commands", id);
 	if (exWord) {
 		return exWord;
 	}
@@ -1083,7 +1084,7 @@ TextManager.message = function(id) {
 		return _TextManager_message.call(this, ...arguments);
 	}
 
-	const exWord = this.getExWord("messages", id);
+	const exWord = this.getExWordTerms("messages", id);
 	if (exWord) {
 		return exWord;
 	}
@@ -1103,7 +1104,7 @@ Object.defineProperty(TextManager, "currencyUnit", {
 			return $dataSystem.currencyUnit;
 		}
 
-		const exWord = this.getExWord("currencyUnit", "currencyUnit");
+		const exWord = this.getExWord("currencyUnit");
 		if (exWord) {
 			return exWord;
 		}
@@ -1121,17 +1122,31 @@ Object.defineProperty(TextManager, "currencyUnit", {
 //--------------------------------------
 // 用語を外部ファイルから取得
 
-TextManager.getExWord = function(type, id){
+TextManager.getExWord = function(type){
 	if (USE_EX_WORD) {
 		const exFileData = window[GLOBAL_NAME][EX_WORD_NAME + KRD_MULTILINGUAL.multilingual()];
 		if (exFileData) {
-			const exData = exFileData[type];
-			if (exData) {
-				const found = exData.find(ex => ex.id === id);
-				if (found) {
-					return found[EX_WORD_KEY];
-				}
-			}
+			return exFileData[type];
+		}
+	}
+	return null;
+};
+
+TextManager.getExWordTerms = function(type, id){
+	if (USE_EX_WORD) {
+		const exFileData = window[GLOBAL_NAME][EX_WORD_NAME + KRD_MULTILINGUAL.multilingual()];
+		if (exFileData) {
+			return exFileData["terms"][type][id];
+		}
+	}
+	return null;
+};
+
+TextManager.getExWordList = function(type, id){
+	if (USE_EX_WORD) {
+		const exFileData = window[GLOBAL_NAME][EX_WORD_NAME + KRD_MULTILINGUAL.multilingual()];
+		if (exFileData) {
+			return exFileData[type][id];
 		}
 	}
 	return null;
@@ -1146,7 +1161,7 @@ TextManager.skillType = function(id) {
 		return $dataSystem.skillTypes[id];
 	}
 
-	const exWord = this.getExWord("skillTypes", id);
+	const exWord = this.getExWordList("skillTypes", id);
 	if (exWord) {
 		return exWord;
 	}
@@ -1190,7 +1205,7 @@ TextManager.equipType = function(id) {
 		return $dataSystem.equipTypes[id];
 	}
 
-	const exWord = this.getExWord("equipTypes", id);
+	const exWord = this.getExWordList("equipTypes", id);
 	if (exWord) {
 		return exWord;
 	}
@@ -1220,7 +1235,7 @@ TextManager.element = function(id) {
 		return $dataSystem.elements[id];
 	}
 
-	const exWord = this.getExWord("elements", id);
+	const exWord = this.getExWordList("elements", id);
 	if (exWord) {
 		return exWord;
 	}
@@ -1247,12 +1262,11 @@ Scene_Title.prototype.drawGameTitle = function() {
 	if (language <= 0) {
 		_Scene_Title_drawGameTitle.call(this, ...arguments);
 	} else {
-		if (GAME_TITLE) {
+		const text = this.getGameTitle();
+		if (text) {
 			const x = 20;
 			const y = Graphics.height / 4;
 			const maxWidth = Graphics.width - x * 2;
-			const data = GAME_TITLE[language - 1] ? JSON.parse(GAME_TITLE[language - 1]) : null;
-			const text = data && data.gameTitle ? data.gameTitle : $dataSystem.gameTitle;
 			const bitmap = this._gameTitleSprite.bitmap;
 			bitmap.fontFace = $gameSystem.mainFontFace();
 			bitmap.outlineColor = "black";
@@ -1263,6 +1277,20 @@ Scene_Title.prototype.drawGameTitle = function() {
 			_Scene_Title_drawGameTitle.call(this, ...arguments);
 		}
 	}
+};
+
+Scene_Title.prototype.getGameTitle = function() {
+	const exData = TextManager.getExWord("gameTitle");
+	if (exData) {
+		return exData;
+	} else {
+		if (GAME_TITLE) {
+			const language = KRD_MULTILINGUAL.multilingual();
+			const data = GAME_TITLE[language - 1] ? JSON.parse(GAME_TITLE[language - 1]) : null;
+			return data && data.gameTitle ? data.gameTitle : null;
+		}
+	}
+	return null;
 };
 
 //--------------------------------------
@@ -1337,9 +1365,9 @@ Game_Actor.prototype.showRemovedStates = function() {
 //--------------------------------------
 // プロパティをゲッターに差し替え
 
-const _Scene_Title_create = Scene_Title.prototype.create;
-Scene_Title.prototype.create = function() {
-	_Scene_Title_create.call(this, ...arguments);
+const _Scene_Boot_start = Scene_Boot.prototype.start;
+Scene_Boot.prototype.start = function() {
+	_Scene_Boot_start.call(this, ...arguments);
 	$gameSystem.resetAllData();
 };
 
@@ -1512,9 +1540,9 @@ Game_System.prototype.resetDataStates = function() {
 //--------------------------------------
 // テストプレイ用の処理
 
-const _Scene_Boot_start = Scene_Boot.prototype.start;
+const _Test_Scene_Boot_start = Scene_Boot.prototype.start;
 Scene_Boot.prototype.start = function() {
-	_Scene_Boot_start.call(this, ...arguments);
+	_Test_Scene_Boot_start.call(this, ...arguments);
 	if (DataManager.isBattleTest() || DataManager.isEventTest()) {
 		$gameSystem.resetDataActors();
 	}
@@ -1559,13 +1587,17 @@ KRD_MULTILINGUAL.getData = function(data) {
 };
 
 KRD_MULTILINGUAL.getReturnData = function(data, key) {
-	if (USE_EXTERNAL && KRD_MULTILINGUAL.multilingual() > 0) {
-		const found = KRD_MULTILINGUAL.getExternalData(data, key);
-		if (found) {
-			return found;
+	if (KRD_MULTILINGUAL.multilingual() > 0) {
+		if (USE_EXTERNAL) {
+			const found = KRD_MULTILINGUAL.getExternalData(data, key);
+			if (found) {
+				return found;
+			}
 		}
+		return KRD_MULTILINGUAL.getNoteData(data, key);
+	} else {
+		return data[key + "_0"] || "";
 	}
-	return KRD_MULTILINGUAL.getNoteData(data, key);
 };
 
 KRD_MULTILINGUAL.getNoteData = function(data, key) {

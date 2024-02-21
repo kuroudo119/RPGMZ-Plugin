@@ -171,6 +171,9 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 - 言語番号 : 言語を指定する時に使う番号です。デフォルト言語は 0 です。
 
+以下、99 の部分は言語番号です。
+ケタが少ない場合に前ゼロは付けないでください。
+
 ### プラグインコマンド
 
 - setLanguage : 言語切替コマンド 言語を変更します。
@@ -187,9 +190,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 <message3_99:ステートのメッセージ（継続）>
 <message4_99:ステートのメッセージ（解除）>
 
-99 の部分は言語番号です。
-
-### 用語
+### 用語系データ
 
 プラグインパラメータに記述します。
 
@@ -204,7 +205,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 #### LANG & LANGEND
 
-制御文字 \LANG[99] が使えます。99 の部分は言語番号です。
+制御文字 \LANG[99] が使えます。
 \LANG[99] から \LANGEND までを言語番号 99 の文字列として使用します。
 \LANG[0] はデフォルト値として使用されます。
 
@@ -222,7 +223,6 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 言語番号ごとにjsonファイルを用意し、
 UniqueDataLoader のプロパティ名は「msg_99」とします。
-99 の部分は言語番号です。
 
 #### 【例】LANGF & LANGFEND 使い方
 
@@ -261,7 +261,6 @@ jsonファイルからDB項目の値を取得できます。
 公式プラグイン UniqueDataLoader を使用します。
 言語番号ごとにjsonファイルを用意し、
 UniqueDataLoader のプロパティ名は「db_99」とします。
-99 の部分は言語番号です。
 
 #### 【例】外部DB取得機能 jsonファイル
 
@@ -290,8 +289,15 @@ UniqueDataLoader のプロパティ名は「db_99」とします。
 			"id": 1,
 			"name": "John Doe",
 			"nickname": "Test Nickname",
-			"profile_1st": "Test text.",
-			"profile_2nd": "Test text2."
+			"profile_1st": "Test text 1-1.",
+			"profile_2nd": "Test text 1-2."
+		},
+		{
+			"id": 2,
+			"name": "John Doe 2",
+			"nickname": "Test Nickname 2",
+			"profile_1st": "Test text 2-1.",
+			"profile_2nd": "Test text 2-2."
 		}
 	],
 	"class": [
@@ -300,6 +306,60 @@ UniqueDataLoader のプロパティ名は「db_99」とします。
 			"name": "Hero",
 		}
 	]
+}
+```
+
+### 外部用語取得機能
+
+外部用語取得機能を有効(true) にすると、
+jsonファイルから用語系データの値を取得できます。
+
+公式プラグイン UniqueDataLoader を使用します。
+言語番号ごとにjsonファイルを用意し、
+UniqueDataLoader のプロパティ名は「word_99」とします。
+
+#### 【例】外部用語取得機能 jsonファイル
+
+System.jsonをコピーして、
+（テキストエディタ機能で整形後）、
+不要な項目を削除すると簡単にjsonファイルを用意できます。
+
+```json
+{
+	"currencyUnit": "G",
+	"equipTypes": [
+		"",
+		"Weapon",
+		"Shield",
+		"Armor",
+		"Accessory"
+	],
+	"gameTitle": "Test",
+	"skillTypes": [
+		"",
+		"Magic",
+		"Special"
+	],
+	"terms": {
+		"basic": [
+			"Level",
+			"Lv"
+		],
+		"commands": [
+			"Fight",
+			"Escape",
+			"Attack",
+			"Guard"
+		],
+		"params": [
+			"Max HP",
+			"Max MP"
+		],
+		"messages": {
+			"alwaysDash": "Always Dash",
+			"commandRemember": "Command Remember"
+		}
+	}
 }
 ```
 
@@ -340,6 +400,7 @@ UniqueDataLoader のプロパティ名は「db_99」とします。
 - ver.4.1.4 (2023/11/03) デバッグモードスクロール対応
 - ver.5.0.0 (2024/02/20) 外部ファイル機能を修正
 - ver.5.1.0 (2024/02/21) 外部用語ファイルを System.json 準拠にした
+- ver.5.1.1 (2024/02/22) ヘルプに追記
 
  * 
  * 
@@ -825,7 +886,6 @@ const EXTERNAL_NAME = "db_";
 
 const USE_EX_WORD = PARAM["USE_EX_WORD"] === "true";
 const EX_WORD_NAME = "word_";
-const EX_WORD_KEY = "word";
 
 const OPTION_DEFAULT = 0;
 ConfigManager.multilingual = OPTION_DEFAULT;

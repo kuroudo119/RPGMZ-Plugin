@@ -401,6 +401,7 @@ System.jsonをコピーして、
 - ver.5.0.0 (2024/02/20) 外部ファイル機能を修正
 - ver.5.1.0 (2024/02/21) 外部用語ファイルを System.json 準拠にした
 - ver.5.1.1 (2024/02/22) ヘルプに追記
+- ver.5.2.0 (2024/02/22) 内部処理を修正
 
  * 
  * 
@@ -1647,35 +1648,37 @@ KRD_MULTILINGUAL.getData = function(data) {
 };
 
 KRD_MULTILINGUAL.getReturnData = function(data, key) {
-	if (KRD_MULTILINGUAL.multilingual() > 0) {
+	if (this.multilingual() >= 0) {
 		if (USE_EXTERNAL) {
-			const found = KRD_MULTILINGUAL.getExternalData(data, key);
-			if (found) {
+			const found = this.getExternalData(data, key);
+			if (found != null) {
 				return found;
 			}
 		}
-		return KRD_MULTILINGUAL.getNoteData(data, key);
-	} else {
-		return data[key + "_0"] || "";
+		const noteData = this.getNoteData(data, key);
+		if (noteData != null) {
+			return noteData;
+		}
 	}
+	return this.getDefaultData(data, key);
+};
+
+KRD_MULTILINGUAL.getDefaultData = function(data, key) {
+	return data[key + "_0"] || "";
 };
 
 KRD_MULTILINGUAL.getNoteData = function(data, key) {
-	const noteData = data.meta[key + "_" + KRD_MULTILINGUAL.multilingual()];
-	if (noteData) {
-		return noteData;
-	} else {
-		return data[key + "_0"] || "";
-	}
+	const noteData = data.meta[key + "_" + this.multilingual()];
+	return noteData;
 };
 
 KRD_MULTILINGUAL.getExternalData = function(data, key) {
-	const type = KRD_MULTILINGUAL.getType(data);
+	const type = this.getType(data);
 	if (!type) {
 		return null;
 	}
 
-	const exFileData = window[GLOBAL_NAME][EXTERNAL_NAME + KRD_MULTILINGUAL.multilingual()];
+	const exFileData = window[GLOBAL_NAME][EXTERNAL_NAME + this.multilingual()];
 	if (exFileData) {
 		const exData = exFileData[type];
 		if (exData) {
@@ -1686,7 +1689,7 @@ KRD_MULTILINGUAL.getExternalData = function(data, key) {
 					const text2 = found[key + "_2nd"] || "";
 					return text1 + "\n" + text2;
 				} else {
-					return found[key] || "";
+					return found[key];
 				}
 			} 
 		}

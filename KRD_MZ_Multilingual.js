@@ -402,6 +402,7 @@ System.jsonをコピーして、
 - ver.5.1.0 (2024/02/21) 外部用語ファイルを System.json 準拠にした
 - ver.5.1.1 (2024/02/22) ヘルプに追記
 - ver.5.2.0 (2024/02/22) 内部処理を修正
+- ver.5.2.1 (2024/02/22) null チェック追加など
 
  * 
  * 
@@ -1682,12 +1683,20 @@ KRD_MULTILINGUAL.getExternalData = function(data, key) {
 	if (exFileData) {
 		const exData = exFileData[type];
 		if (exData) {
-			const found = exData.find(ex => ex.id === data.id);
+			const found = exData.find(ex => ex && ex.id === data.id);
 			if (found) {
 				if (key === "profile" || key === "description") {
 					const text1 = found[key + "_1st"] || "";
 					const text2 = found[key + "_2nd"] || "";
-					return text1 + "\n" + text2;
+					if (text1 && text2) {
+						return text1 + "\n" + text2;
+					} else if (text1 && !text2) {
+						return text1;
+					} else if (!text1 && text2) {
+						return text2;
+					} else {
+						return null;
+					}
 				} else {
 					return found[key];
 				}

@@ -187,26 +187,43 @@
  * @type boolean
  * @parent databaseSection
  * 
+ * @param enemySection
+ * @text 敵キャラ追加項目
+ * 
  * @param paramsCols
  * @text 敵キャラ能力値２列表示
  * @desc 能力値表示を２列にする：ON(true)、１列にする：OFF(false)
  * @default true
  * @type boolean
- * @parent databaseSection
+ * @parent enemySection
  * 
  * @param enemyParams
  * @text 敵キャラ能力値
  * @desc 表示する能力値の番号をカンマ区切りで指定します。
  * @default 0, 1, 2, 3, 4, 5, 6, 7
  * @type string
- * @parent databaseSection
+ * @parent enemySection
  * 
  * @param enemyElements
  * @text 敵キャラ属性有効度
  * @desc 表示する属性の番号をカンマ区切りで指定します。
  * @default 5, 6, 7
  * @type string
- * @parent databaseSection
+ * @parent enemySection
+ * 
+ * @param ENEMY_HIT_RATE
+ * @text 敵キャラ命中率
+ * @desc (2列表示のみ) 敵キャラの命中率を表示する: ture ／ 表示しない: false
+ * @default false
+ * @type boolean
+ * @parent enemySection
+ * 
+ * @param ENEMY_EVASION_RATE
+ * @text 敵キャラ回避率
+ * @desc (2列表示のみ) 敵キャラの回避率を表示する: ture ／ 表示しない: false
+ * @default false
+ * @type boolean
+ * @parent enemySection
  * 
  * @param layoutSection
  * @text レイアウトなど
@@ -290,9 +307,6 @@
  * 
  * @param useJson
  * @text 外部jsonファイル使用
- * @desc UniqueDataLoaderプラグインで読み込んだjsonファイルを使用する: true ／ 使用しない: false
- * @default false
- * @type boolean
  * 
  * @param globalName
  * @text グローバル変数名
@@ -302,9 +316,16 @@
  * @parent useJson
  * 
  * @param jsonName
- * @text jsonプロパティ名
+ * @text 情報項目 jsonプロパティ名
  * @desc UniqueDataLoaderプラグインで指定したプロパティ名です。
  * @default info
+ * @type string
+ * @parent useJson
+ * 
+ * @param DB_JSON_NAME
+ * @text DB項目 jsonプロパティ名
+ * @desc DB用として、UniqueDataLoaderプラグインで指定したプロパティ名です。後ろに言語番号が付与されます。
+ * @default db_
  * @type string
  * @parent useJson
  * 
@@ -447,6 +468,11 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.15.0 (2023/07/18) 一部 Window_Selectable の継承に変更
 - ver.1.16.0 (2023/08/19) 敵キャラの命中率と回避率を非表示
 - ver.1.17.0 (2023/08/20) 画像を枠内に表示
+- ver.1.18.0 (2023/09/07) 敵キャラの命中率と回避率のパラメータ追加
+- ver.1.19.0 (2023/10/31) 敵キャラで長い能力値名に対応
+- ver.1.20.0 (2023/11/12) processSkillDesc を追加
+- ver.1.21.0 (2024/02/22) サブコマンド部の表示修正
+- ver.2.0.0 (2024/02/22) DB用外部ファイル処理を追加
 
  * 
  * 
@@ -508,6 +534,15 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
+const PORTRAIT_PLUGIN = typeof KRD_MZ_UI_Portrait !== "undefined" ? KRD_MZ_UI_Portrait : false;
+const RUBY_PLUGIN = typeof KRD_RUBY !== "undefined";
+
+// 外部ファイル
+const GLOBAL_NAME = PARAM["globalName"];
+const INFO_JSON_NAME = PARAM["jsonName"];
+const DB_JSON_NAME = PARAM["DB_JSON_NAME"] || null;
+
+// 内部データ
 const INFO_NAME = PARAM["nameInfo"] || "";
 
 const GAME_INFO = PARAM["nameGameInfo"];
@@ -535,32 +570,28 @@ const AUTO_SKILLS_IN_BATTLE = false;
 const INFO_SYMBOL = "information";
 const CMD_SYMBOL = "command";
 
-const GAME_INFO_DATA = parseJson2Data(PARAM["dataGameInfo"] || "[]");
 const GAME_INFO_BASE = {
 	subSymbol: "gameInfo",
 	name: GAME_INFO,
-	data: GAME_INFO_DATA,
+	data: null,
 };
 
-const HELP_DATA = parseJson2Data(PARAM["dataHelp"] || "[]");
 const HELP_BASE = {
 	subSymbol: "help",
 	name: HELP,
-	data: HELP_DATA,
+	data: null,
 };
 
-const GLOSSARY_DATA = parseJson2Data(PARAM["dataGlossary"] || "[]");
 const GLOSSARY_BASE = {
 	subSymbol: "glossary",
 	name: GLOSSARY,
-	data: GLOSSARY_DATA,
+	data: null,
 };
 
-const QUEST_DATA = parseJson2Data(PARAM["dataQuest"] || "[]");
 const QUEST_BASE = {
 	subSymbol: "quest",
 	name: QUEST,
-	data: QUEST_DATA,
+	data: null,
 };
 
 const TITLE_COMMAND = PARAM["titleCommand"] === "true";
@@ -576,7 +607,7 @@ const CMD_RIGHT = PARAM["commandRight"] === "true";
 const CMD_HORIZON = PARAM["commandHorizon"] === "true";
 const CMD_ROWS_BASE = CMD_HORIZON ? 3 : 11;
 const CMD_COLS_BASE = CMD_HORIZON ? 4 : 1;
-const CMD_ROWS = Number(PARAM["commandRows"]) || CMD_ROWS_BASE;
+const CMD_ROWS = PORTRAIT_PLUGIN ? 11 : (Number(PARAM["commandRows"]) || CMD_ROWS_BASE);
 const CMD_COLS = Number(PARAM["commandCols"]) || CMD_COLS_BASE;
 const CMD_HEIGHT = CMD_ROWS * 2;
 const SUB_CMD_COLS_BASE = CMD_HORIZON ? 3 : 1;
@@ -585,8 +616,8 @@ const SUB_CMD_COLS = Number(PARAM["subCommandCols"]) || SUB_CMD_COLS_BASE;
 const PARAMS_COLS = PARAM["paramsCols"] === "true";
 const ENEMY_PARAMS = JSON.parse(`[${PARAM["enemyParams"]}]`) || [];
 
-const ENEMY_HIT_RATE = false;
-const ENEMY_EVASION_RATE = false;
+const ENEMY_HIT_RATE = PARAM["ENEMY_HIT_RATE"] === "true";
+const ENEMY_EVASION_RATE = PARAM["ENEMY_EVASION_RATE"] === "true";
 const ENEMY_ELEMENTS = JSON.parse(`[${PARAM["enemyElements"]}]`) || [];
 
 const DOWN_LETTER = 8;
@@ -597,14 +628,7 @@ const BETWEEM_TITLE_TO_TEXT = Number(PARAM["BETWEEM_TITLE_TO_TEXT"]) || 0;
 const KRD_INFO = {};
 KRD_INFO.command = [];
 
-const portraitPluginName = "KRD_MZ_UI_Portrait";
-const PORTRAIT = $plugins.some(plugin => plugin.name.match(portraitPluginName) && plugin.status === true);
-
-const KRD_Window_Base_drawText = Window_Base.prototype.drawText;
-
-const USE_JSON = PARAM["useJson"] === "true";
-const GLOBAL_NAME = PARAM["globalName"];
-const JSON_NAME = PARAM["jsonName"];
+const _Window_Base_drawText = Window_Base.prototype.drawText;
 
 //--------------------------------------
 // プラグインコマンド
@@ -628,9 +652,9 @@ PluginManager.registerCommand(PLUGIN_NAME, "startSceneInfo", () => {
 //--------------------------------------
 // タイトルコマンド
 
-const KRD_Window_TitleCommand_makeCommandList = Window_TitleCommand.prototype.makeCommandList;
+const _Window_TitleCommand_makeCommandList = Window_TitleCommand.prototype.makeCommandList;
 Window_TitleCommand.prototype.makeCommandList = function() {
-	KRD_Window_TitleCommand_makeCommandList.apply(this, arguments);
+	_Window_TitleCommand_makeCommandList.call(this, ...arguments);
 	if (TITLE_COMMAND) {
 		const commandName = INFO_NAME;
 		const name = this.convertEscapeCharacters(commandName) || "";
@@ -638,19 +662,19 @@ Window_TitleCommand.prototype.makeCommandList = function() {
 	}
 };
 
-const KRD_Window_TitleCommand_itemHeight = Window_TitleCommand.prototype.itemHeight;
+const _Window_TitleCommand_itemHeight = Window_TitleCommand.prototype.itemHeight;
 Window_TitleCommand.prototype.itemHeight = function() {
 	if (TITLE_COMMAND) {
 		return Math.floor(this.innerHeight / TITLE_ROWS);
 	} else {
-		return KRD_Window_TitleCommand_itemHeight.apply(this, arguments);
+		return _Window_TitleCommand_itemHeight.call(this, ...arguments);
 	}
 };
 
-const KRD_Scene_Title_commandWindowRect = Scene_Title.prototype.commandWindowRect;
+const _Scene_Title_commandWindowRect = Scene_Title.prototype.commandWindowRect;
 Scene_Title.prototype.commandWindowRect = function() {
 	if (TITLE_COMMAND) {
-		const plusY = PORTRAIT ? -50 : -40;
+		const plusY = PORTRAIT_PLUGIN ? -50 : -40;
 
 		const offsetX = $dataSystem.titleCommandWindow.offsetX;
 		const offsetY = $dataSystem.titleCommandWindow.offsetY;
@@ -660,16 +684,16 @@ Scene_Title.prototype.commandWindowRect = function() {
 		const wy = Graphics.boxHeight - wh - 96 + offsetY + plusY;
 		return new Rectangle(wx, wy, ww, wh);
 	} else {
-		return KRD_Scene_Title_commandWindowRect.apply(this, arguments);
+		return _Scene_Title_commandWindowRect.call(this, ...arguments);
 	}
 };
 
 //--------------------------------------
 // タイトル画面シーン
 
-const KRD_Scene_Title_createCommandWindow = Scene_Title.prototype.createCommandWindow;
+const _Scene_Title_createCommandWindow = Scene_Title.prototype.createCommandWindow;
 Scene_Title.prototype.createCommandWindow = function() {
-	KRD_Scene_Title_createCommandWindow.apply(this, arguments);
+	_Scene_Title_createCommandWindow.call(this, ...arguments);
 	this._commandWindow.setHandler(INFO_SYMBOL, this.infoOptions.bind(this));
 };
 
@@ -681,9 +705,9 @@ Scene_Title.prototype.infoOptions = function() {
 //--------------------------------------
 // メニューコマンド
 
-const KRD_Window_MenuCommand_addOriginalCommands = Window_MenuCommand.prototype.addOriginalCommands;
+const _Window_MenuCommand_addOriginalCommands = Window_MenuCommand.prototype.addOriginalCommands;
 Window_MenuCommand.prototype.addOriginalCommands = function() {
-	KRD_Window_MenuCommand_addOriginalCommands.apply(this, arguments);
+	_Window_MenuCommand_addOriginalCommands.call(this, ...arguments);
 	if (MENU_COMMAND) {
 		const commandName = INFO_NAME;
 		const name = this.convertEscapeCharacters(commandName) || "";
@@ -694,9 +718,9 @@ Window_MenuCommand.prototype.addOriginalCommands = function() {
 //--------------------------------------
 // メニュー画面シーン
 
-const KRD_Scene_Menu_createCommandWindow = Scene_Menu.prototype.createCommandWindow;
+const _Scene_Menu_createCommandWindow = Scene_Menu.prototype.createCommandWindow;
 Scene_Menu.prototype.createCommandWindow = function() {
-	KRD_Scene_Menu_createCommandWindow.apply(this, arguments);
+	_Scene_Menu_createCommandWindow.call(this, ...arguments);
 	this._commandWindow.setHandler(INFO_SYMBOL, this.commandInfo.bind(this));
 };
 
@@ -707,22 +731,24 @@ Scene_Menu.prototype.commandInfo = function() {
 //--------------------------------------
 // Game_System：セーブデータに含める
 
-const KRD_Game_System_initialize = Game_System.prototype.initialize;
+const _Game_System_initialize = Game_System.prototype.initialize;
 Game_System.prototype.initialize = function() {
-	KRD_Game_System_initialize.apply(this, arguments);
+	_Game_System_initialize.call(this, ...arguments);
 	this._showList = this.makeShowList();
 };
 
-const KRD_Game_System_onAfterLoad = Game_System.prototype.onAfterLoad;
+const _Game_System_onAfterLoad = Game_System.prototype.onAfterLoad;
 Game_System.prototype.onAfterLoad = function() {
-	KRD_Game_System_onAfterLoad.apply(this, arguments);
+	_Game_System_onAfterLoad.call(this, ...arguments);
 	this._showList = this.makeShowList();
 };
 
 Game_System.prototype.makeShowList = function() {
 	if (this.useJson()) {
-		return this.makeShowListJson();
+		this.makeInfoDataFromJson();
+		return this.makeShowListPluginParam();
 	} else {
+		this.makeInfoDataFromParam();
 		return this.makeShowListPluginParam();
 	}
 };
@@ -734,36 +760,65 @@ Game_System.prototype.makeShowListPluginParam = function() {
 		help: this.makeShowListDetail(HELP_BASE.data, this._showList.help),
 		glossary: this.makeShowListDetail(GLOSSARY_BASE.data, this._showList.glossary),
 		quest: this.makeShowListDetail(QUEST_BASE.data, this._showList.quest),
-		actors: this.makeShowListDetail($dataActors, this._showList.actors),
-		classes: this.makeShowListDetail($dataClasses, this._showList.classes),
-		skills: this.makeShowListDetail($dataSkills, this._showList.skills),
-		items: this.makeShowListDetail($dataItems, this._showList.items),
-		weapons: this.makeShowListDetail($dataWeapons, this._showList.weapons),
-		armors: this.makeShowListDetail($dataArmors, this._showList.armors),
-		enemies: this.makeShowListDetail($dataEnemies, this._showList.enemies),
+		actors: this.makeShowListDetailDb($dataActors, this._showList.actors, "actor"),
+		classes: this.makeShowListDetailDb($dataClasses, this._showList.classes, "class"),
+		skills: this.makeShowListDetailDb($dataSkills, this._showList.skills, "skill"),
+		items: this.makeShowListDetailDb($dataItems, this._showList.items, "item"),
+		weapons: this.makeShowListDetailDb($dataWeapons, this._showList.weapons, "weapon"),
+		armors: this.makeShowListDetailDb($dataArmors, this._showList.armors, "armor"),
+		enemies: this.makeShowListDetailDb($dataEnemies, this._showList.enemies, "enemy"),
 	};
 };
 
-Game_System.prototype.makeShowListJson = function() {
+Game_System.prototype.makeInfoDataFromParam = function() {
+	GAME_INFO_BASE.data = parseJson2Data(PARAM["dataGameInfo"] || "[]");
+	HELP_BASE.data = parseJson2Data(PARAM["dataHelp"] || "[]");
+	GLOSSARY_BASE.data = parseJson2Data(PARAM["dataGlossary"] || "[]");
+	QUEST_BASE.data = parseJson2Data(PARAM["dataQuest"] || "[]");
+};
+
+Game_System.prototype.makeInfoDataFromJson = function() {
 	GAME_INFO_BASE.data = this.getJsonData("gameInfo");
 	HELP_BASE.data = this.getJsonData("help");
 	GLOSSARY_BASE.data = this.getJsonData("glossary");
 	QUEST_BASE.data = this.getJsonData("quest");
-
-	return this.makeShowListPluginParam();
 };
 
-Game_System.prototype.makeShowListDetail = function(database, thisData) {
-	if (thisData) {
-		return this.addShowList(database, thisData);
+Game_System.prototype.makeShowListDetail = function(database, showList) {
+	if (showList) {
+		return this.addShowList(database, showList);
 	} else {
 		return this.newShowList(database);
 	}
 };
 
-Game_System.prototype.addShowList = function(database, thisData) {
-	let active = thisData;
-	for (let i = thisData.length; i < database.length; i++) {
+Game_System.prototype.makeShowListDetailDb = function(database, showList, key) {
+	const baseResult = this.makeShowListDetail(database, showList);
+
+	if (DB_JSON_NAME) {
+		const dbJson = this.getDbJsonData(key);
+		if (dbJson) {
+			return this.mergeShowList(baseResult, dbJson);
+		}
+	}
+
+	return baseResult;
+};
+
+Game_System.prototype.mergeShowList = function(list, objList) {
+	if (list && objList) {
+		for (let i = 0; i < objList.length; i++) {
+			if (objList[i].showData === true) {
+				list[objList[i].id] = true;
+			}
+		}
+	}
+	return list;
+};
+
+Game_System.prototype.addShowList = function(database, showList) {
+	let active = showList;
+	for (let i = showList.length; i < database.length; i++) {
 		this.addData(active, database[i]);
 	}
 	return active;
@@ -784,7 +839,8 @@ Game_System.prototype.newShowList = function(database) {
 Game_System.prototype.checkShowData = function(data) {
 	const case1 = data && data.meta && data.meta.KRD_showData;
 	const case2 = data && data.showData === "true";
-	return case1 || case2;
+	const case3 = data && data.showData;
+	return case1 || case2 || case3;
 };
 
 //--------------------------------------
@@ -844,19 +900,44 @@ Game_System.prototype.getDbByName = function(name) {
 // JSON データ使用
 
 Game_System.prototype.useJson = function() {
-	return USE_JSON && window[GLOBAL_NAME] && window[GLOBAL_NAME][JSON_NAME];
+	return INFO_JSON_NAME;
 };
 
 Game_System.prototype.getJsonData = function(dataName) {
-	return window[GLOBAL_NAME][JSON_NAME][dataName];
+	return window[GLOBAL_NAME][INFO_JSON_NAME][dataName];
+};
+
+Game_System.prototype.getDbJsonData = function(key) {
+	const exBaseData = window[GLOBAL_NAME];
+	if (exBaseData) {
+		const language = multilingual();
+		const exData = exBaseData[DB_JSON_NAME + language];
+		if (exData) {
+			return exData[key];
+		}
+	}
+	return null;
+};
+
+Game_System.prototype.getDbJsonOneData = function(baseKey, id, key) {
+	if (DB_JSON_NAME) {
+		const dataList = this.getDbJsonData(baseKey);
+		if (dataList) {
+			const found = dataList.find(data => data.id === id);
+			if (found) {
+				return found[key];
+			}
+		}
+		return null;
+	}
 };
 
 //--------------------------------------
 // 自動登録
 
-const KRD_Game_Party_gainItem = Game_Party.prototype.gainItem;
+const _Game_Party_gainItem = Game_Party.prototype.gainItem;
 Game_Party.prototype.gainItem = function(item, amount, includeEquip) {
-	KRD_Game_Party_gainItem.apply(this, arguments);
+	_Game_Party_gainItem.call(this, ...arguments);
 	if (AUTO_ITEMS) {
 		if (item && item.itypeId > 0) {
 			$gameSystem.setShowListOne("items", true, item.id);
@@ -874,17 +955,17 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip) {
 	}
 };
 
-const KRD_Game_Actor_learnSkill = Game_Actor.prototype.learnSkill;
+const _Game_Actor_learnSkill = Game_Actor.prototype.learnSkill;
 Game_Actor.prototype.learnSkill = function(skillId) {
-	KRD_Game_Actor_learnSkill.apply(this, arguments);
+	_Game_Actor_learnSkill.call(this, ...arguments);
 	if (AUTO_SKILLS) {
 		$gameSystem.setShowListOne("skills", true, skillId);
 	}
 };
 
-const KRD_Game_Actor_skills = Game_Actor.prototype.skills;
+const _Game_Actor_skills = Game_Actor.prototype.skills;
 Game_Actor.prototype.skills = function() {
-	const list = KRD_Game_Actor_skills.apply(this, arguments);
+	const list = _Game_Actor_skills.call(this, ...arguments);
 	if (AUTO_SKILLS_IN_BATTLE || !$gameParty.inBattle()) {
 		if (AUTO_SKILLS) {
 			list.forEach(skill => {
@@ -895,15 +976,15 @@ Game_Actor.prototype.skills = function() {
 	return list;
 };
 
-const KRD_Game_Party_addActor = Game_Party.prototype.addActor;
+const _Game_Party_addActor = Game_Party.prototype.addActor;
 Game_Party.prototype.addActor = function(actorId) {
-	KRD_Game_Party_addActor.apply(this, arguments);
+	_Game_Party_addActor.call(this, ...arguments);
 	this.addActorData(actorId);
 };
 
-const KRD_Game_Party_setupStartingMembers = Game_Party.prototype.setupStartingMembers;
+const _Game_Party_setupStartingMembers = Game_Party.prototype.setupStartingMembers;
 Game_Party.prototype.setupStartingMembers = function() {
-	KRD_Game_Party_setupStartingMembers.apply(this, arguments);
+	_Game_Party_setupStartingMembers.call(this, ...arguments);
 	if (this._actors) {
 		this._actors.forEach(actorId => {
 			this.addActorData(actorId);
@@ -940,17 +1021,17 @@ Game_Party.prototype.initEquip4List = function(items) {
 	});
 };
 
-const KRD_Game_Actor_changeClass = Game_Actor.prototype.changeClass;
+const _Game_Actor_changeClass = Game_Actor.prototype.changeClass;
 Game_Actor.prototype.changeClass = function(classId, keepExp) {
-	KRD_Game_Actor_changeClass.apply(this, arguments);
+	_Game_Actor_changeClass.call(this, ...arguments);
 	if (AUTO_CLASSES) {
 		$gameSystem.setShowListOne("classes", true, classId);
 	}
 };
 
-const KRD_BattleManager_setup = BattleManager.setup;
+const _BattleManager_setup = BattleManager.setup;
 BattleManager.setup = function(troopId, canEscape, canLose) {
-	KRD_BattleManager_setup.apply(this, arguments);
+	_BattleManager_setup.call(this, ...arguments);
 	if (AUTO_ENEMIES) {
 		const troop = $gameTroop.members();
 		troop.forEach(enemy => {
@@ -972,13 +1053,21 @@ class Scene_InfoBase extends Scene_MenuBase {
 	}
 
 	createInfo(database, subSymbol, name, showList) {
-		const info = database.filter((item, index) => item && !item.meta?.KRD_notData && item.name !== "" && showList[index]);
+		const info = database.filter((item, index) => this.canInfo(item, showList[index], subSymbol));
 		const command = {
 			subSymbol: subSymbol,
 			name: name,
 			data: info,
 		};
 		KRD_INFO.command.push(command);
+	}
+
+	canInfo(item, show, subSymbol) {
+		return show && item && !item.meta?.KRD_notData && item.name !== "" && !this.getDbJsonOneData(subSymbol, item.id, "notData");
+	}
+
+	getDbJsonOneData(subSymbol, id, key) {
+		return $gameSystem.getDbJsonOneData(subSymbol, id, key);
 	}
 
 	command(index) {
@@ -999,10 +1088,6 @@ class Scene_InfoBase extends Scene_MenuBase {
 		this._helpWindow.clear();
 		this._commandWindow.show();
 		this._commandWindow.activate();
-	}
-
-	drawInfo(symbol, i) {
-		this._subCommandWindow[i].activate();
 	}
 }
 
@@ -1042,25 +1127,25 @@ class Scene_Info extends Scene_InfoBase {
 			this.createInfo(QUEST_BASE.data, "quest", QUEST, $gameSystem._showList.quest);
 		}
 		if (ACTORS) {
-			this.createInfo($dataActors, "actorInfo", ACTORS, $gameSystem._showList.actors);
+			this.createInfo($dataActors, "actor", ACTORS, $gameSystem._showList.actors);
 		}
 		if (CLASSES) {
-			this.createInfo($dataClasses, "classInfo", CLASSES, $gameSystem._showList.classes);
+			this.createInfo($dataClasses, "class", CLASSES, $gameSystem._showList.classes);
 		}
 		if (SKILLS) {
-			this.createInfo($dataSkills, "skillInfo", SKILLS, $gameSystem._showList.skills);
+			this.createInfo($dataSkills, "skill", SKILLS, $gameSystem._showList.skills);
 		}
 		if (ITEMS) {
-			this.createInfo($dataItems, "itemInfo", ITEMS, $gameSystem._showList.items);
+			this.createInfo($dataItems, "item", ITEMS, $gameSystem._showList.items);
 		}
 		if (WEAPONS) {
-			this.createInfo($dataWeapons, "weaponInfo", WEAPONS, $gameSystem._showList.weapons);
+			this.createInfo($dataWeapons, "weapon", WEAPONS, $gameSystem._showList.weapons);
 		}
 		if (ARMORS) {
-			this.createInfo($dataArmors, "armorInfo", ARMORS, $gameSystem._showList.armors);
+			this.createInfo($dataArmors, "armor", ARMORS, $gameSystem._showList.armors);
 		}
 		if (ENEMIES) {
-			this.createInfo($dataEnemies, "enemyInfo", ENEMIES, $gameSystem._showList.enemies);
+			this.createInfo($dataEnemies, "enemy", ENEMIES, $gameSystem._showList.enemies);
 		}
 	}
 
@@ -1156,6 +1241,19 @@ class Scene_Info extends Scene_InfoBase {
 }
 
 //--------------------------------------
+// 情報ウィンドウ：共通部
+
+Window_Base.prototype.getName = function(data, language) {
+	if (language > 0) {
+		const tmp = data[`name_${language}`] || data.name || "";
+		return this.convertEscapeCharacters(tmp);
+	} else {
+		const tmp = data.name || "";
+		return this.convertEscapeCharacters(tmp);
+	}
+};
+
+//--------------------------------------
 // 情報ウィンドウ：コマンド部（新規）
 
 class Window_InfoCommand extends Window_Command {
@@ -1200,8 +1298,7 @@ class Window_InfoSubCommand extends Window_Selectable {
 		const rect = this.itemLineRect(index);
 		const language = multilingual();
 		const data = KRD_INFO.command[this._i].data[index];
-		const commandName = data[`name_${language}`] || data.name || "";
-		const name = this.convertEscapeCharacters(this.convertEscapeCharacters(commandName)) || "";
+		const name = this.getName(data, language);
 		this.changePaintOpacity(true);
 		this.drawText(name, rect.x, rect.y, rect.width, "center");
 	}
@@ -1212,7 +1309,7 @@ class Window_InfoSubCommand extends Window_Selectable {
 
 	updateHelp() {
 		if (this._helpWindow) {
-			this._helpWindow.drawInfo(this._symbol + this._index, this._i);
+			this._helpWindow.drawInfo(this._symbol, this._index, this._i);
 		}
 	}
 
@@ -1237,11 +1334,24 @@ class Window_InfoSubCommand extends Window_Selectable {
 // 情報ウィンドウ基礎：メッセージ部（新規）
 
 class Window_InfoTextBase extends Window_Help {
-	initialize(rect) {
+	initialize(rect, index) {
 		super.initialize(...arguments);
 
 		this._sprite = new Sprite();
 		this._container.addChild(this._sprite);
+		this._symbol = "";
+	}
+
+	drawInfo(symbol) {
+		this.setSymbol(symbol);
+	}
+
+	setSymbol(symbol) {
+		this._symbol = symbol;
+	}
+
+	symbol() {
+		return this._symbol;
 	}
 
 	lineHeight() {
@@ -1260,6 +1370,10 @@ class Window_InfoTextBase extends Window_Help {
 		return found.battlerName && !found.classId;
 	}
 
+	is2Text(text) {
+		return text.toString().match("\\n");
+	}
+
 	getData(kind) {
 		switch(kind) {
 			case 1:
@@ -1275,11 +1389,17 @@ class Window_InfoTextBase extends Window_Help {
 
 	text(found) {
 		const language = multilingual();
-		const textLang = found.meta ? found.meta[`KRD_text_${language}`] : "";
-		const tmpText = found.meta?.KRD_text || "";
-		const useText = textLang ? textLang : tmpText;
-		const retText = this.convertEscapeCharacters(useText);
-		return retText;
+		const textJson = $gameSystem.getDbJsonOneData(this.symbol(), found.id, "text");
+		if (textJson) {
+			const retText = this.convertEscapeCharacters(textJson);
+			return retText;
+		} else {
+			const textLang = found.meta ? found.meta[`_text_${language}`] : "";
+			const tmpText = found.meta?.KRD_text || "";
+			const useText = textLang ? textLang : tmpText;
+			const retText = this.convertEscapeCharacters(useText);
+			return retText;
+		}
 	}
 
 	alphabet(found) {
@@ -1287,7 +1407,7 @@ class Window_InfoTextBase extends Window_Help {
 			const fontSize = Number(found.meta?.KRD_fontSize) || 0;
 			const lineHeight = Number(found.meta?.KRD_lineHeight) || 0;
 			return [fontSize, lineHeight];
-		} else if (found.alphabet === "true") {
+		} else if (found.alphabet === true || found.alphabet === "true") {
 			const fontSize = Number(found.fontSize) || 0;
 			const lineHeight = Number(found.lineHeight) || 0;
 			return [fontSize, lineHeight];
@@ -1304,9 +1424,18 @@ class Window_InfoTextBase extends Window_Help {
 		}
 	}
 
-	drawTextExFontSize(text, x, y) {
-		const fontSize = DESC_FONT_SIZE ? DESC_FONT_SIZE : $gameSystem.mainFontSize() - 2;
-		this.drawTextEx("\\FS[" + fontSize +"]" + text, x, y);
+	drawTextExFontSize(text, x, y, width) {
+		width = width ? width : this.innerWidth;
+		if (this.is2Text(text) || (RUBY_PLUGIN && KRD_RUBY.isRuby(text))) {
+			const fontSize = DESC_FONT_SIZE ? DESC_FONT_SIZE : $gameSystem.mainFontSize() - 2;
+			this.drawTextEx("\\FS[" + fontSize +"]" + text, x, y);
+		} else {
+			const fontSize = DESC_FONT_SIZE ? DESC_FONT_SIZE : $gameSystem.mainFontSize() - 2;
+			const baseFontSize = this.contents.fontSize;
+			this.contents.fontSize = fontSize;
+			this.drawText(text, x, y, width);
+			this.contents.fontSize = baseFontSize;
+		}
 	}
 }
 
@@ -1314,10 +1443,13 @@ class Window_InfoTextBase extends Window_Help {
 // 情報ウィンドウ：メッセージ部（新規）
 
 class Window_InfoText extends Window_InfoTextBase {
-	drawInfo(symbol, i) {
-		if (symbol !== "" && i >= 0) {
+	drawInfo(symbol, index, i) {
+		super.drawInfo(symbol);
+
+		const symbolIndex = symbol + index;
+		if (symbolIndex !== "" && i >= 0) {
 			const subSymbol = KRD_INFO.command[i].subSymbol;
-			const found = KRD_INFO.command[i].data.find((data, index) => symbol === subSymbol + index);
+			const found = KRD_INFO.command[i].data.find((data, index) => symbolIndex === subSymbol + index);
 	
 			this.clear();
 			if (found) {
@@ -1344,19 +1476,13 @@ class Window_InfoText extends Window_InfoTextBase {
 		if (found) {
 			const language = multilingual();
 
-			const tmpName = found[`name_${language}`] || found.name || "";
-			const name = this.convertEscapeCharacters(tmpName);
-
-			const tmpDesc = found[`description_${language}`] || found.description || "";
-			const langDesc = canLang() ? KRD_MULTILINGUAL.getLangText(tmpDesc) : tmpDesc;
-			const description = this.convertEscapeCharacters(langDesc);
-			const tmpDescLF = description.replace(/\x1bn/g, "\n");
-			const descLF = tmpDescLF.replace(/\\n/g, "\n");;
+			const name = this.getName(found, language);
+			const desc = this.getDesc(found, language);
 
 			const icon = found.iconIndex ? "\\I[" + found.iconIndex + "]" : "";
 			const name4draw = icon + name;
 			const text = this.text(found);
-			const text4draw = descLF ? descLF + "\n" + text : text;
+			const text4draw = desc ? desc + "\n" + text : text;
 
 			const alphabet = this.alphabet(found);
 
@@ -1372,6 +1498,16 @@ class Window_InfoText extends Window_InfoTextBase {
 		}
 	}
 
+	getDesc(found, language) {
+		const tmp = found[`description_${language}`] || found.description || "";
+		const langDesc = canLang() ? KRD_MULTILINGUAL.getLangText(tmp) : tmp;
+		const skillDesc = this.processSkillDesc ? this.processSkillDesc(langDesc) : langDesc;
+		const description = this.convertEscapeCharacters(skillDesc);
+		const tmpDescLF = description.replace(/\x1bn/g, "\n");
+		const descLF = tmpDescLF.replace(/\\n/g, "\n");
+		return descLF;
+	}
+	
 	drawTextSeparate(text, x, y, width, fontSize, lineHeight) {
 		const strList = text.split("\n");
 		this.contents.fontSize = fontSize || this.contents.fontSize;
@@ -1379,7 +1515,7 @@ class Window_InfoText extends Window_InfoTextBase {
 
 		strList.forEach(str => {
 			y = y + lineHeight;
-			KRD_Window_Base_drawText.call(this, str, x, y, width);
+			_Window_Base_drawText.call(this, str, x, y, width);
 		}, this);
 	}
 
@@ -1390,10 +1526,10 @@ class Window_InfoText extends Window_InfoTextBase {
 		strList.forEach(str => {
 			y = y + lineHeight;
 			if (this.hasEscape(str)) {
-				this.drawTextExFontSize(str, x, y);
+				this.drawTextExFontSize(str, x, y, width);
 			} else {
 				this.contents.fontSize = DESC_FONT_SIZE || this.contents.fontSize;
-				KRD_Window_Base_drawText.call(this, str, x, y, width);
+				_Window_Base_drawText.call(this, str, x, y, width);
 			}
 		}, this);
 	}
@@ -1512,7 +1648,7 @@ class Window_InfoText extends Window_InfoTextBase {
 	}
 
 	drawEnemyData(found, x = 0, y = DOWN_LETTER) {
-		if (PARAMS_COLS || !PORTRAIT) {
+		if (PARAMS_COLS) {
 			return this.drawEnemyData2Cols(...arguments);
 		} else {
 			return this.drawEnemyData1Col(...arguments);
@@ -1558,11 +1694,12 @@ class Window_InfoText extends Window_InfoTextBase {
 
 		// 能力値の表示を2列にする場合
 		const xx = Math.floor(this.innerWidth / 2);
+		const width = Math.floor(this.innerWidth / 2) - 8;
 		ENEMY_PARAMS.forEach((paramIndex, i) => {
 			if (i % 2 === 0) {
-				this.drawTextExFontSize(TextManager.param(paramIndex) + " " + enemy.param(paramIndex), x, y);
+				this.drawTextExFontSize(TextManager.param(paramIndex) + " " + enemy.param(paramIndex), x, y, width);
 			} else {
-				this.drawTextExFontSize(TextManager.param(paramIndex) + " " + enemy.param(paramIndex), x + xx, y);
+				this.drawTextExFontSize(TextManager.param(paramIndex) + " " + enemy.param(paramIndex), x + xx, y, width);
 				y += lineHeight;
 			}
 		}, this);
@@ -1573,13 +1710,17 @@ class Window_InfoText extends Window_InfoTextBase {
 		// 命中率
 		if (ENEMY_HIT_RATE) {
 			const param = Math.round(enemy.hit * 100);
-			this.drawTextExFontSize(TextManager.param(8) + " " + param + "%", x, y);
+			this.drawTextExFontSize(TextManager.param(8) + " " + param + "%", x, y, width);
+			if (!ENEMY_EVASION_RATE) {
+				y += lineHeight;
+			}
 		}
 
 		// 回避率
 		if (ENEMY_EVASION_RATE) {
 			const param = Math.round(enemy.eva * 100);
-			this.drawTextExFontSize(TextManager.param(9) + " " + param + "%", x + xx, y);
+			const evaX = ENEMY_HIT_RATE ? x + xx : x;
+			this.drawTextExFontSize(TextManager.param(9) + " " + param + "%", evaX, y, width);
 			y += lineHeight;
 		}
 
@@ -1587,7 +1728,7 @@ class Window_InfoText extends Window_InfoTextBase {
 		ENEMY_ELEMENTS.forEach((elementId, index, array) => {
 			const x2 = index % 2 === 0 ? 0 : xx;
 			const param = Math.round(enemy.elementRate(elementId) * 100);
-			this.drawTextExFontSize(this.elementName(elementId) + " " + param + "%", x + x2, y);
+			this.drawTextExFontSize(this.elementName(elementId) + " " + param + "%", x + x2, y, width);
 			if (array.length !== index - 1) {
 				y += index % 2 === 0 ? 0 : lineHeight;
 			}
@@ -1596,8 +1737,8 @@ class Window_InfoText extends Window_InfoTextBase {
 		if (ENEMY_ELEMENTS.length % 2 === 1) {
 			y += lineHeight;
 		}
-		this.drawTextExFontSize(TextManager.exp + " " + found.exp, x, y);
-		this.drawTextExFontSize(TextManager.currencyUnit + " " + found.gold, x + xx, y);
+		this.drawTextExFontSize(TextManager.exp + " " + found.exp, x, y, width);
+		this.drawTextExFontSize(TextManager.currencyUnit + " " + found.gold, x + xx, y, width);
 		y += lineHeight + 4;
 
 		const dropItems = found.dropItems.filter(drop => drop.kind > 0 && drop.dataId > 0);
@@ -1611,17 +1752,17 @@ class Window_InfoText extends Window_InfoTextBase {
 						if (data[drop.dataId].iconIndex > 0) {
 							this.drawIcon(data[drop.dataId].iconIndex, x + iconPlusX, y + iconPlusY);
 							const itemName = this.convertEscapeCharacters(data[drop.dataId].name);
-							this.drawTextExFontSize(itemName, x + iconPlusX + ImageManager.iconWidth, y);
+							this.drawTextExFontSize(itemName, x + iconPlusX + ImageManager.iconWidth, y, width);
 						} else {
-							this.drawTextExFontSize(data[drop.dataId].name, x, y);
+							this.drawTextExFontSize(data[drop.dataId].name, x, y, width);
 						}
 					} else {
 						if (data[drop.dataId].iconIndex > 0) {
 							this.drawIcon(data[drop.dataId].iconIndex, x + xx + iconPlusX, y + iconPlusY);
 							const itemName = this.convertEscapeCharacters(data[drop.dataId].name);
-							this.drawTextExFontSize(itemName, x + xx + iconPlusX + ImageManager.iconWidth, y);
+							this.drawTextExFontSize(itemName, x + xx + iconPlusX + ImageManager.iconWidth, y, width);
 						} else {
-							this.drawTextExFontSize(data[drop.dataId].name, x + xx, y);
+							this.drawTextExFontSize(data[drop.dataId].name, x + xx, y, width);
 						}
 						y += lineHeight;
 					}
@@ -1663,7 +1804,7 @@ class Window_InfoText extends Window_InfoTextBase {
 				const text4draw = description ? description + text: text;
 
 				this.drawTextEx(name, x, y);
-				this.drawTextExFontSize(text4draw, x, y + this.lineHeight() + BETWEEM_TITLE_TO_TEXT);
+				this.drawTextExFontSize(text4draw, x, y + this.lineHeight() + BETWEEM_TITLE_TO_TEXT, this.innerWidth);
 			}
 		}
 	}

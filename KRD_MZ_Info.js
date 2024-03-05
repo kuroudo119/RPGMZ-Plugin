@@ -131,6 +131,13 @@
  * @type boolean
  * @parent databaseSection
  * 
+ * @param AUTO_USE_SKILLS
+ * @text スキル使用時自動登録
+ * @desc スキルが使用された時に自動登録する：ON(true)、しない：OFF(false)
+ * @default true
+ * @type boolean
+ * @parent databaseSection
+ * 
  * @param nameItems
  * @text アイテムコマンド名
  * @desc アイテムの表示名です。デフォルトは「アイテム」です。
@@ -473,6 +480,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.20.0 (2023/11/12) processSkillDesc を追加
 - ver.1.21.0 (2024/02/22) サブコマンド部の表示修正
 - ver.2.0.0 (2024/02/22) DB用外部ファイル処理を追加
+- ver.2.1.0 (2024/02/26) DB用外部ファイルのキーpicture対応
+- ver.2.2.0 (2024/03/05) スキル自動登録を修正
 
  * 
  * 
@@ -542,6 +551,11 @@ const GLOBAL_NAME = PARAM["globalName"];
 const INFO_JSON_NAME = PARAM["jsonName"];
 const DB_JSON_NAME = PARAM["DB_JSON_NAME"] || null;
 
+const TAG_TEXT = "text";
+const TAG_PICTURE = "picture";
+const TAG_SHOW_DATA = "showData";
+const TAG_NOT_DATA = "notData";
+
 // 内部データ
 const INFO_NAME = PARAM["nameInfo"] || "";
 
@@ -565,7 +579,7 @@ const AUTO_WEAPONS = PARAM["autoWeapons"] === "true";
 const AUTO_ARMORS = PARAM["autoArmors"] === "true";
 const AUTO_ENEMIES = PARAM["autoEnemies"] === "true";
 
-const AUTO_SKILLS_IN_BATTLE = false;
+const AUTO_USE_SKILLS = PARAM["AUTO_USE_SKILLS"] === "true";
 
 const INFO_SYMBOL = "information";
 const CMD_SYMBOL = "command";
@@ -839,7 +853,7 @@ Game_System.prototype.newShowList = function(database) {
 Game_System.prototype.checkShowData = function(data) {
 	const case1 = data && data.meta && data.meta.KRD_showData;
 	const case2 = data && data.showData === "true";
-	const case3 = data && data.showData;
+	const case3 = data && data[TAG_SHOW_DATA];
 	return case1 || case2 || case3;
 };
 
@@ -958,22 +972,34 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip) {
 const _Game_Actor_learnSkill = Game_Actor.prototype.learnSkill;
 Game_Actor.prototype.learnSkill = function(skillId) {
 	_Game_Actor_learnSkill.call(this, ...arguments);
-	if (AUTO_SKILLS) {
+	if (AUTO_SKILLS && this.isMember()) {
 		$gameSystem.setShowListOne("skills", true, skillId);
 	}
+};
+
+Game_Actor.prototype.isMember = function() {
+	return $gameParty.members().includes(this);
 };
 
 const _Game_Actor_skills = Game_Actor.prototype.skills;
 Game_Actor.prototype.skills = function() {
 	const list = _Game_Actor_skills.call(this, ...arguments);
-	if (AUTO_SKILLS_IN_BATTLE || !$gameParty.inBattle()) {
-		if (AUTO_SKILLS) {
-			list.forEach(skill => {
-				$gameSystem.setShowListOne("skills", true, skill.id);
-			});
-		}
+	if (AUTO_SKILLS) {
+		list.forEach(skill => {
+			$gameSystem.setShowListOne("skills", true, skill.id);
+		});
 	}
 	return list;
+};
+
+const _BattleManager_startAction = BattleManager.startAction;
+BattleManager.startAction = function() {
+	const subject = this._subject;
+	const action = subject.currentAction();
+	if (AUTO_USE_SKILLS) {
+		$gameSystem.setShowListOne("skills", true, action.item().id);
+	}
+	_BattleManager_startAction.call(this, ...arguments);
 };
 
 const _Game_Party_addActor = Game_Party.prototype.addActor;
@@ -1063,7 +1089,7 @@ class Scene_InfoBase extends Scene_MenuBase {
 	}
 
 	canInfo(item, show, subSymbol) {
-		return show && item && !item.meta?.KRD_notData && item.name !== "" && !this.getDbJsonOneData(subSymbol, item.id, "notData");
+		return show && item && !item.meta?.KRD_notData && item.name !== "" && !this.getDbJsonOneData(subSymbol, item.id, TAG_NOT_DATA);
 	}
 
 	getDbJsonOneData(subSymbol, id, key) {
@@ -1359,7 +1385,8 @@ class Window_InfoTextBase extends Window_Help {
 	}
 
 	havePicture(found) {
-		return !!found.meta?.KRD_picture || !!found.picture;
+		const json = $gameSystem.getDbJsonOneData(this.symbol(), found.id, TAG_PICTURE);
+		return !!json || !!found.meta?.KRD_picture || !!found.picture;
 	}
 
 	isActor(found) {
@@ -1389,7 +1416,7 @@ class Window_InfoTextBase extends Window_Help {
 
 	text(found) {
 		const language = multilingual();
-		const textJson = $gameSystem.getDbJsonOneData(this.symbol(), found.id, "text");
+		const textJson = $gameSystem.getDbJsonOneData(this.symbol(), found.id, TAG_TEXT);
 		if (textJson) {
 			const retText = this.convertEscapeCharacters(textJson);
 			return retText;
@@ -1417,7 +1444,8 @@ class Window_InfoTextBase extends Window_Help {
 	}
 
 	drawPicture(found) {
-		const filename = found.meta?.KRD_picture || found.picture;
+		const json = $gameSystem.getDbJsonOneData(this.symbol(), found.id, TAG_PICTURE);
+		const filename = json || found.meta?.KRD_picture || found.picture;
 		if (filename) {
 			this._bitmap = ImageManager.loadPicture(filename);
 			this._bitmap.addLoadListener(this.drawTextWithImage.bind(this, found));

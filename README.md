@@ -11,6 +11,12 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_PictureAngle（ピクチャ角度）
+
+ピクチャの表示角度を変更します。
+
+[KRD_MZ_PictureAngleをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_PictureAngle.js)
+
 ## KRD_MZ_SelectableCursor（端っこカーソル移動＋買い物数の増減変更）
 
 上下左右でのカーソル移動の際に一覧の上端と下端が繋がるようにカーソル移動するように変更する。  

@@ -32,10 +32,17 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2021/02/19) 非公開版完成
 - ver.1.0.0 (2021/06/05) 公開開始
 - ver.1.0.1 (2021/06/18) コメント部分修正
+- ver.1.1.0 (2024/03/11) スキルのコモンイベント以外に対応
 
 ## 使い方
 
+イベントコマンドの後に、
 プラグインコマンドを使ってください。
+
+スキルのコモンイベント内ではなく、
+バトルイベントで使う場合は、
+プラグインコマンドの後に、
+ウエイトを 1 などで設定してください。
 
  * 
  * 
@@ -65,17 +72,11 @@ PluginManager.registerCommand(PLUGIN_NAME, "popupTroop", () => {
 // 以下をスクリプトコマンドで実行する。
 
 Game_Temp.prototype.popupParty = function() {
-	const target = $gameParty.battleMembers();
-	target.forEach(actor => {
-		Window_BattleLog.prototype.popupDamage.call(this, actor); 
-	}, this);
+	$gameParty.members().forEach(target => target.startDamagePopup());
 };
 
 Game_Temp.prototype.popupTroop = function() {
-	const target = $gameTroop.members();
-	target.forEach(enemy => {
-		Window_BattleLog.prototype.popupDamage.call(this, enemy); 
-	}, this);
+	$gameTroop.members().forEach(target => target.startDamagePopup());
 };
 
 //--------------------------------------

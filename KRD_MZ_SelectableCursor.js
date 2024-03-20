@@ -5,6 +5,30 @@
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
  * 
+ * @param LIST_HEAD_TAIL
+ * @text 先頭と最後を繋げる
+ * @desc リストの先頭と最後をカーソル移動可能にする。
+ * @default false
+ * @type boolean
+ * 
+ * @param SHOP_NO_PLUS_10
+ * @text 店で購入数10増減しない
+ * @desc 店での購入数を10増減しない（1にする）
+ * @default true
+ * @type boolean
+ * 
+ * @param LIST_ACTOR_CHANGE_SKILL
+ * @text スキル一覧アクター変更
+ * @desc スキル一覧部分でページアップ・ダウンするとアクターチェンジする。
+ * @default true
+ * @type boolean
+ * 
+ * @param LIST_ACTOR_CHANGE_EQUIP
+ * @text 装備一覧アクター変更
+ * @desc 装備一覧部分でページアップ・ダウンするとアクターチェンジする。
+ * @default true
+ * @type boolean
+ * 
  * @help
 # KRD_MZ_SelectableCursor.js
 
@@ -35,6 +59,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.0 (2024/01/16) 公開
 - ver.1.1.0 (2024/02/09) デバッグ画面の挙動を修正
 - ver.1.2.0 (2024/02/20) マジックナンバーを関数化
+- ver.1.3.0 (2024/02/28) 一覧でもアクターチェンジ
+- ver.1.4.0 (2024/03/20) 先頭と最後を繋げるオプションを追加
 
  * 
  * 
@@ -43,6 +69,16 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 (() => {
 
 "use strict";
+
+const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
+const PARAM = PluginManager.parameters(PLUGIN_NAME);
+
+const LIST_HEAD_TAIL = PARAM["LIST_HEAD_TAIL"] === "true";
+
+const SHOP_NO_PLUS_10 = PARAM["SHOP_NO_PLUS_10"] === "true";
+
+const LIST_ACTOR_CHANGE_SKILL = PARAM["LIST_ACTOR_CHANGE_SKILL"] === "true";
+const LIST_ACTOR_CHANGE_EQUIP = PARAM["LIST_ACTOR_CHANGE_EQUIP"] === "true";
 
 //--------------------------------------
 // 数値入力
@@ -98,12 +134,12 @@ Window_DebugEdit.prototype.cursorLeft = function(wrap) {
 };
 
 // 挙動を修正
-Window_Selectable.prototype.cursorPagedown = function() {
+Window_DebugEdit.prototype.cursorPagedown = function() {
 	// カーソル移動なし
 };
 
 // 挙動を修正
-Window_Selectable.prototype.cursorPageup = function() {
+Window_DebugEdit.prototype.cursorPageup = function() {
 	// カーソル移動なし
 };
 
@@ -111,21 +147,25 @@ Window_Selectable.prototype.cursorPageup = function() {
 // ショップ
 // 10増減をやめる
 
-// 上書き
+const _Window_ShopNumber_processNumberChange = Window_ShopNumber.prototype.processNumberChange;
 Window_ShopNumber.prototype.processNumberChange = function() {
-	if (this.isOpenAndActive()) {
-		if (Input.isRepeated("right")) {
-			this.changeNumber(1);
+	if (SHOP_NO_PLUS_10) {
+		if (this.isOpenAndActive()) {
+			if (Input.isRepeated("right")) {
+				this.changeNumber(1);
+			}
+			if (Input.isRepeated("left")) {
+				this.changeNumber(-1);
+			}
+			if (Input.isRepeated("up")) {
+				this.changeNumber(1);
+			}
+			if (Input.isRepeated("down")) {
+				this.changeNumber(-1);
+			}
 		}
-		if (Input.isRepeated("left")) {
-			this.changeNumber(-1);
-		}
-		if (Input.isRepeated("up")) {
-			this.changeNumber(1);
-		}
-		if (Input.isRepeated("down")) {
-			this.changeNumber(-1);
-		}
+	} else {
+		_Window_ShopNumber_processNumberChange.call(this, ...arguments);
 	}
 };
 
@@ -184,14 +224,14 @@ Window_Selectable.prototype.cursorLeft = function(wrap) {
 
 // 新規作成
 Window_Selectable.prototype.cursorHead = function() {
-	if (!Input.isLongPressed("down") && !Input.isLongPressed("right")) {
+	if (LIST_HEAD_TAIL && !Input.isLongPressed("down") && !Input.isLongPressed("right")) {
 		this.smoothSelect(this.headIndex());
 	}
 };
 
 // 新規作成
 Window_Selectable.prototype.cursorTail = function() {
-	if (!Input.isLongPressed("up") && !Input.isLongPressed("left")) {
+	if (LIST_HEAD_TAIL && !Input.isLongPressed("up") && !Input.isLongPressed("left")) {
 		this.smoothSelect(this.tailIndex());
 	}
 };
@@ -232,6 +272,29 @@ Window_Selectable.prototype.tailRow = function() {
 // 新規作成
 Window_Selectable.prototype.minCols = function() {
 	return 1;
+};
+
+//--------------------------------------
+// リストWindowでもアクターチェンジ可能にする
+
+const _Scene_Skill_createItemWindow = Scene_Skill.prototype.createItemWindow;
+Scene_Skill.prototype.createItemWindow = function() {
+	_Scene_Skill_createItemWindow.call(this, ...arguments);
+	
+	if (LIST_ACTOR_CHANGE_SKILL) {
+		this._itemWindow.setHandler("pagedown", this.nextActor.bind(this));
+		this._itemWindow.setHandler("pageup", this.previousActor.bind(this));
+	}
+};
+
+const _Scene_Equip_createSlotWindow = Scene_Equip.prototype.createSlotWindow;
+Scene_Equip.prototype.createSlotWindow = function() {
+	_Scene_Equip_createSlotWindow.call(this, ...arguments);
+
+	if (LIST_ACTOR_CHANGE_EQUIP) {
+		this._slotWindow.setHandler("pagedown", this.nextActor.bind(this));
+		this._slotWindow.setHandler("pageup", this.previousActor.bind(this));
+	}
 };
 
 //--------------------------------------

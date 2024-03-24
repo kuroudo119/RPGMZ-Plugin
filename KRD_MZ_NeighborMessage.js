@@ -64,6 +64,7 @@ KRD_MZ_NeighborBalloon
 - ver.0.0.1 (2024/03/24) 作成開始
 - ver.0.1.0 (2024/03/24) 非公開版完成
 - ver.1.0.0 (2024/03/24) 公開
+- ver.1.0.1 (2024/03/24) ピクチャIDの修正
 
  * 
  * 
@@ -164,7 +165,7 @@ Game_Screen.prototype.clear = function() {
 	const maxId = this.maxPictures();
 	this._msgPictureIdList = [];
 	this._msgPictureIdListMaster = [];
-	for (let i = 1; i <= ADD_PICTURE_ID; i++) {
+	for (let i = 0; i < ADD_PICTURE_ID; i++) {
 		this._msgPictureIdList.push(maxId - i);
 		this._msgPictureIdListMaster.push(maxId - i);
 	}

@@ -11,6 +11,12 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_NeighborMessage（隣接時メッセージ表示）
+
+イベントに近づいた時にメッセージを表示します。
+
+[KRD_MZ_NeighborMessageをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_NeighborMessage.js)
+
 ## KRD_MZ_PictureAngle（ピクチャ角度）
 
 ピクチャの表示角度を変更します。

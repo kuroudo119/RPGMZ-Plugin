@@ -17,6 +17,8 @@
 
 [KRD_MZ_NeighborMessageをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_NeighborMessage.js)
 
+https://github.com/kuroudo119/RPGMZ-Plugin/assets/43639887/2899c4e6-e4f9-4571-8e06-0362b6b3d1c0
+
 ## KRD_MZ_PictureAngle（ピクチャ角度）
 
 ピクチャの表示角度を変更します。

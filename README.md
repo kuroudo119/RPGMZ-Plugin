@@ -11,6 +11,12 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_GameActive（モバイルデバイス時ゲームWindowアクティブ）
+
+RPGツクールMZではWindowが非アクティブ時にゲームが止まりますが、これがアプリ起動時に発生するようなので、モバイルデバイス時には常時アクティブにします。
+
+[KRD_MZ_GameActiveをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_GameActive.js)
+
 ## KRD_MZ_NeighborMessage（隣接時メッセージ表示）
 
 イベントに近づいた時にメッセージを表示します。

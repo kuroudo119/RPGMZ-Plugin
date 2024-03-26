@@ -72,6 +72,7 @@ KRD_MZ_NeighborBalloon
 - ver.1.0.0 (2024/03/24) 公開
 - ver.1.0.1 (2024/03/24) ピクチャIDの修正
 - ver.1.0.2 (2024/03/25) ヘルプに制約事項を追記
+- ver.1.1.0 (2024/03/26) 内部処理を修正
 
  * 
  * 
@@ -156,11 +157,18 @@ Game_Event.prototype.eraseMessage = function() {
 const _Game_Event_update = Game_Event.prototype.update;
 Game_Event.prototype.update = function() {
 	_Game_Event_update.call(this, ...arguments);
-	if (this._pictureCount >= 0) {
-		this.moveMessage();
-		this._pictureCount--;
-	} else if (this._pictureCount < 0) {
-		this.eraseMessage();
+	this.updatePictureCount();
+};
+
+Game_Event.prototype.updatePictureCount = function() {
+	if (this._pictureCount != null) {
+		if (this._pictureCount > 0) {
+			this.moveMessage();
+			this._pictureCount--;
+		} else if (this._pictureCount <= 0) {
+			this.eraseMessage();
+			this._pictureCount = null;
+		}
 	}
 };
 
@@ -169,6 +177,10 @@ Game_Event.prototype.update = function() {
 const _Game_Screen_clear = Game_Screen.prototype.clear;
 Game_Screen.prototype.clear = function() {
 	_Game_Screen_clear.call(this, ...arguments);
+	this.initMsgPictureIdList();
+};
+
+Game_Screen.prototype.initMsgPictureIdList = function() {
 	const maxId = this.maxPictures();
 	this._msgPictureIdList = [];
 	this._msgPictureIdListMaster = [];
@@ -195,15 +207,17 @@ Game_Screen.prototype.maxPictures = function() {
 
 //--------------------------------------
 
-Game_Screen.prototype.eraseAllPicture = function() {
-	this._msgPictureIdListMaster.forEach(id => {
-		this.erasePicture(id);
-	}, this);
+Game_Map.prototype.eraseAllMessage = function() {
+	this.events().forEach(event => {
+		if (event.event().meta[TAG_TEXT] != undefined) {
+			event.eraseMessage();
+		}
+	});
 };
 
 const _Scene_Map_terminate = Scene_Map.prototype.terminate;
 Scene_Map.prototype.terminate = function() {
-	$gameScreen.eraseAllPicture();
+	$gameMap.eraseAllMessage();
 	_Scene_Map_terminate.call(this, ...arguments);
 };
 

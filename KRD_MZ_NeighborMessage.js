@@ -73,6 +73,7 @@ KRD_MZ_NeighborBalloon
 - ver.1.0.1 (2024/03/24) ピクチャIDの修正
 - ver.1.0.2 (2024/03/25) ヘルプに制約事項を追記
 - ver.1.1.0 (2024/03/26) 内部処理を修正
+- ver.1.1.1 (2024/03/26) 既存セーブデータに対応
 
  * 
  * 
@@ -191,6 +192,9 @@ Game_Screen.prototype.initMsgPictureIdList = function() {
 };
 
 Game_Screen.prototype.getMsgPictureId = function() {
+	if (!this._msgPictureIdList) {
+		this.initMsgPictureIdList();
+	}
 	return this._msgPictureIdList.pop();
 };
 

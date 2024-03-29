@@ -9,14 +9,26 @@
  * 
  * @param MESSAGE_COUNT
  * @text メッセージカウント
- * @desc メッセージを消去するまでのカウントです。1秒60カウント。初期値:180
- * @default 180
+ * @desc メッセージを消去するまでのカウントです。1秒60カウント。初期値:100
+ * @default 100
+ * @type number
+ * 
+ * @param USE_LENGTH
+ * @text 文字数カウント
+ * @desc メッセージを消去するまでのカウントに文字数を追加します。1文字あたりのカウントです。初期値:5
+ * @default 5
+ * @type number
+ * 
+ * @param FONT_SIZE
+ * @text フォントサイズ
+ * @desc フォントサイズを変更したい場合に設定します。初期値:0
+ * @default 0
  * @type number
  * 
  * @param MINUS_Y
- * @text マイナスY座標
- * @desc イベントのY座標から減算する値。初期値:100
- * @default 100
+ * @text Y座標補正値
+ * @desc ウィンドウの表示位置を上に移動する固定値です。初期値:18
+ * @default 18
  * @type number
  * 
  * @help
@@ -52,12 +64,16 @@ KRD_MZ_NeighborBalloon
 表示する文章をクォーテーション（' または "）で囲んで記述します。
 複数ページある場合はカンマ区切りで記述します。
 
+改行したい場合は \n を記述します。
+
 ### msgZone
 
 <msgZone:2,1>
 
 メッセージを表示するプレイヤーとイベントの距離を記述します。
 複数ページある場合はカンマ区切りで記述します。
+
+省略すると 1 になります。
 
 ## 制約事項
 
@@ -74,6 +90,7 @@ KRD_MZ_NeighborBalloon
 - ver.1.0.2 (2024/03/25) ヘルプに制約事項を追記
 - ver.1.1.0 (2024/03/26) 内部処理を修正
 - ver.1.1.1 (2024/03/26) 既存セーブデータに対応
+- ver.2.0.0 (2024/03/29) プラグインパラメータなど大きな変更
 
  * 
  * 
@@ -87,6 +104,8 @@ const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
 const MESSAGE_COUNT = Number(PARAM["MESSAGE_COUNT"]) || 0;
+const USE_LENGTH = Number(PARAM["USE_LENGTH"]) || 0;
+const FONT_SIZE = Number(PARAM["FONT_SIZE"]) || 0;
 const MINUS_Y = Number(PARAM["MINUS_Y"]) || 0;
 
 const ADD_PICTURE_ID = 10;
@@ -130,22 +149,44 @@ Game_Event.prototype.doMessage = function(text, zone = 1) {
 	this._oldPosition = this._oldPosition ? this._oldPosition : false;
 	const newPosition = this.playerIsInZone(zone);
 	if (text && this._msgPictureId == null && newPosition && this._oldPosition !== newPosition) {
-		this._pictureCount = MESSAGE_COUNT;
-		const fontSize = 0;
+		const convText = Window_Base.prototype.convertEscapeCharacters(text);
+		const cutRubyText = cutRuby(convText);
+		const plusCount = cutRubyText.toString().length * USE_LENGTH;
+		this._pictureCount = MESSAGE_COUNT + plusCount;
+		const fontSize = FONT_SIZE;
 		$gameScreen.setDTextPicture(text, fontSize);
 		const setting = {window: true};
 		$gameScreen.setDtextSetting(setting);
 		this._msgPictureId = $gameScreen.getMsgPictureId();
 		this._msgX = this.screenX();
-		this._msgY = this.screenY() - MINUS_Y;
+		this._minusY = this.minusY(convText);
+		this._msgY = this.screenY() - this._minusY;
 		$gameScreen.showPicture(this._msgPictureId, NAME, ORIGIN, this._msgX, this._msgY, SCALE_X, SCALE_Y, OPACITY, BLEND_MODE);
 	}
 	this._oldPosition = newPosition;
 };
 
+Game_Event.prototype.minusY = function(text) {
+	const line = text.toString().split("\n").length;
+	const fontSize = FONT_SIZE || $gameSystem.mainFontSize();
+	const msgheight = line * fontSize;
+
+	const sprites = SceneManager._scene._spriteset._characterSprites;
+	// 同じ _characterName が複数ある場合に、最初のものを取得するが、
+	// 同じ画像なので、同じ height であるはず。
+	const sprite = sprites.find(sprite => sprite._characterName === this._characterName);
+	const eventHeight = sprite._frame.height;
+
+	return eventHeight + msgheight + MINUS_Y;
+};
+
+function cutRuby(text) {
+	return typeof KRD_RUBY !== "undefined" ? KRD_RUBY.cutRuby(text) : text;
+}
+
 Game_Event.prototype.moveMessage = function() {
 	const x = this.screenX();
-	const y = this.screenY() - MINUS_Y;
+	const y = this.screenY() - this._minusY;
 	$gameScreen.movePicture(this._msgPictureId, ORIGIN, x, y, SCALE_X, SCALE_Y, OPACITY, BLEND_MODE, DURATION, EASING_TYPE);
 };
 

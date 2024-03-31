@@ -11,6 +11,13 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_PictureAutoErase（ピクチャ自動消去）
+
+ピクチャを数カウント後に自動消去します。  
+イベントが終了していた場合、プレイヤーは移動可能です。
+
+[KRD_MZ_PictureAutoEraseをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_PictureAutoErase.js)
+
 ## KRD_MZ_GameActive（モバイルデバイス時ゲームWindowアクティブ）
 
 RPGツクールMZではWindowが非アクティブ時にゲームが止まりますが、これがアプリ起動時に発生するようなので、モバイルデバイス時には常時アクティブにします。

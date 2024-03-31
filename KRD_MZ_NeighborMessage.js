@@ -31,6 +31,13 @@
  * @default 18
  * @type number
  * 
+ * @command doDTextPicture
+ * @text イベントメッセージ表示
+ * @desc イベントにメッセージを表示します。自動消去あり。
+ * @arg text
+ * @text メッセージ
+ * @desc 表示するメッセージです。
+ * 
  * @help
 # KRD_MZ_NeighborMessage.js
 
@@ -75,6 +82,16 @@ KRD_MZ_NeighborBalloon
 
 省略すると 1 になります。
 
+## プラグインコマンド
+
+### イベントメッセージ表示 (doDTextPicture)
+
+プラグインコマンド実行のタイミングで、
+イベントにメッセージを表示します。
+
+タグと同様に自動で消去します。
+宝箱の中身を表示する等を想定しています。
+
 ## 制約事項
 
 本プラグインでは、動的文字列ピクチャ生成プラグインを利用しています。
@@ -91,6 +108,7 @@ KRD_MZ_NeighborBalloon
 - ver.1.1.0 (2024/03/26) 内部処理を修正
 - ver.1.1.1 (2024/03/26) 既存セーブデータに対応
 - ver.2.0.0 (2024/03/29) プラグインパラメータなど大きな変更
+- ver.2.1.0 (2024/03/31) イベントにメッセージ表示を追加
 
  * 
  * 
@@ -108,7 +126,7 @@ const USE_LENGTH = Number(PARAM["USE_LENGTH"]) || 0;
 const FONT_SIZE = Number(PARAM["FONT_SIZE"]) || 0;
 const MINUS_Y = Number(PARAM["MINUS_Y"]) || 0;
 
-const ADD_PICTURE_ID = 10;
+const ADD_PICTURE_ID = 20;
 
 const TAG_TEXT = "msgText";
 const TAG_ZONE = "msgZone";
@@ -121,6 +139,12 @@ const OPACITY = 255;
 const BLEND_MODE = 0;
 const DURATION = 1;
 const EASING_TYPE = 0;
+
+//--------------------------------------
+
+PluginManager.registerCommand(PLUGIN_NAME, "doDTextPicture", function(args) {
+	this.doDTextPicture(args.text);
+});
 
 //--------------------------------------
 
@@ -149,21 +173,28 @@ Game_Event.prototype.doMessage = function(text, zone = 1) {
 	this._oldPosition = this._oldPosition ? this._oldPosition : false;
 	const newPosition = this.playerIsInZone(zone);
 	if (text && this._msgPictureId == null && newPosition && this._oldPosition !== newPosition) {
-		const convText = Window_Base.prototype.convertEscapeCharacters(text);
-		const cutRubyText = cutRuby(convText);
-		const plusCount = cutRubyText.toString().length * USE_LENGTH;
-		this._pictureCount = MESSAGE_COUNT + plusCount;
-		const fontSize = FONT_SIZE;
-		$gameScreen.setDTextPicture(text, fontSize);
-		const setting = {window: true};
-		$gameScreen.setDtextSetting(setting);
-		this._msgPictureId = $gameScreen.getMsgPictureId();
-		this._msgX = this.screenX();
-		this._minusY = this.minusY(convText);
-		this._msgY = this.screenY() - this._minusY;
-		$gameScreen.showPicture(this._msgPictureId, NAME, ORIGIN, this._msgX, this._msgY, SCALE_X, SCALE_Y, OPACITY, BLEND_MODE);
+		this.doDTextPicture(text);
 	}
 	this._oldPosition = newPosition;
+};
+
+Game_Event.prototype.doDTextPicture = function(text) {
+	const convText = Window_Base.prototype.convertEscapeCharacters(text);
+	const cutRubyText = cutRuby(convText);
+	const plusCount = cutRubyText.toString().length * USE_LENGTH;
+	this._pictureCount = MESSAGE_COUNT + plusCount;
+
+	const fontSize = FONT_SIZE;
+	$gameScreen.setDTextPicture(convText, fontSize);
+
+	const setting = {window: true};
+	$gameScreen.setDtextSetting(setting);
+
+	this._msgPictureId = $gameScreen.getMsgPictureId();
+	this._msgX = this.screenX();
+	this._minusY = this.minusY(cutRubyText);
+	this._msgY = this.screenY() - this._minusY;
+	$gameScreen.showPicture(this._msgPictureId, NAME, ORIGIN, this._msgX, this._msgY, SCALE_X, SCALE_Y, OPACITY, BLEND_MODE);
 };
 
 Game_Event.prototype.minusY = function(text) {
@@ -264,6 +295,16 @@ const _Scene_Map_terminate = Scene_Map.prototype.terminate;
 Scene_Map.prototype.terminate = function() {
 	$gameMap.eraseAllMessage();
 	_Scene_Map_terminate.call(this, ...arguments);
+};
+
+//--------------------------------------
+// イベントにピクチャ付与
+
+Game_Interpreter.prototype.doDTextPicture = function(text) {
+	const event = this.character();
+	if (event) {
+		event.doDTextPicture(text);
+	}
 };
 
 //--------------------------------------

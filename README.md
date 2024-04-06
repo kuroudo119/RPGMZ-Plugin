@@ -9,7 +9,7 @@
 
 [お勉強ゲーム「お姉さんと勉強」PLiCyさんにて公開中](https://plicy.net/GamePlay/177672)
 
-[サンプルゲーム「クリスマス勤労」PLiCyさんにて公開中](https://plicy.net/GamePlay/170692)
+[試作ゲーム「クリスマス勤労」PLiCyさんにて公開中](https://plicy.net/GamePlay/170692)
 
 ![クリスマス勤労](img/Xmas.png)
 

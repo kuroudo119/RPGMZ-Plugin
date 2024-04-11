@@ -109,6 +109,7 @@ KRD_MZ_NeighborBalloon
 - ver.1.1.1 (2024/03/26) 既存セーブデータに対応
 - ver.2.0.0 (2024/03/29) プラグインパラメータなど大きな変更
 - ver.2.1.0 (2024/03/31) イベントにメッセージ表示を追加
+- ver.2.1.1 (2024/04/11) 隣接時フキダシ表示への競合を修正
 
  * 
  * 
@@ -170,12 +171,12 @@ Game_Event.prototype.doNeighborMessage = function() {
 };
 
 Game_Event.prototype.doMessage = function(text, zone = 1) {
-	this._oldPosition = this._oldPosition ? this._oldPosition : false;
+	this._oldPositionMsg = this._oldPositionMsg ? this._oldPositionMsg : false;
 	const newPosition = this.playerIsInZone(zone);
-	if (text && this._msgPictureId == null && newPosition && this._oldPosition !== newPosition) {
+	if (text && this._msgPictureId == null && newPosition && this._oldPositionMsg !== newPosition) {
 		this.doDTextPicture(text);
 	}
-	this._oldPosition = newPosition;
+	this._oldPositionMsg = newPosition;
 };
 
 Game_Event.prototype.doDTextPicture = function(text) {

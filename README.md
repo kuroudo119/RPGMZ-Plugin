@@ -13,6 +13,15 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+
+## KRD_MZ_EquipSameNG（自動装備での同じ装備品の禁止）
+
+自動装備で同じ装備品を複数装備しないようにします。  
+スキル習得装備などを想定しています。
+尚、デフォルトでは同じ装備品を複数装備できるのは二刀流だけです。
+
+[KRD_MZ_EquipSameNGをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_EquipSameNG.js)
+
 ## KRD_MZ_PictureAutoErase（ピクチャ自動消去）
 
 ピクチャを数カウント後に自動消去します。  

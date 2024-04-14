@@ -13,6 +13,12 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_NoPartyCommand（パーティコマンド非表示）
+
+戦闘時のパーティコマンドを非表示にします。  
+アクターコマンドでキャンセルするとパーティコマンドが表示されます。
+
+[KRD_MZ_NoPartyCommandをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_NoPartyCommand.js)
 
 ## KRD_MZ_EquipSameNG（自動装備での同じ装備品の禁止）
 

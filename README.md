@@ -13,6 +13,13 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_Quiz（クイズ）
+
+クイズゲームを制作するためのプラグインです。  
+文章の表示コマンドと選択肢の表示コマンドを使う想定です。
+
+[KRD_MZ_Quizをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Quiz.js)
+
 ## KRD_MZ_NoPartyCommand（パーティコマンド非表示）
 
 戦闘時のパーティコマンドを非表示にします。  

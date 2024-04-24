@@ -3,9 +3,9 @@
 現在、プラグイン内にヘルプを少ししか記述していません。  
 バグ修正は行う可能性がありますが、他プラグインとの競合対応および機能追加は行いません。  
 ただし、他者によるサポートを禁止するものではありません。  
-尚、簡単な質問についてはマシュマロにて受け付けています（無料）。
+尚、簡単な質問については X（DMは不可）にて受け付けています（無料）。
 
-[マシュマロはこちら](https://marshmallow-qa.com/uxnvf71gp8ibzus?utm_medium=url_text&utm_source=promotion)
+[Xはこちら](https://twitter.com/kuroudo119)
 
 [お勉強ゲーム「お姉さんと勉強」PLiCyさんにて公開中](https://plicy.net/GamePlay/177672)
 

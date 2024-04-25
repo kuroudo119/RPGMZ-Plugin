@@ -5,18 +5,44 @@
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
  * 
+ * @param USE_LONG_PRESS_CANCEL
+ * @text 長押しキャンセル
+ * @desc 長押しキャンセル機能を有効にする: true ／ 有効にしない: false
+ * @default true
+ * @type boolean
+ * 
+ * @param LONG_PRESS_MENU
+ * @text 長押しメニュー
+ * @desc 長押しキャンセルにより、メニューを表示する: true ／ 表示しない: false
+ * @default false
+ * @type boolean
+ * @parent USE_LONG_PRESS_CANCEL
+ * 
+ * @param USE_LONG_PRESS_COMMON
+ * @text 長押しコモンスイッチ
+ * @desc 長押しコモンイベント呼出機能を有効にするスイッチ番号です。 0 の場合はこの機能を使いません。
+ * @default 0
+ * @type switch
+ * 
  * @param COMMON_EVENT_ID
  * @text コモンイベント番号
  * @desc 呼び出すコモンイベントの番号です。0 の場合は長押しキャンセルになります。
  * @default 0
  * @type common_event
+ * @parent USE_LONG_PRESS_COMMON
  * 
- * @param LONG_PRESS_MENU
- * @text 長押しメニュー
- * @desc コモンイベント番号 0 の時、長押しメニュー表示する: true ／ 表示しない: false
- * @default false
- * @type boolean
- * @parent COMMON_EVENT_ID
+ * @param USE_LONG_PRESS_SWITCH
+ * @text 長押しスイッチスイッチ
+ * @desc 長押しスイッチ機能を有効にするスイッチ番号です。 0 の場合はこの機能を使いません。
+ * @default 0
+ * @type switch
+ * 
+ * @param SW_LONG_PRESS_SWITCH_ON
+ * @text 長押し対象スイッチ
+ * @desc 長押しスイッチ機能が有効な時、長押しによりONにするスイッチ番号です。
+ * @default 0
+ * @type switch
+ * @parent USE_LONG_PRESS_SWITCH
  * 
  * @param LONG_PRESS_TIME
  * @text 長押し時間
@@ -48,12 +74,17 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 長押し時に円形バー（現状はスピナー）を表示し、
 長押し時間のあいだ押し続けると、
-キャンセルまたはコモンイベント呼出を行うプラグインです。
+以下のいずれかを実行できるプラグインです。
 
-マップ移動中のキャンセルはメニューを開くとなります。
+- キャンセル
+- コモンイベント呼出
+- スイッチON
+
+マップ移動中のキャンセルはメニューを開く処理になります。
 コモンイベント呼出はマップでのみ有効です。
+スイッチONはイベント実行中やバトル中でもスイッチONにできると思います。
 
-## 使い方
+## 準備
 
 RPGツクールMZプロジェクト内の css フォルダに
 krdRoundBar.css を入れてください。
@@ -66,6 +97,7 @@ krdRoundBar.css を入れてください。
 - ver.1.1.0 (2024/04/25) 長押しメニューをオプションにした
 - ver.1.1.1 (2024/04/25) テストプレイでしかCSS読込できてなかった件を修正
 - ver.1.2.0 (2024/04/25) 円形バーが出るのを遅くした
+- ver.2.0.0 (2024/04/25) スイッチON機能を追加などの仕様変更
 
  * 
  * 
@@ -80,13 +112,18 @@ const INDEX_PATH = document.baseURI;
 const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
+const USE_LONG_PRESS_CANCEL = PARAM["USE_LONG_PRESS_CANCEL"] === "true";
+const LONG_PRESS_MENU = PARAM["LONG_PRESS_MENU"] === "true";
+
+const USE_LONG_PRESS_COMMON = Number(PARAM["USE_LONG_PRESS_COMMON"]) || 0;
 const COMMON_EVENT_ID = Number(PARAM["COMMON_EVENT_ID"]) || 0;
+
+const USE_LONG_PRESS_SWITCH = Number(PARAM["USE_LONG_PRESS_SWITCH"]) || 0;
+const SW_LONG_PRESS_SWITCH_ON = Number(PARAM["SW_LONG_PRESS_SWITCH_ON"]) || 0;
+
 const LONG_PRESS_TIME = Number(PARAM["LONG_PRESS_TIME"]) || 0;
 const DIV_TIME = Number(PARAM["DIV_TIME"]) || 1;
-
 const LONG_PRESS_INTERVAL = 12;
-
-const LONG_PRESS_MENU = PARAM["LONG_PRESS_MENU"] === "true";
 
 //--------------------------------------
 // 長押し
@@ -101,12 +138,14 @@ TouchInput.keyRepeatWait = LONG_PRESS_TIME;
 const _TouchInput_update = TouchInput.update;
 TouchInput.update = function() {
 	_TouchInput_update.call(this, ...arguments);
-	if ($gameTemp) {
-		if (COMMON_EVENT_ID) {
+	if ($gameTemp && $gameSwitches) {
+		if ($gameSwitches.value(USE_LONG_PRESS_COMMON)) {
 			$gameTemp.callCommonLongPress();
-		} else {
+		} else if ($gameSwitches.value(USE_LONG_PRESS_SWITCH)) {
+			$gameTemp.doSwitchOn();
+		} else if (USE_LONG_PRESS_CANCEL) {
 			$gameTemp.doCancelLongPress();
-		}
+		} 
 	}
 };
 
@@ -119,9 +158,8 @@ Game_Temp.prototype.doCancelLongPress = function() {
 };
 
 Game_Temp.prototype.isMenuEnabled = function() {
-	const scene = SceneManager._scene;
-	if (scene.constructor.name === "Scene_Map") {
-		return scene.isMenuEnabled();
+	if (this.isSceneMap()) {
+		return SceneManager._scene.isMenuEnabled();
 	} else {
 		return false;
 	}
@@ -156,8 +194,26 @@ Game_Temp.prototype.callCommonLongPress = function() {
 };
 
 Game_Temp.prototype.canCallCommon = function() {
+	return this.isSceneMap() && !$gameMap.isEventRunning();
+};
+
+Game_Temp.prototype.isSceneMap = function() {
 	const sceneName = SceneManager._scene.constructor.name;
-	return sceneName === "Scene_Map" && !$gameMap.isEventRunning();
+	return sceneName === "Scene_Map";
+};
+
+Game_Temp.prototype.doSwitchOn = function() {
+	if (TouchInput.isLongPressed()) {
+		TouchInput.clear();
+		$gameTemp.eraseKrdRoundBar();
+		$gameSwitches.setValue(SW_LONG_PRESS_SWITCH_ON, true);
+	}
+
+	if (TouchInput.isLongPressing()) {
+		$gameTemp.showKrdRoundBar();
+	} else {
+		$gameTemp.eraseKrdRoundBar();
+	}
 };
 
 //--------------------------------------

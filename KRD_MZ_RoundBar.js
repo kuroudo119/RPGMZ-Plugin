@@ -11,10 +11,17 @@
  * @default 0
  * @type common_event
  * 
+ * @param LONG_PRESS_MENU
+ * @text 長押しメニュー
+ * @desc コモンイベント番号 0 の時、長押しメニュー表示する: true ／ 表示しない: false
+ * @default false
+ * @type boolean
+ * @parent COMMON_EVENT_ID
+ * 
  * @param LONG_PRESS_TIME
  * @text 長押し時間
- * @desc 長押し判定になるフレーム数です。初期値 24
- * @default 24
+ * @desc 長押し判定になるフレーム数です。初期値 60
+ * @default 60
  * @type number
  * 
  * @help
@@ -50,6 +57,7 @@ krdRoundBar.css を入れてください。
 - ver.0.0.1 (2023/09/25) 作成開始
 - ver.0.1.0 (2023/09/26) 非公開版完成 (プログレスバーではなくスピナー)
 - ver.1.0.0 (2023/09/26) 公開
+- ver.1.1.0 (2024/04/25) 長押しメニューをオプションにした
 
  * 
  * 
@@ -62,11 +70,13 @@ krdRoundBar.css を入れてください。
 const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
-//--------------------------------------
-// 長押し
-
 const COMMON_EVENT_ID = Number(PARAM["COMMON_EVENT_ID"]) || 0;
 const LONG_PRESS_TIME = Number(PARAM["LONG_PRESS_TIME"]) || 0;
+
+const LONG_PRESS_MENU = PARAM["LONG_PRESS_MENU"] === "true";
+
+//--------------------------------------
+// 長押し
 
 TouchInput.isLongPressing = function() {
 	return this.isPressed() && this._pressedTime > TouchInput.keyRepeatInterval && this._pressedTime <= this.keyRepeatWait;
@@ -74,9 +84,9 @@ TouchInput.isLongPressing = function() {
 
 TouchInput.keyRepeatWait = LONG_PRESS_TIME;
 
-const KRD_TouchInput_update = TouchInput.update;
+const _TouchInput_update = TouchInput.update;
 TouchInput.update = function() {
-	KRD_TouchInput_update.apply(this, arguments);
+	_TouchInput_update.call(this, ...arguments);
 	if ($gameTemp) {
 		if (COMMON_EVENT_ID) {
 			$gameTemp.callCommonLongPress();
@@ -86,7 +96,24 @@ TouchInput.update = function() {
 	}
 };
 
-Game_Temp.prototype.doCancelLongPress = function () {
+Game_Temp.prototype.doCancelLongPress = function() {
+	if (LONG_PRESS_MENU && this.isMenuEnabled()) {
+		this.doCancelLongPressMain();
+	} else if (!this.isMenuEnabled()) {
+		this.doCancelLongPressMain();
+	}
+};
+
+Game_Temp.prototype.isMenuEnabled = function() {
+	const scene = SceneManager._scene;
+	if (scene.constructor.name === "Scene_Map") {
+		return scene.isMenuEnabled();
+	} else {
+		return false;
+	}
+};
+
+Game_Temp.prototype.doCancelLongPressMain = function() {
 	if (TouchInput.isLongPressed()) {
 		$gameTemp.eraseKrdRoundBar();
 		Input._currentState["escape"] = true;
@@ -120,7 +147,7 @@ Game_Temp.prototype.canCallCommon = function() {
 };
 
 //--------------------------------------
-// 円形プログレスバー
+// 円形プログレスバー（現状はスピナー）
 
 const ROUND_BAR_ID = "krdRoundBar";
 const ROUND_BAR_IMAGE_ID = "krdRoundBarImage";
@@ -178,9 +205,11 @@ class KRD_RoundBar {
 	}
 }
 
-const KRD_Game_Temp_initialize = Game_Temp.prototype.initialize;
+//--------------------------------------
+
+const _Game_Temp_initialize = Game_Temp.prototype.initialize;
 Game_Temp.prototype.initialize = function() {
-	KRD_Game_Temp_initialize.apply(this, arguments);
+	_Game_Temp_initialize.call(this, ...arguments);
 	this.initKrdRoundBar();
 };
 
@@ -194,6 +223,14 @@ Game_Temp.prototype.showKrdRoundBar = function() {
 
 Game_Temp.prototype.eraseKrdRoundBar = function() {
 	this._krdRoundBar.eraseKrdRoundBar();
+};
+
+//--------------------------------------
+
+const _Window_Message_terminateMessage = Window_Message.prototype.terminateMessage;
+Window_Message.prototype.terminateMessage = function() {
+	_Window_Message_terminateMessage.call(this, ...arguments);
+	$gameTemp.eraseKrdRoundBar();
 };
 
 //--------------------------------------

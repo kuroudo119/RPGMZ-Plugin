@@ -20,8 +20,14 @@
  * 
  * @param LONG_PRESS_TIME
  * @text 長押し時間
- * @desc 長押し判定になるフレーム数です。初期値 60
- * @default 60
+ * @desc 長押し判定になるフレーム数です。初期値 48
+ * @default 48
+ * @type number
+ * 
+ * @param DIV_TIME
+ * @text 回転速度
+ * @desc 長押し時間を割る値です。値が大きいと回転が速くなります。初期値 96
+ * @default 96
  * @type number
  * 
  * @help
@@ -59,6 +65,7 @@ krdRoundBar.css を入れてください。
 - ver.1.0.0 (2023/09/26) 公開
 - ver.1.1.0 (2024/04/25) 長押しメニューをオプションにした
 - ver.1.1.1 (2024/04/25) テストプレイでしかCSS読込できてなかった件を修正
+- ver.1.2.0 (2024/04/25) 円形バーが出るのを遅くした
 
  * 
  * 
@@ -75,6 +82,9 @@ const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
 const COMMON_EVENT_ID = Number(PARAM["COMMON_EVENT_ID"]) || 0;
 const LONG_PRESS_TIME = Number(PARAM["LONG_PRESS_TIME"]) || 0;
+const DIV_TIME = Number(PARAM["DIV_TIME"]) || 1;
+
+const LONG_PRESS_INTERVAL = 12;
 
 const LONG_PRESS_MENU = PARAM["LONG_PRESS_MENU"] === "true";
 
@@ -85,6 +95,7 @@ TouchInput.isLongPressing = function() {
 	return this.isPressed() && this._pressedTime > TouchInput.keyRepeatInterval && this._pressedTime <= this.keyRepeatWait;
 };
 
+TouchInput.keyRepeatInterval = LONG_PRESS_INTERVAL;
 TouchInput.keyRepeatWait = LONG_PRESS_TIME;
 
 const _TouchInput_update = TouchInput.update;
@@ -170,7 +181,7 @@ class KRD_RoundBar {
 
 		const roundBarImage = document.createElement("div");
 		roundBarImage.id  = ROUND_BAR_IMAGE_ID;
-		const time = LONG_PRESS_TIME / 60;
+		const time = LONG_PRESS_TIME / DIV_TIME;
 		roundBarImage.style.animation = `krdSpin ${time}s linear`;
 
 		this._roundBar.appendChild(roundBarImage);

@@ -58,6 +58,7 @@ krdRoundBar.css を入れてください。
 - ver.0.1.0 (2023/09/26) 非公開版完成 (プログレスバーではなくスピナー)
 - ver.1.0.0 (2023/09/26) 公開
 - ver.1.1.0 (2024/04/25) 長押しメニューをオプションにした
+- ver.1.1.1 (2024/04/25) テストプレイのPATHにしか対応してなかった件を修正
 
  * 
  * 
@@ -66,6 +67,8 @@ krdRoundBar.css を入れてください。
 (() => {
 
 "use strict";
+
+const INDEX_PATH = document.baseURI;
 
 const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
@@ -156,7 +159,7 @@ const CSS_PATH = "/css/krdRoundBar.css";
 class KRD_RoundBar {
 	constructor() {
 		const link = document.createElement("link");
-		link.href = CSS_PATH;
+		link.href = INDEX_PATH + "/../" + CSS_PATH;
 		link.rel = "stylesheet";
 		link.type = "text/css";
 		const head = document.getElementsByTagName("head")[0];

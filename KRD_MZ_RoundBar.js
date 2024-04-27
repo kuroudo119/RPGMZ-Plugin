@@ -56,6 +56,12 @@
  * @default 96
  * @type number
  * 
+ * @param NOT_LONG_PRESS_IN_MESSAGE
+ * @text メッセージ長押し抑止
+ * @desc メッセージ表示中の長押しを抑止します: true ／ 抑止しない（デフォルト通り）: false
+ * @default true
+ * @type boolean
+ * 
  * @help
 # KRD_MZ_RoundBar.js
 
@@ -89,6 +95,18 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 RPGツクールMZプロジェクト内の css フォルダに
 krdRoundBar.css を入れてください。
 
+## 補足
+
+### メッセージ長押し抑止
+
+このパラメータがfalseの場合、
+メッセージ表示中の長押しをメッセージ終了時に受け付けてしまいます。
+（メッセージ送りするための長押し含む）
+
+このパラメータがtrueの場合、
+メッセージ表示中の長押しを受け付けませんが、
+メッセージ送りが遅くなります。
+
 ## 更新履歴
 
 - ver.0.0.1 (2023/09/25) 作成開始
@@ -98,6 +116,7 @@ krdRoundBar.css を入れてください。
 - ver.1.1.1 (2024/04/25) テストプレイでしかCSS読込できてなかった件を修正
 - ver.1.2.0 (2024/04/25) 円形バーが出るのを遅くした
 - ver.2.0.0 (2024/04/25) スイッチON機能を追加などの仕様変更
+- ver.2.1.0 (2024/04/27) メッセージ長押し抑止を追加
 
  * 
  * 
@@ -124,6 +143,9 @@ const SW_LONG_PRESS_SWITCH_ON = Number(PARAM["SW_LONG_PRESS_SWITCH_ON"]) || 0;
 const LONG_PRESS_TIME = Number(PARAM["LONG_PRESS_TIME"]) || 0;
 const DIV_TIME = Number(PARAM["DIV_TIME"]) || 1;
 const LONG_PRESS_INTERVAL = 12;
+const DEFAULT_INTERVAL = 6;
+
+const NOT_LONG_PRESS_IN_MESSAGE = PARAM["NOT_LONG_PRESS_IN_MESSAGE"] === "true";
 
 //--------------------------------------
 // 長押し
@@ -301,6 +323,12 @@ const _Window_Message_terminateMessage = Window_Message.prototype.terminateMessa
 Window_Message.prototype.terminateMessage = function() {
 	_Window_Message_terminateMessage.call(this, ...arguments);
 	$gameTemp.eraseKrdRoundBar();
+
+	// メッセージ表示中の長押し対応
+	// これにより早送りが遅くなる。
+	if (NOT_LONG_PRESS_IN_MESSAGE && TouchInput._pressedTime >= TouchInput.keyRepeatWait) {
+		TouchInput._pressedTime = DEFAULT_INTERVAL;
+	}
 };
 
 //--------------------------------------

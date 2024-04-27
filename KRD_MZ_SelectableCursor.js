@@ -11,6 +11,30 @@
  * @default false
  * @type boolean
  * 
+ * @param UP_TOP_LINE
+ * @text 上キーで先頭行を移動
+ * @desc 上キーで先頭行を順にカーソル移動する。
+ * @default false
+ * @type boolean
+ * 
+ * @param DOWN_BOTTOM_LINE
+ * @text 下キーで最下行を移動
+ * @desc 下キーで最下行を順にカーソル移動する。
+ * @default false
+ * @type boolean
+ * 
+ * @param UP_TO_TAIL
+ * @text 上キーで最後に移動
+ * @desc 上キーで最後へのカーソル移動を可能にする。
+ * @default false
+ * @type boolean
+ * 
+ * @param DOWN_TO_HEAD
+ * @text 下キーで先頭に移動
+ * @desc 下キーで先頭へのカーソル移動を可能にする。
+ * @default false
+ * @type boolean
+ * 
  * @param SHOP_NO_PLUS_10
  * @text 店で購入数10増減しない
  * @desc 店での購入数を10増減しない（1にする）
@@ -61,6 +85,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.2.0 (2024/02/20) マジックナンバーを関数化
 - ver.1.3.0 (2024/02/28) 一覧でもアクターチェンジ
 - ver.1.4.0 (2024/03/20) 先頭と最後を繋げるオプションを追加
+- ver.1.5.0 (2024/04/27) プラグインパラメータを追加
 
  * 
  * 
@@ -74,6 +99,11 @@ const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
 const LIST_HEAD_TAIL = PARAM["LIST_HEAD_TAIL"] === "true";
+
+const UP_TOP_LINE = PARAM["UP_TOP_LINE"] === "true";
+const DOWN_BOTTOM_LINE = PARAM["DOWN_BOTTOM_LINE"] === "true";
+const UP_TO_TAIL = PARAM["UP_TO_TAIL"] === "true";
+const DOWN_TO_HEAD = PARAM["DOWN_TO_HEAD"] === "true";
 
 const SHOP_NO_PLUS_10 = PARAM["SHOP_NO_PLUS_10"] === "true";
 
@@ -174,12 +204,12 @@ Window_ShopNumber.prototype.processNumberChange = function() {
 
 const _Window_Selectable_cursorDown = Window_Selectable.prototype.cursorDown;
 Window_Selectable.prototype.cursorDown = function(wrap) {
-	if (this.index() === this.tailIndex()) {
+	if (DOWN_TO_HEAD && this.index() === this.tailIndex()) {
 		this.cursorHead();
-	} else if (this.index() >= (this.maxItems() - this.maxCols())) {
+	} else if (DOWN_BOTTOM_LINE && this.index() >= (this.maxItems() - this.maxCols())) {
 		// 下のindexが空欄の時
 		this.smoothSelect(this.nextIndex());
-	} else if (this.row() === this.tailRow()) {
+	} else if (DOWN_BOTTOM_LINE && this.row() === this.tailRow()) {
 		this.smoothSelect(this.nextIndex());
 	} else {
 		_Window_Selectable_cursorDown.call(this, ...arguments);
@@ -188,12 +218,12 @@ Window_Selectable.prototype.cursorDown = function(wrap) {
 
 const _Window_Selectable_cursorUp = Window_Selectable.prototype.cursorUp;
 Window_Selectable.prototype.cursorUp = function(wrap) {
-	if (this.index() === this.headIndex()) {
+	if (UP_TO_TAIL && this.index() === this.headIndex()) {
 		this.cursorTail();
-	} else if (this.index() < (this.headIndex() + this.maxCols())) {
+	} else if (UP_TOP_LINE && this.index() < (this.headIndex() + this.maxCols())) {
 		// 上のindexが空欄の時
 		this.smoothSelect(this.previousIndex());
-	} else if (this.row() === this.headRow()) {
+	} else if (UP_TOP_LINE && this.row() === this.headRow()) {
 		this.smoothSelect(this.previousIndex());
 	} else {
 		_Window_Selectable_cursorUp.call(this, ...arguments);

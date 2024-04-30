@@ -13,6 +13,13 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_StretchMode（ゲーム画面ストレッチモード（F3）をONで開始）
+
+ゲーム画面をブラウザ等の画面いっぱいに引き伸ばして表示します。
+F3押下で切り替えるのと同じです。
+
+[KRD_MZ_StretchModeをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_StretchMode.js)
+
 ## KRD_MZ_TroopId（シンボルエンカウント用の敵グループ番号）
 
 「戦闘の処理」で「ランダムエンカウントと同じ」場合に、敵グループの組合せを、メモ欄で指定した組合せにできます。

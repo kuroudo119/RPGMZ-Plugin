@@ -203,10 +203,8 @@ Game_Temp.prototype.isNotLongPressInEvent = function() {
 	if ($gameParty.inBattle()) {
 		return false;
 	}
-	if (NOT_LONG_PRESS_IN_EVENT && $gameMap.isEventRunning()) {
-		return true;
-	}
-	return false;
+
+	return NOT_LONG_PRESS_IN_EVENT && $gameMap.isEventRunning();
 };
 
 Game_Temp.prototype.doCancelLongPress = function() {

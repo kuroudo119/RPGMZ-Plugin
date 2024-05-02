@@ -18,6 +18,13 @@
  * @type boolean
  * @parent USE_LONG_PRESS_CANCEL
  * 
+ * @param NOT_LONG_PRESS_IN_EVENT
+ * @text イベント中は長押し無視
+ * @desc マップイベント中は長押しを無視する: true ／ 無視しない: false
+ * @default true
+ * @type boolean
+ * @parent USE_LONG_PRESS_CANCEL
+ * 
  * @param USE_LONG_PRESS_COMMON
  * @text 長押しコモンスイッチ
  * @desc 長押しコモンイベント呼出機能を有効にするスイッチ番号です。 0 の場合はこの機能を使いません。
@@ -59,7 +66,7 @@
  * @param NOT_LONG_PRESS_IN_MESSAGE
  * @text メッセージ長押し抑止
  * @desc メッセージ表示中の長押しを抑止します: true ／ 抑止しない（デフォルト通り）: false
- * @default true
+ * @default false
  * @type boolean
  * 
  * @help
@@ -117,6 +124,7 @@ krdRoundBar.css を入れてください。
 - ver.1.2.0 (2024/04/25) 円形バーが出るのを遅くした
 - ver.2.0.0 (2024/04/25) スイッチON機能を追加などの仕様変更
 - ver.2.1.0 (2024/04/27) メッセージ長押し抑止を追加
+- ver.2.2.0 (2024/05/02) イベント中は長押し無視を追加など
 
  * 
  * 
@@ -133,6 +141,7 @@ const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
 const USE_LONG_PRESS_CANCEL = PARAM["USE_LONG_PRESS_CANCEL"] === "true";
 const LONG_PRESS_MENU = PARAM["LONG_PRESS_MENU"] === "true";
+const NOT_LONG_PRESS_IN_EVENT = PARAM["NOT_LONG_PRESS_IN_EVENT"] === "true";
 
 const USE_LONG_PRESS_COMMON = Number(PARAM["USE_LONG_PRESS_COMMON"]) || 0;
 const COMMON_EVENT_ID = Number(PARAM["COMMON_EVENT_ID"]) || 0;
@@ -166,9 +175,38 @@ TouchInput.update = function() {
 		} else if ($gameSwitches.value(USE_LONG_PRESS_SWITCH)) {
 			$gameTemp.doSwitchOn();
 		} else if (USE_LONG_PRESS_CANCEL) {
-			$gameTemp.doCancelLongPress();
+			if (!$gameTemp.isNotLongPressInEvent()) {
+				$gameTemp.doCancelLongPress();
+			}
 		} 
 	}
+};
+
+Game_Temp.prototype.isNotLongPressInEvent = function() {
+	// タイトル画面に戻すイベント後に、
+	// $gameMap.isEventRunning() が true のままなので、
+	// タイトル画面では false にしている。
+	const sceneName = SceneManager._scene.constructor.name;
+	if (sceneName === "Scene_Title") {
+		return false;
+	}
+	if (sceneName === "Scene_Load") {
+		return false;
+	}
+	if (sceneName === "Scene_Options") {
+		return false;
+	}
+	if (sceneName === "Scene_Info") {
+		return false;
+	}
+
+	if ($gameParty.inBattle()) {
+		return false;
+	}
+	if (NOT_LONG_PRESS_IN_EVENT && $gameMap.isEventRunning()) {
+		return true;
+	}
+	return false;
 };
 
 Game_Temp.prototype.doCancelLongPress = function() {
@@ -329,6 +367,12 @@ Window_Message.prototype.terminateMessage = function() {
 	if (NOT_LONG_PRESS_IN_MESSAGE && TouchInput._pressedTime >= TouchInput.keyRepeatWait) {
 		TouchInput._pressedTime = DEFAULT_INTERVAL;
 	}
+};
+
+const _Scene_Base_terminate = Scene_Base.prototype.terminate;
+Scene_Base.prototype.terminate = function() {
+	_Scene_Base_terminate.call(this, ...arguments);
+	$gameTemp.eraseKrdRoundBar();
 };
 
 //--------------------------------------

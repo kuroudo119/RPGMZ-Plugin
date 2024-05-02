@@ -20,7 +20,7 @@
  * 
  * @param NOT_LONG_PRESS_IN_EVENT
  * @text イベント中は長押し無視
- * @desc マップイベント中は長押しを無視する: true ／ 無視しない: false
+ * @desc マップイベント中は長押しキャンセルしない: true ／ 長押しキャンセルする: false
  * @default true
  * @type boolean
  * @parent USE_LONG_PRESS_CANCEL

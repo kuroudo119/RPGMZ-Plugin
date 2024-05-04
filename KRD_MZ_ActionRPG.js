@@ -468,7 +468,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.6 (2022/01/17) ロード不可マップでセーブ不可にする一時的対処
 - ver.0.0.7 (2022/01/18) プラグインパラメータを追加
 - ver.0.0.8 (2022/01/19) ロード不可を解決した
-- ver.0.0.9 (2022/01/20) _Game_MapAction クラスを追加
+- ver.0.0.9 (2022/01/20) KRD_Game_MapAction クラスを追加
 - ver.0.1.0 (2022/01/21) 非公開版完成
 - ver.1.0.0 (2022/01/21) 公開
 - ver.1.1.0 (2022/01/21) 報酬獲得関数を作成
@@ -520,17 +520,18 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.29.0 (2023/12/27) 玉発射をプラグインコマンド化
 - ver.1.30.0 (2023/12/28) 一部スクリプトをプラグインコマンド化
 - ver.1.31.0 (2023/12/29) 一部スクリプトをプラグインコマンド化
+- ver.1.32.0 (2024/04/20) クラス名を修正
 
  * 
  * 
  */
 
-let _Game_MapEnemy = null;
-let _Sprite_MapGauge = null;
-let _Sprite_MapActor = null;
-let _Sprite_MapEnemy = null;
-let _Game_MapAction = null;
-let _Sprite_MapStateIcon = null;
+let KRD_Game_MapEnemy = null;
+let KRD_Sprite_MapGauge = null;
+let KRD_Sprite_MapActor = null;
+let KRD_Sprite_MapEnemy = null;
+let KRD_Game_MapAction = null;
+let KRD_Sprite_MapStateIcon = null;
 
 (() => {
 
@@ -756,9 +757,9 @@ PluginManager.registerCommand(PLUGIN_NAME, "enemyHpByBattle", function(args) {
 });
 
 // -------------------------------------
-// _Game_MapEnemy クラス
+// KRD_Game_MapEnemy クラス
 
-_Game_MapEnemy = class extends Game_Enemy {
+KRD_Game_MapEnemy = class extends Game_Enemy {
 	constructor(enemyId, x, y, eventId) {
 		super(...arguments);
 		this._eventId = eventId;
@@ -798,12 +799,12 @@ _Game_MapEnemy = class extends Game_Enemy {
 // グローバルで let で宣言した時、
 // windowオブジェクトのプロパティを生成しない事への対処。
 
-window[_Game_MapEnemy.name] = _Game_MapEnemy;
+window[KRD_Game_MapEnemy.name] = KRD_Game_MapEnemy;
 
 // -------------------------------------
-// _Sprite_MapGauge クラス
+// KRD_Sprite_MapGauge クラス
 
-_Sprite_MapGauge = class extends Sprite_Gauge {
+KRD_Sprite_MapGauge = class extends Sprite_Gauge {
 	bitmapWidth() {
 		return GAUGE_WIDTH;
 	}
@@ -839,16 +840,16 @@ _Sprite_MapGauge = class extends Sprite_Gauge {
 // -------------------------------------
 // _Sprite_MapBattler クラス (ダメージポップアップ用)
 
-_Sprite_MapActor = class extends Sprite_Battler {
+KRD_Sprite_MapActor = class extends Sprite_Battler {
 };
 
-_Sprite_MapEnemy = class extends Sprite_Battler {
+KRD_Sprite_MapEnemy = class extends Sprite_Battler {
 };
 
 // -------------------------------------
-// _Sprite_MapStateIcon クラス (アイコン表示用)
+// KRD_Sprite_MapStateIcon クラス (アイコン表示用)
 
-_Sprite_MapStateIcon = class extends Sprite_StateIcon {
+KRD_Sprite_MapStateIcon = class extends Sprite_StateIcon {
 	constructor(eventHeight = 0) {
 		super(...arguments);
 		this._eventHeight = eventHeight;
@@ -863,9 +864,9 @@ _Sprite_MapStateIcon = class extends Sprite_StateIcon {
 };
 
 // -------------------------------------
-// _Game_MapAction クラス (ダメージ計算用)
+// KRD_Game_MapAction クラス (ダメージ計算用)
 
-_Game_MapAction = class extends Game_Action {
+KRD_Game_MapAction = class extends Game_Action {
 	setSubject(subject) {
 		if (subject.isActor()) {
 			super.setSubject(...arguments);
@@ -926,7 +927,7 @@ Game_Event.prototype.initialize = function(mapId, eventId) {
 Game_Event.prototype.createEnemy = function(eventId) {
 	const enemyId = Number(this.event().meta[META_ENEMY]);
 	if (enemyId) {
-		this._enemy = new _Game_MapEnemy(enemyId, 0, 0, eventId);
+		this._enemy = new KRD_Game_MapEnemy(enemyId, 0, 0, eventId);
 	}
 };
 
@@ -1073,22 +1074,22 @@ Scene_Map.prototype.createMapFollowerSprite = function() {
 
 Scene_Map.prototype.createDamagePopup = function(characterSprite, battler) {
 	if (battler.isActor()) {
-		const sprite = new _Sprite_MapActor(battler);
+		const sprite = new KRD_Sprite_MapActor(battler);
 		characterSprite.addChild(sprite);
 	} else {
-		const sprite = new _Sprite_MapEnemy(battler);
+		const sprite = new KRD_Sprite_MapEnemy(battler);
 		characterSprite.addChild(sprite);
 	}
 };
 
 Scene_Map.prototype.createHpGauge = function(characterSprite, battler) {
-	const gauge = new _Sprite_MapGauge();
+	const gauge = new KRD_Sprite_MapGauge();
 	gauge.setup(battler, "hp");
 	characterSprite.addChild(gauge);
 };
 
 Scene_Map.prototype.createStateIcon = function(characterSprite, battler, h) {
-	const stateIcon = new _Sprite_MapStateIcon(h);
+	const stateIcon = new KRD_Sprite_MapStateIcon(h);
 	stateIcon.setup(battler);
 	characterSprite.addChild(stateIcon);
 };
@@ -1127,7 +1128,7 @@ Game_Temp.prototype.mapPopupTroop = function() {
 // マップダメージ
 
 Game_Temp.prototype.mapDamage = function(target, subject, skillId) {
-	this._action = new _Game_MapAction(subject);
+	this._action = new KRD_Game_MapAction(subject);
 	this._action.setSkill(skillId);
 	this._action.apply(target);
 };
@@ -1158,7 +1159,7 @@ Game_Temp.prototype.mapDamagePlayer = function(eventId, skillId) {
 // マップダメージ (アイテム版)
 
 Game_Temp.prototype.itemMapDamage = function(target, subject, itemId) {
-	this._action = new _Game_MapAction(subject);
+	this._action = new KRD_Game_MapAction(subject);
 	this._action.setItem(itemId);
 	this._action.apply(target);
 };

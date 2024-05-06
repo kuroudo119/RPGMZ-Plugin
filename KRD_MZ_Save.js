@@ -92,6 +92,13 @@
  * @type number
  * @parent useMapImage
  * 
+ * @param USE_MAP_IMAGE_MAP_CHANGE
+ * @text 移動時のマップ画像使用
+ * @desc true: マップ移動時もマップ画像あり。 ／ false: マップ移動時はマップ画像なし。
+ * @default false
+ * @type boolean
+ * @parent useMapImage
+ * 
  * @help
 # KRD_MZ_Save.js
 
@@ -135,6 +142,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.16.0 (2023/10/26) VERSION_KEY 仕様変更
 - ver.0.17.0 (2023/10/31) LANDSCAPE_PLUGIN 対応
 - ver.0.18.0 (2024/05/06) 内部処理改善
+- ver.0.19.0 (2024/05/06) マップ移動オートセーブのサムネイルあり追加
 
  * 
  * 
@@ -171,6 +179,8 @@ const MIME_JPEG = "image/jpeg";
 const MIME_TYPE = USE_PNG ? MIME_PNG : MIME_JPEG;
 const COMPRESS_RATE = (Number(PARAM["compressRate"]) || 10) / 100;
 const THUMBNAIL_SCALE = Number(PARAM["thumbnailScale"] || 13) / 100;
+
+const USE_MAP_IMAGE_MAP_CHANGE = PARAM["USE_MAP_IMAGE_MAP_CHANGE"] === "true";
 
 const INIT_FILE_ID = 1;
 
@@ -498,30 +508,31 @@ Game_Temp.prototype.initFileId = function() {
 //--------------------------------------
 // セーブマップ画像追加（マップ移動オートセーブ用）
 
-// // 上書き
-// Scene_Map.prototype.onTransferEnd = function() {
-// 	this._mapNameWindow.open();
-// 	$gameMap.autoplay();
-// 	if (this.shouldAutosave()) {
-// 		this.mapImage(); // 追加
-// 		this.requestAutosave();
-// 	}
-// 	this._onTransferEnd = true;
-// };
-
-// const _Scene_Base_onAutosaveSuccess = Scene_Base.prototype.onAutosaveSuccess;
-// Scene_Base.prototype.onAutosaveSuccess = function() {
-// 	_Scene_Base_onAutosaveSuccess.call(this, ...arguments);
-// 	// $gameTemp._mapImage = null;
-// 	console.log("onAutosaveSuccess");
-// };
-
-// const _Scene_Base_onAutosaveFailure = Scene_Base.prototype.onAutosaveFailure;
-// Scene_Base.prototype.onAutosaveFailure = function() {
-// 	_Scene_Base_onAutosaveFailure.call(this, ...arguments);
-// 	// $gameTemp._mapImage = null;
-// 	console.log("onAutosaveFailure");
-// };
+if (USE_MAP_IMAGE_MAP_CHANGE) {
+	const _Scene_Map_onTransferEnd = Scene_Map.prototype.onTransferEnd;
+	Scene_Map.prototype.onTransferEnd = function() {
+		_Scene_Map_onTransferEnd.call(this, ...arguments);
+	};
+	
+	const _Scene_Map_requestAutosave = Scene_Map.prototype.requestAutosave;
+	Scene_Map.prototype.requestAutosave = function() {
+		this._reserveAutosave = true;
+	};
+	
+	Scene_Map.prototype.requestAutosaveMain = function() {
+		if (this._reserveAutosave && this._fadeOpacity === 0 && !$gameMap.isEventRunning()) {
+			this._reserveAutosave = false;
+			this.mapImage();
+			_Scene_Map_requestAutosave.call(this, ...arguments);
+		}
+	};
+	
+	const _Scene_Map_update = Scene_Map.prototype.update;
+	Scene_Map.prototype.update = function() {
+		_Scene_Map_update.call(this, ...arguments);
+		this.requestAutosaveMain();
+	};
+}
 
 //--------------------------------------
 // セーブマップ画像追加

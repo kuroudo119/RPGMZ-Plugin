@@ -6,14 +6,14 @@
  * @author kuroudo119 (くろうど)
  * 
  * @param versionKey
- * @text バージョン識別子
- * @desc バージョンの値。または、TextScriptBaseプラグインで設定した識別子。初期値 ver
- * @default ver
+ * @text バージョン値
+ * @desc バージョンの値となる文字列。TextScriptBaseプラグインに対応しています。初期値 \js[ver]
+ * @default \js[ver]
  * 
  * @param versionText
  * @text バージョン表示文字列
- * @desc バージョンの前に表示する文字列。初期値 v.
- * @default v.
+ * @desc バージョンの前に表示する文字列。TextScriptBaseプラグインに対応しています。初期値 \tx[verText]
+ * @default \tx[verText]
  * 
  * @param mapY
  * @text マップ名Y
@@ -28,10 +28,22 @@
  * @default 2
  * @type number
  * 
+ * @param MAX_COLS_L
+ * @text 列数(横長画面)
+ * @desc セーブデータ一覧の列数(横長画面)。初期値 3
+ * @default 3
+ * @type number
+ * 
  * @param maxRows
  * @text 行数
  * @desc セーブデータ一覧の行数。初期値 5
  * @default 5
+ * @type number
+ * 
+ * @param PARAM_MAX_ROWS_L
+ * @text 行数(横長画面)
+ * @desc セーブデータ一覧の行数(横長画面)。初期値 3
+ * @default 3
  * @type number
  * 
  * @param lineHeight
@@ -116,6 +128,13 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.12.0 (2023/03/01) 最新ファイルをselectするようにした。
 - ver.0.12.1 (2023/03/02) 最新ファイルselect処理を修正。
 - ver.0.12.2 (2023/03/02) リファクタリング
+- ver.0.13.0 (2023/05/22) 選択不可ファイルをグレーアウト
+- ver.0.14.0 (2023/06/16) パラメータにバージョンモードを追加した。
+- ver.0.14.1 (2023/06/16) try文を減らした。
+- ver.0.15.0 (2023/09/07) LANDSCAPE_PLUGIN 対応
+- ver.0.16.0 (2023/10/26) VERSION_KEY 仕様変更
+- ver.0.17.0 (2023/10/31) LANDSCAPE_PLUGIN 対応
+- ver.0.18.0 (2024/05/06) 内部処理改善
 
  * 
  * 
@@ -128,12 +147,17 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
+const LANDSCAPE_PLUGIN = typeof KRD_MZ_UI_Landscape !== "undefined" ? KRD_MZ_UI_Landscape : false;
+
 const VERSION_KEY = PARAM["versionKey"];
 const VERSION_TEXT = PARAM["versionText"];
 
 const MAP_Y_PLUS  = Number(PARAM["mapY"]) || 0;
 const MAX_COLS = Number(PARAM["maxCols"]) || 0;
-const MAX_ROWS = Number(PARAM["maxRows"]) || 0;
+const MAX_COLS_L = Number(PARAM["MAX_COLS_L"]) || 0;
+const PARAM_MAX_ROWS = Number(PARAM["maxRows"]) || 0;
+const PARAM_MAX_ROWS_L = Number(PARAM["PARAM_MAX_ROWS_L"]) || 0;
+const MAX_ROWS = LANDSCAPE_PLUGIN ? PARAM_MAX_ROWS_L : PARAM_MAX_ROWS;
 const LINE_HEIGHT = Number(PARAM["lineHeight"]) || 0;
 
 const VAR_TEXT = Number(PARAM["varText"]) || 0;
@@ -155,9 +179,9 @@ const NEW_FILE_COLOR = 17;
 //--------------------------------------
 // セーブデータ info 追加
 
-const KRD_DataManager_makeSavefileInfo = DataManager.makeSavefileInfo;
+const _DataManager_makeSavefileInfo = DataManager.makeSavefileInfo;
 DataManager.makeSavefileInfo = function() {
-	const info = KRD_DataManager_makeSavefileInfo.apply(this, arguments);
+	const info = _DataManager_makeSavefileInfo.call(this, ...arguments);
 	info.mapName = this.getMapName();
 	info.version = this.getVersion();
 	info.mapImage = this.getMapImage();
@@ -171,28 +195,21 @@ DataManager.getMapName = function() {
 		return text;
 	}
 
-	try {
-		if ($gameTemp._mapName) {
-			const ret = $gameTemp._mapName;
-			$gameTemp._mapName = "";
-			return ret;
-		} else {
+	if ($gameTemp._mapName) {
+		const ret = $gameTemp._mapName;
+		$gameTemp._mapName = "";
+		return ret;
+	} else {
+		if ($dataMap) {
 			return $gameMap.displayName();
+		} else {
+			return "";
 		}
-	} catch(e) {
-		return "";
 	}
 };
 
 DataManager.getVersion = function() {
-	if ($gameSystem.getTextBase) {
-		const text = `\\js[${VERSION_KEY}]`;
-		const version = Window_Base.prototype.convertEscapeCharacters(text);
-		return version;
-	} else {
-		// TextScriptBaseプラグインを使用しない場合
-		return VERSION_KEY;
-	}
+	return Window_Base.prototype.convertEscapeCharacters(VERSION_KEY);
 };
 
 DataManager.getMapImage = function() {
@@ -210,18 +227,36 @@ DataManager.getMapImage = function() {
 // セーブ画面
 
 Window_SavefileList.prototype.drawItem = function(index) {
+	// 最初に index:0 から始まるので初期indexをselectしておく
+	this.firstSelectSavefile();
+
+	this.drawItemMain(index);
+};
+
+Window_SavefileList.prototype.drawItemMain = function(index) {
 	const savefileId = this.indexToSavefileId(index);
 	const info = DataManager.savefileInfo(savefileId);
 	const rect = this.itemRectWithPadding(index);
 	this.resetTextColor();
-	this.changePaintOpacity(true);
+
+	// 遅延対策で changePaintOpacity を drawContents 内でも実行する
+	// ここではグレーアウトされる
+	this.changePaintOpacity(this.opacityMode(savefileId, !info));
+
 	this.drawTitle(savefileId, rect.x, rect.y + 4);
 	if (info) {
 		this.drawContents(info, rect, savefileId);
 	}
+};
 
-	// サムネイル画像なし時処理
-	this.firstSelectSavefile();
+Window_SavefileList.prototype.opacityMode = function(savefileId, noInfo) {
+	if (this._mode === "save" && $gameTemp.isAutoSaveFileId(savefileId) ) {
+		return false;
+	} else if (this._mode === "load" && noInfo) {
+		return false;
+} else {
+		return true;
+	}
 };
 
 Window_SavefileList.prototype.drawContents = function(info, rect, savefileId) {
@@ -229,14 +264,13 @@ Window_SavefileList.prototype.drawContents = function(info, rect, savefileId) {
 		const image = new Image(info.mapImage.width, info.mapImage.height);
 		image.src = info.mapImage.src;
 		image.addEventListener("load", element => {
+			this.changePaintOpacity(this.opacityMode(savefileId, !info));
 			this.drawMapImage(rect, image);
 			this.drawTitle(savefileId, rect.x, rect.y + 4);
 			this.drawMainContents(info, rect, savefileId);
-
-			// 画像表示を待って処理する
-			this.firstSelectSavefile();
 		});
 	} else {
+		this.changePaintOpacity(this.opacityMode(savefileId, !info));
 		this.drawTitle(savefileId, rect.x, rect.y + 4);
 		this.drawMainContents(info, rect, savefileId);
 	}
@@ -275,7 +309,8 @@ Window_SavefileList.prototype.drawMainContents = function(info, rect, savefileId
 	}
 	if (info.version) {
 		const y5 = rect.y + 4;
-		this.drawText(VERSION_TEXT + info.version, rect.x, y5, rect.width, "right");
+		const verText = Window_Base.prototype.convertEscapeCharacters(VERSION_TEXT);
+		this.drawText(verText + info.version, rect.x, y5, rect.width, "right");
 	}
 };
 
@@ -301,22 +336,30 @@ Window_SavefileList.prototype.drawMapImage = function(rect, image) {
 	}
 };
 
-const KRD_Window_SavefileList_maxCols = Window_SavefileList.prototype.maxCols;
+const _Window_SavefileList_maxCols = Window_SavefileList.prototype.maxCols;
 Window_SavefileList.prototype.maxCols = function() {
-	return MAX_COLS ? MAX_COLS : KRD_Window_SavefileList_maxCols.apply(this, arguments);
+	if (MAX_COLS) {
+		if (LANDSCAPE_PLUGIN) {
+			return MAX_COLS_L;
+		} else {
+			return MAX_COLS;
+		}
+	} else {
+		return _Window_SavefileList_maxCols.call(this, ...arguments);
+	}
 };
 
-const KRD_Window_SavefileList_lineHeight = Window_SavefileList.prototype.lineHeight;
+const _Window_SavefileList_lineHeight = Window_SavefileList.prototype.lineHeight;
 Window_SavefileList.prototype.lineHeight = function() {
-	return LINE_HEIGHT ? LINE_HEIGHT : KRD_Window_SavefileList_lineHeight.apply(this, arguments);
+	return LINE_HEIGHT ? LINE_HEIGHT : _Window_SavefileList_lineHeight.call(this, ...arguments);
 };
 
-const KRD_Window_SavefileList_itemHeight = Window_SavefileList.prototype.itemHeight;
+const _Window_SavefileList_itemHeight = Window_SavefileList.prototype.itemHeight;
 Window_SavefileList.prototype.itemHeight = function() {
 	if (MAX_ROWS) {
 		return Math.floor(this.innerHeight / MAX_ROWS);
 	} else {
-		return KRD_Window_SavefileList_itemHeight.apply(this, arguments);
+		return _Window_SavefileList_itemHeight.call(this, ...arguments);
 	}
 };
 
@@ -333,46 +376,46 @@ Window_SavefileList.prototype.drawPartyCharacters = function(info, x, y) {
 //--------------------------------------
 // maxCols が 2 の時の処理を修正
 
-const KRD_Window_SavefileList_selectSavefile = Window_SavefileList.prototype.selectSavefile;
+const _Window_SavefileList_selectSavefile = Window_SavefileList.prototype.selectSavefile;
 Window_SavefileList.prototype.selectSavefile = function(savefileId) {
 	if (MAX_COLS === 2) {
 		const index = Math.max(0, this.savefileIdToIndex(savefileId));
 		this.select(index);
 		this.setTopRow(Math.floor(index / 2) - 2);
 	} else {
-		KRD_Window_SavefileList_selectSavefile.apply(this, arguments);
+		_Window_SavefileList_selectSavefile.call(this, ...arguments);
 	}
 };
 
-const KRD_Window_SavefileList_initialize = Window_SavefileList.prototype.initialize;
+const _Window_SavefileList_initialize = Window_SavefileList.prototype.initialize;
 Window_SavefileList.prototype.initialize = function(rect) {
-	KRD_Window_SavefileList_initialize.apply(this, arguments);
+	_Window_SavefileList_initialize.call(this, ...arguments);
 	this._firstView = false;
 };
 
 //--------------------------------------
 // セーブ確認ダイアログ
 
-const KRD_Scene_Save_create = Scene_Save.prototype.create;
+const _Scene_Save_create = Scene_Save.prototype.create;
 Scene_Save.prototype.create = function() {
 	if (USE_DIALOG) {
-		KRD_Scene_Save_create.apply(this, arguments);
+		_Scene_Save_create.call(this, ...arguments);
 		this.createConfirmWindow();
 	} else {
-		KRD_Scene_Save_create.apply(this, arguments);
+		_Scene_Save_create.call(this, ...arguments);
 	}
 };
 
-const KRD_Scene_Save_onSavefileOk = Scene_Save.prototype.onSavefileOk;
+const _Scene_Save_onSavefileOk = Scene_Save.prototype.onSavefileOk;
 Scene_Save.prototype.onSavefileOk = function() {
 	this._initFileId = this._initFileId || $gameTemp.initFileId();
 	if (USE_DIALOG && this.savefileId() >= this._initFileId) {
-		Scene_File.prototype.onSavefileOk.apply(this, arguments);
+		Scene_File.prototype.onSavefileOk.call(this, ...arguments);
 		this._confirmWindow.show();
 		this._confirmWindow.activate();
 		this._confirmWindow.refresh();
 	} else {
-		KRD_Scene_Save_onSavefileOk.apply(this, arguments);
+		_Scene_Save_onSavefileOk.call(this, ...arguments);
 	}
 };
 
@@ -412,6 +455,7 @@ Scene_Save.prototype.onConfirmCancel = function() {
 	this.activateListWindow();
 	this._confirmWindow.hide();
 	this._confirmWindow.deactivate();
+	this._confirmWindow.select(0);
 };
 
 class Window_Save_Confirm extends Window_Command {
@@ -431,16 +475,13 @@ class Window_Save_Confirm extends Window_Command {
 
 //--------------------------------------
 // バトル時のマップ名を一時保存する
-//
-// バトル終了時のオートセーブは、タイミングの都合で、
-// $gameMap.displayName() に失敗する。
 
-const KRD_Scene_Battle_create = Scene_Battle.prototype.create;
+const _Scene_Battle_create = Scene_Battle.prototype.create;
 Scene_Battle.prototype.create = function() {
-	KRD_Scene_Battle_create.apply(this, arguments);
-	try {
+	_Scene_Battle_create.call(this, ...arguments);
+	if ($dataMap) {
 		$gameTemp._mapName = $gameMap.displayName();
-	} catch (e) {
+	} else {
 		$gameTemp._mapName = "";
 	}
 };
@@ -455,16 +496,44 @@ Game_Temp.prototype.initFileId = function() {
 };
 
 //--------------------------------------
+// セーブマップ画像追加（マップ移動オートセーブ用）
+
+// // 上書き
+// Scene_Map.prototype.onTransferEnd = function() {
+// 	this._mapNameWindow.open();
+// 	$gameMap.autoplay();
+// 	if (this.shouldAutosave()) {
+// 		this.mapImage(); // 追加
+// 		this.requestAutosave();
+// 	}
+// 	this._onTransferEnd = true;
+// };
+
+// const _Scene_Base_onAutosaveSuccess = Scene_Base.prototype.onAutosaveSuccess;
+// Scene_Base.prototype.onAutosaveSuccess = function() {
+// 	_Scene_Base_onAutosaveSuccess.call(this, ...arguments);
+// 	// $gameTemp._mapImage = null;
+// 	console.log("onAutosaveSuccess");
+// };
+
+// const _Scene_Base_onAutosaveFailure = Scene_Base.prototype.onAutosaveFailure;
+// Scene_Base.prototype.onAutosaveFailure = function() {
+// 	_Scene_Base_onAutosaveFailure.call(this, ...arguments);
+// 	// $gameTemp._mapImage = null;
+// 	console.log("onAutosaveFailure");
+// };
+
+//--------------------------------------
 // セーブマップ画像追加
 
-const KRD_Scene_Map_stop = Scene_Map.prototype.stop;
+const _Scene_Map_stop = Scene_Map.prototype.stop;
 Scene_Map.prototype.stop = function() {
 	if (!SceneManager.isNextScene(Scene_Map)) {
 		this.mapImage();
 	} else {
 		$gameTemp._mapImage = null;
 	}
-	KRD_Scene_Map_stop.apply(this, arguments);
+	_Scene_Map_stop.call(this, ...arguments);
 };
 
 Scene_Base.prototype.mapImage = function() {

@@ -35,6 +35,12 @@
  * @default false
  * @type boolean
  * 
+ * @param ROW_1_UP_DOWN
+ * @text 1行時上下キーを左右キー
+ * @desc 1行のみの場合、上下キーを左右キーと同じ挙動にする。
+ * @default false
+ * @type boolean
+ * 
  * @param SHOP_NO_PLUS_10
  * @text 店で購入数10増減しない
  * @desc 店での購入数を10増減しない（1にする）
@@ -86,6 +92,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.3.0 (2024/02/28) 一覧でもアクターチェンジ
 - ver.1.4.0 (2024/03/20) 先頭と最後を繋げるオプションを追加
 - ver.1.5.0 (2024/04/27) プラグインパラメータを追加
+- ver.1.6.0 (2024/04/30) プラグインパラメータを追加
+- ver.1.7.0 (2024/05/06) 先頭と末尾を繋げない設定を可能にした
 
  * 
  * 
@@ -104,6 +112,8 @@ const UP_TOP_LINE = PARAM["UP_TOP_LINE"] === "true";
 const DOWN_BOTTOM_LINE = PARAM["DOWN_BOTTOM_LINE"] === "true";
 const UP_TO_TAIL = PARAM["UP_TO_TAIL"] === "true";
 const DOWN_TO_HEAD = PARAM["DOWN_TO_HEAD"] === "true";
+
+const ROW_1_UP_DOWN = PARAM["ROW_1_UP_DOWN"] === "true";
 
 const SHOP_NO_PLUS_10 = PARAM["SHOP_NO_PLUS_10"] === "true";
 
@@ -204,7 +214,13 @@ Window_ShopNumber.prototype.processNumberChange = function() {
 
 const _Window_Selectable_cursorDown = Window_Selectable.prototype.cursorDown;
 Window_Selectable.prototype.cursorDown = function(wrap) {
-	if (DOWN_TO_HEAD && this.index() === this.tailIndex()) {
+	if (!LIST_HEAD_TAIL && this.maxCols() === 1 && this.index() === this.tailIndex()) {
+		return;
+	}
+
+	if (ROW_1_UP_DOWN && this.maxRows() === 1) {
+		this.cursorRight(wrap);
+	} else if (DOWN_TO_HEAD && this.index() === this.tailIndex()) {
 		this.cursorHead();
 	} else if (DOWN_BOTTOM_LINE && this.index() >= (this.maxItems() - this.maxCols())) {
 		// 下のindexが空欄の時
@@ -218,7 +234,13 @@ Window_Selectable.prototype.cursorDown = function(wrap) {
 
 const _Window_Selectable_cursorUp = Window_Selectable.prototype.cursorUp;
 Window_Selectable.prototype.cursorUp = function(wrap) {
-	if (UP_TO_TAIL && this.index() === this.headIndex()) {
+	if (!LIST_HEAD_TAIL && this.maxCols() === 1 && this.index() === this.headIndex()) {
+		return;
+	}
+
+	if (ROW_1_UP_DOWN && this.maxRows() === 1) {
+		this.cursorLeft(wrap);
+	} else if (UP_TO_TAIL && this.index() === this.headIndex()) {
 		this.cursorTail();
 	} else if (UP_TOP_LINE && this.index() < (this.headIndex() + this.maxCols())) {
 		// 上のindexが空欄の時

@@ -13,9 +13,16 @@
  * 
  * @param attackTimesPlus
  * @text 二刀流時攻撃回数追加
- * @desc 二刀流時に2枠とも同じ武器タイプを装備していると攻撃回数+1にする：true ／ しない：false
+ * @desc 二刀流時に2枠とも同じ武器タイプを装備していると攻撃回数+1する：true ／ しない：false
  * @default false
  * @type boolean
+ * 
+ * @param DUAL_BARE_HANDS
+ * @text 素手の二刀流
+ * @desc 武器なし&盾なしの時に攻撃回数+1する：true ／ しない：false
+ * @default false
+ * @type boolean
+ * @parent attackTimesPlus
  * 
  * @help
 # KRD_MZ_DualWield.js
@@ -38,6 +45,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.2.0.0 (2023/02/08) 二刀流時に攻撃回数を増やす機能を追加
 - ver.2.0.1 (2023/02/08) リファクタリング
 - ver.2.1.0 (2023/11/10) ショップシーンは対象外、攻撃回数追加条件変更
+- ver.2.2.0 (2024/05/16) 素手の二刀流を追加
 
  * 
  * 
@@ -52,6 +60,8 @@ const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
 const DUAL_SAME_WEAPON = PARAM["dualSameWeapon"] === "true";
 const ATTACK_TIMES_PLUS = PARAM["attackTimesPlus"] === "true";
+
+const DUAL_BARE_HANDS = PARAM["DUAL_BARE_HANDS"] === "true";
 
 // -------------------------------------
 // 同じ武器タイプのみ二刀流
@@ -85,12 +95,22 @@ Game_Actor.prototype.attackTimesAdd = function() {
 };
 
 Game_Actor.prototype.isAttackTimesPlus = function() {
+	if (this.isDualBareHands()) {
+		return true;
+	}
 	if (this.isDualWield()) {
 		const weapon1 = this.weapons()[0];
 		const weapon2 = this.weapons()[1];
-		if (weapon1 && weapon2 && weapon1.wtypeId === weapon2.wtypeId) {
-			return true;
-		}
+		return weapon1 && weapon2 && weapon1.wtypeId === weapon2.wtypeId;
+	}
+	return false;
+};
+
+Game_Actor.prototype.isDualBareHands = function() {
+	if (DUAL_BARE_HANDS) {
+		const weapon = this.equips()[0];
+		const shield = this.equips()[1];
+		return weapon == null && shield == null;
 	}
 	return false;
 };

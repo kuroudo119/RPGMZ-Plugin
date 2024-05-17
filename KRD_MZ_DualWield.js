@@ -18,11 +18,10 @@
  * @type boolean
  * 
  * @param DUAL_BARE_HANDS
- * @text 素手の二刀流
+ * @text 素手二刀流時攻撃回数追加
  * @desc 武器なし&盾なしの時に攻撃回数+1する：true ／ しない：false
  * @default false
  * @type boolean
- * @parent attackTimesPlus
  * 
  * @help
 # KRD_MZ_DualWield.js
@@ -46,6 +45,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.2.0.1 (2023/02/08) リファクタリング
 - ver.2.1.0 (2023/11/10) ショップシーンは対象外、攻撃回数追加条件変更
 - ver.2.2.0 (2024/05/16) 素手の二刀流を追加
+- ver.2.3.0 (2024/05/17) 素手の二刀流の処理を変更
 
  * 
  * 
@@ -68,16 +68,18 @@ const DUAL_BARE_HANDS = PARAM["DUAL_BARE_HANDS"] === "true";
 
 const _Game_Actor_canEquipWeapon = Game_Actor.prototype.canEquipWeapon;
 Game_Actor.prototype.canEquipWeapon = function(item) {
+	const base = _Game_Actor_canEquipWeapon.call(this, ...arguments);
+
+	// お店での装備可否チェック用の処理
 	if (SceneManager._scene.constructor.name === "Scene_Shop") {
-		return _Game_Actor_canEquipWeapon.call(this, ...arguments);
+		return base;
 	}
 
 	if (DUAL_SAME_WEAPON && this.isDualWield()) {
-		const ret = _Game_Actor_canEquipWeapon.call(this, ...arguments);
 		const weapon = this.weapons()[0];
-		return weapon ? ret && item.wtypeId === weapon.wtypeId : ret;
+		return weapon ? base && item.wtypeId === weapon.wtypeId : base;
 	}
-	return _Game_Actor_canEquipWeapon.call(this, ...arguments);
+	return base;
 };
 
 // -------------------------------------
@@ -85,20 +87,17 @@ Game_Actor.prototype.canEquipWeapon = function(item) {
 
 const _Game_Actor_attackTimesAdd = Game_Actor.prototype.attackTimesAdd;
 Game_Actor.prototype.attackTimesAdd = function() {
-	if (ATTACK_TIMES_PLUS) {
-		const base = _Game_Actor_attackTimesAdd.call(this, ...arguments);
-		const plus = this.isAttackTimesPlus() ? 1 : 0;
-		return base + plus;
-	} else {
-		return _Game_Actor_attackTimesAdd.call(this, ...arguments);
-	}
+	const base = _Game_Actor_attackTimesAdd.call(this, ...arguments);
+	const plus = this.isAttackTimesPlus() ? 1 : 0;
+	return base + plus;
 };
 
 Game_Actor.prototype.isAttackTimesPlus = function() {
-	if (this.isDualBareHands()) {
-		return true;
-	}
-	if (this.isDualWield()) {
+	return this.isDualSameWeapons() || this.isDualBareHands();
+};
+
+Game_Actor.prototype.isDualSameWeapons = function() {
+	if (ATTACK_TIMES_PLUS && this.isDualWield()) {
 		const weapon1 = this.weapons()[0];
 		const weapon2 = this.weapons()[1];
 		return weapon1 && weapon2 && weapon1.wtypeId === weapon2.wtypeId;
@@ -109,7 +108,7 @@ Game_Actor.prototype.isAttackTimesPlus = function() {
 Game_Actor.prototype.isDualBareHands = function() {
 	if (DUAL_BARE_HANDS) {
 		const weapon = this.equips()[0];
-		const shield = this.equips()[1];
+		const shield = this.equips()[1]; // 二刀流でもnullチェックできる
 		return weapon == null && shield == null;
 	}
 	return false;

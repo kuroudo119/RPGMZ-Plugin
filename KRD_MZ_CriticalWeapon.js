@@ -28,11 +28,15 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 アクターが <KRD_UseCritical> のあるスキルを使用した場合に、
 武器の <KRD_CriticalRate:99> の会心率を加算します。
 
+スキルのメモ欄にも会心率を記述できます。
+<KRD_UseCritical:99>
+
 ## 更新履歴
 
 - ver.0.0.1 (2023/02/14) 作成開始
 - ver.0.1.0 (2023/02/14) 非公開版完成
 - ver.1.0.0 (2023/02/16) 公開
+- ver.1.1.0 (2024/05/19) KRD_UseCriticalタグにも値を設定可能にした
 
  * 
  * 
@@ -42,17 +46,25 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 "use strict";
 
-const KRD_Game_Action_itemCri = Game_Action.prototype.itemCri;
+const _Game_Action_itemCri = Game_Action.prototype.itemCri;
 Game_Action.prototype.itemCri = function(target) {
-	if (this.subject().isActor() && this.item().meta.KRD_UseCritical) {
-		const weapons = this.subject().weapons();
-		const criticalRate = weapons.reduce((rate, weapon) => rate + Number(weapon.meta.KRD_CriticalRate), 0);
-		const base = KRD_Game_Action_itemCri.apply(this, arguments);
-		const plus = criticalRate ? criticalRate / 100 : 0;
-		return base + plus;
-	} else {
-		return KRD_Game_Action_itemCri.apply(this, arguments);
+	const subject = this.subject();
+	if (subject.isActor()) {
+		const useCritical = this.item().meta.KRD_UseCritical;
+		if (useCritical) {
+			const skillRate = tagNumber(useCritical);
+			const weapons = subject.weapons();
+			const criticalRate = weapons.reduce((rate, weapon) => rate + tagNumber(weapon.meta.KRD_CriticalRate), skillRate);
+			const base = _Game_Action_itemCri.call(this, ...arguments);
+			const plus = criticalRate ? criticalRate / 100 : 0;
+			return base + plus;
+		}
 	}
+	return _Game_Action_itemCri.call(this, ...arguments);
 };
+
+function tagNumber(data) {
+	return data && data === true ? 0 : (Number(data) || 0);
+}
 
 })();

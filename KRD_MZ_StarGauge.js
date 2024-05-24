@@ -72,7 +72,7 @@ const STAR_MAX_COST = Number(PARAM["STAR_MAX_COST"]) || 1;
 KRD_Sprite_StarGauge = class extends Sprite_Gauge {
 	drawGauge() {
 		// 使用しない
-  }
+	}
 
 	drawValue() {
 		const x = this.gaugeX();

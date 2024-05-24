@@ -13,6 +13,16 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_StarGauge（星型ゲージ）
+
+TPゲージを★に置き換えます。
+
+[KRD_MZ_StarGaugeをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_StarGauge.js)
+
+![星型ゲージ1](img/StarGauge_010.png)
+![星型ゲージ2](img/StarGauge_020.png)
+![星型ゲージ3](img/StarGauge_030.png)
+
 ## KRD_MZ_StretchMode（ゲーム画面ストレッチモード（F3）をONで開始）
 
 ゲーム画面をブラウザ等の画面いっぱいに引き伸ばして表示します。

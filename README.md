@@ -13,6 +13,13 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_Cards（トランプ基本クラス）
+
+カードゲーム用の基本となるクラスです。  
+各自で改造してください。
+
+[KRD_MZ_Cardsをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Cards.js)
+
 ## KRD_MZ_StarGauge（星型ゲージ）
 
 TPゲージを★に置き換えます。

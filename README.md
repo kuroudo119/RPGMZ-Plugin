@@ -15,6 +15,13 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_CrossCounter（ダメージあり反撃）
+
+ツクールのデフォルトでは攻撃を回避して反撃しますが、ダメージを受けた上で生存していれば反撃します。  
+身代わりされた場合は反撃しません。
+
+[KRD_MZ_CrossCounterをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_CrossCounter.js)
+
 ## KRD_MZ_Cards（トランプ基本クラス）
 
 カードゲーム用の基本となるクラスです。  

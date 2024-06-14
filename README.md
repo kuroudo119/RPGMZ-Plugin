@@ -20,6 +20,8 @@
 通称、「TPB敵キャラ挙動修正」プラグインです。  
 TPBにて敵キャラの行動不可ステート解除時に即行動する件を修正し、TPBゲージが溜まるまで行動しないようにします。
 
+[KRD_MZ_TPB_EnemyActionをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_TPB_EnemyAction.js)
+
 ## KRD_MZ_CrossCounter（ダメージあり反撃）
 
 ツクールのデフォルトでは攻撃を回避して反撃しますが、ダメージを受けた上で生存していれば反撃します。  

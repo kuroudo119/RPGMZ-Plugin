@@ -29,6 +29,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2024/04/14) 作成開始
 - ver.0.1.0 (2024/04/14) 非公開版完成
 - ver.1.0.0 (2024/04/14) 公開
+- ver.1.1.0 (2024/06/14) TPBでの無限ループを修正
 
  * 
  * 
@@ -43,22 +44,34 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 const _Scene_Battle_startPartyCommandSelection = Scene_Battle.prototype.startPartyCommandSelection;
 Scene_Battle.prototype.startPartyCommandSelection = function() {
 	_Scene_Battle_startPartyCommandSelection.call(this, ...arguments);
-	if (!this._noSkipPartyCommand) {
+	if (this.partyCommandSkip()) {
 		this._partyCommandWindow.deactivate();
 		this.commandFight();
 	}
 };
 
+Scene_Battle.prototype.partyCommandSkip = function() {
+	if (BattleManager.isTpb()) {
+		if (this._activePartyCommand == undefined) {
+			this._activePartyCommand = false;
+			return true;
+		}
+		return !this._activePartyCommand && !this._actorCommandWindow.active;
+	} else {
+		return !this._activePartyCommand;
+	}
+};
+
 const _Scene_Battle_commandCancel = Scene_Battle.prototype.commandCancel;
 Scene_Battle.prototype.commandCancel = function() {
-	this._noSkipPartyCommand = true;
+	this._activePartyCommand = true;
 	_Scene_Battle_commandCancel.call(this, ...arguments);
 };
 
 const _Scene_Battle_endCommandSelection = Scene_Battle.prototype.endCommandSelection;
 Scene_Battle.prototype.endCommandSelection = function() {
 	_Scene_Battle_endCommandSelection.call(this, ...arguments);
-	this._noSkipPartyCommand = false;
+	this._activePartyCommand = false;
 };
 
 //--------------------------------------

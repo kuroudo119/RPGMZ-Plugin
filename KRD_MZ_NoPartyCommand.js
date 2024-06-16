@@ -30,6 +30,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2024/04/14) 非公開版完成
 - ver.1.0.0 (2024/04/14) 公開
 - ver.1.1.0 (2024/06/14) TPBでの無限ループを修正
+- ver.1.2.0 (2024/06/16) TPBでの処理を変更
 
  * 
  * 
@@ -41,25 +42,36 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 //--------------------------------------
 
+const _BattleManager_initMembers = BattleManager.initMembers;
+BattleManager.initMembers = function() {
+	_BattleManager_initMembers.call(this, ...arguments);
+	this._tpbNeedsPartyCommand = false;
+};
+
 const _Scene_Battle_startPartyCommandSelection = Scene_Battle.prototype.startPartyCommandSelection;
 Scene_Battle.prototype.startPartyCommandSelection = function() {
 	_Scene_Battle_startPartyCommandSelection.call(this, ...arguments);
-	if (this.partyCommandSkip()) {
-		this._partyCommandWindow.deactivate();
-		this.commandFight();
+	if (!BattleManager.isTpb()) {
+		if (this.partyCommandSkip()) {
+			this._partyCommandWindow.deactivate();
+			this.commandFight();
+		}
 	}
 };
 
 Scene_Battle.prototype.partyCommandSkip = function() {
-	if (BattleManager.isTpb()) {
-		if (this._activePartyCommand == undefined) {
-			this._activePartyCommand = false;
-			return true;
-		}
-		return !this._activePartyCommand && !this._actorCommandWindow.active;
-	} else {
-		return !this._activePartyCommand;
-	}
+	// TPB は別処理にしたためコメントアウト
+	// if (BattleManager.isTpb()) {
+	// 	if (this._activePartyCommand == undefined) {
+	// 		this._activePartyCommand = false;
+	// 		return true;
+	// 	}
+	// 	return !this._activePartyCommand && !this._actorCommandWindow.active;
+	// } else {
+	// 	return !this._activePartyCommand;
+	// }
+
+	return !this._activePartyCommand;
 };
 
 const _Scene_Battle_commandCancel = Scene_Battle.prototype.commandCancel;

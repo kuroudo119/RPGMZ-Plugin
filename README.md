@@ -15,6 +15,13 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_NoBattleLog（バトルログ非表示（戦闘高速化））
+
+バトルログを非表示にして、戦闘高速化します。  
+他のプラグイン（SimpleMsgSideViewMZ など）と併用することを想定しています。
+
+[KRD_MZ_NoBattleLogをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_NoBattleLog.js)
+
 ## KRD_MZ_TPB_EnemyAction（TPBにて敵キャラの行動不可ステート解除時に即行動する件を修正）
 
 通称、「TPB敵キャラ挙動修正」プラグインです。  

@@ -9,6 +9,8 @@
 
 [お勉強ゲーム「お姉さんと勉強」PLiCyさんにて公開中](https://plicy.net/GamePlay/177672)
 
+[3分ゲーム「キャッチボール・スタジアム」PLiCyさんにて公開中](https://plicy.net/GamePlay/182350)
+
 [トランプゲーム「ブラックジャック」PLiCyさんにて公開中](https://plicy.net/GamePlay/180915)
 
 [試作ゲーム「クリスマス勤労」PLiCyさんにて公開中](https://plicy.net/GamePlay/170692)

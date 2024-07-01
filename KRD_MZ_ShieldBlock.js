@@ -10,6 +10,12 @@
  * @desc 盾回避時に表示するアニメーションの番号です。
  * @type animation
  * 
+ * @param USE_CAN_MOVE
+ * @text canMove使用
+ * @desc アクターが行動可能な場合のみ盾回避可能にします。
+ * @type boolean
+ * @default true
+ * 
  * @help
 # KRD_MZ_ShieldBlock.js
 
@@ -45,6 +51,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2024/01/12) 非公開版完成
 - ver.1.0.0 (2024/01/12) 公開
 - ver.1.0.1 (2024/01/14) 誤字修正
+- ver.1.1.0 (2024/07/01) プラグインパラメータ USE_CAN_MOVE 追加
 
  * 
  * 
@@ -62,6 +69,8 @@ const TAG_BARRIER = "BarrierBlock";
 
 const SHIELD_SLOT = 1;
 const ANIMATON_ID = Number(PARAM["ANIMATON_ID"]) || 0;
+
+const USE_CAN_MOVE = PARAM["USE_CAN_MOVE"] === "true";
 
 //--------------------------------------
 // 処理
@@ -114,7 +123,7 @@ Game_Action.prototype.block = function(target, result) {
 
 // 新規作成
 Game_Action.prototype.blocking = function(target, tag) {
-	if (target.isActor()) {
+	if (target.isActor() && this.canBlock(target)) {
 		const shield = target.equips()[SHIELD_SLOT];
 		const blockPoint = shield?.meta[tag];
 		const blockRate = (Number(blockPoint) / 100) || 0;
@@ -122,6 +131,11 @@ Game_Action.prototype.blocking = function(target, tag) {
 	} else {
 		return false;
 	}
+};
+
+// 新規作成
+Game_Action.prototype.canBlock = function(target) {
+	return USE_CAN_MOVE ? target.canMove() : true;
 };
 
 //--------------------------------------

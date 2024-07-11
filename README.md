@@ -17,6 +17,13 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_MinDamage（最低ダメージ）
+
+最低ダメージを設定できるようにします。  
+確率で最低ダメージになるようにもできます。
+
+[KRD_MZ_MinDamageをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_MinDamage.js)
+
 ## KRD_MZ_NoBattleLog（バトルログ非表示（戦闘高速化））
 
 バトルログを非表示にして、戦闘高速化します。  

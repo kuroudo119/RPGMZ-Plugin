@@ -19,7 +19,7 @@
 
 ## KRD_MZ_MinDamage（最低ダメージ）
 
-最低ダメージを設定できるようにします。  
+ダメージが 0 などの低い場合に最低ダメージに置き換えます。  
 確率で最低ダメージになるようにもできます。
 
 [KRD_MZ_MinDamageをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_MinDamage.js)

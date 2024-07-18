@@ -97,6 +97,9 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 コモンイベント呼出はマップでのみ有効です。
 スイッチONはイベント実行中やバトル中でもスイッチONにできると思います。
 
+コモンイベント呼出とスイッチONの両方が有効な時、
+コモンイベント呼出が優先され、スイッチONは動作しません。
+
 ## 準備
 
 RPGツクールMZプロジェクト内の css フォルダに
@@ -125,6 +128,7 @@ krdRoundBar.css を入れてください。
 - ver.2.0.0 (2024/04/25) スイッチON機能を追加などの仕様変更
 - ver.2.1.0 (2024/04/27) メッセージ長押し抑止を追加
 - ver.2.2.0 (2024/05/02) イベント中は長押し無視を追加など
+- ver.2.3.0 (2024/07/18) メニューでの長押しキャンセルと併用可能にした
 
  * 
  * 
@@ -171,9 +175,21 @@ TouchInput.update = function() {
 	_TouchInput_update.call(this, ...arguments);
 	if ($gameTemp && $gameSwitches) {
 		if ($gameSwitches.value(USE_LONG_PRESS_COMMON)) {
-			$gameTemp.callCommonLongPress();
+			if ($gameTemp.canCallCommon()) {
+				$gameTemp.callCommonLongPress();
+			} else {
+				if (USE_LONG_PRESS_CANCEL && !$gameTemp.isNotLongPressInEvent()) {
+					$gameTemp.doCancelLongPress();
+				}
+			}
 		} else if ($gameSwitches.value(USE_LONG_PRESS_SWITCH)) {
-			$gameTemp.doSwitchOn();
+			if ($gameTemp.canDoSwitchOn()) {
+				$gameTemp.doSwitchOn();
+			} else {
+				if (USE_LONG_PRESS_CANCEL && !$gameTemp.isNotLongPressInEvent()) {
+					$gameTemp.doCancelLongPress();
+				}
+			}
 		} else if (USE_LONG_PRESS_CANCEL) {
 			if (!$gameTemp.isNotLongPressInEvent()) {
 				$gameTemp.doCancelLongPress();
@@ -260,14 +276,18 @@ Game_Temp.prototype.isSceneMap = function() {
 	return sceneName === "Scene_Map";
 };
 
+Game_Temp.prototype.canDoSwitchOn = function() {
+	return $gameTemp.isSceneMap() || $gameParty.inBattle();
+};
+
 Game_Temp.prototype.doSwitchOn = function() {
-	if (TouchInput.isLongPressed()) {
+	if ($gameTemp.canDoSwitchOn() && TouchInput.isLongPressed()) {
 		TouchInput.clear();
 		$gameTemp.eraseKrdRoundBar();
 		$gameSwitches.setValue(SW_LONG_PRESS_SWITCH_ON, true);
 	}
 
-	if (TouchInput.isLongPressing()) {
+	if ($gameTemp.canDoSwitchOn() && TouchInput.isLongPressing()) {
 		$gameTemp.showKrdRoundBar();
 	} else {
 		$gameTemp.eraseKrdRoundBar();
@@ -367,9 +387,14 @@ Window_Message.prototype.terminateMessage = function() {
 	}
 };
 
+//--------------------------------------
+
 const _Scene_Base_terminate = Scene_Base.prototype.terminate;
 Scene_Base.prototype.terminate = function() {
 	_Scene_Base_terminate.call(this, ...arguments);
+
+	// メニューを閉じた時に長押し判定が残っているのをクリア
+	TouchInput.clear();
 	$gameTemp.eraseKrdRoundBar();
 };
 

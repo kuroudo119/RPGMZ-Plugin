@@ -53,6 +53,22 @@
  * @type number
  * @parent MESSAGE_TOUCH
  * 
+ * @param AUTO
+ * @text 自動
+ * 
+ * @param VAR_AUTO_SPEAK
+ * @text 自動音声合成変数
+ * @desc プラグインコマンドなしで音声合成するパターンの変数番号です。変数の値が 0 の時は音声合成しません。
+ * @default 0
+ * @type variable
+ * @parent AUTO
+ * 
+ * @param AUTO_SPEAK_PATTERN
+ * @text 自動音声合成パターン
+ * @desc プラグインコマンドなしで音声合成するパターンです。自動音声合成変数の値が1以上の時にパターンを使用します。
+ * @type struct<pattern>[]
+ * @parent AUTO
+ * 
  * @command VOICE_OUTPUT
  * @text 音声出力
  * @desc 音声出力（音声合成）するコマンドです。
@@ -145,6 +161,15 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 プラグインコマンドを使用すると、
 Web Speech API に対応したブラウザで音声が流れます。
 
+## 自動音声合成
+
+「文章の表示」「文章のスクロール表示」コマンドを使用した際に、
+プラグインコマンドなしで音声合成します。
+
+事前に決めた「自動音声合成パターン」を「自動音声合成変数」で指定します。
+index = 0 が 1 となります。
+0 は自動音声合成しないですので、1 始まりで指定してください。
+
 ## iPhone用ボタン
 
 iPhoneではユーザー操作に伴うAPI実行を1回行う必要があります。
@@ -181,11 +206,33 @@ iPhoneではユーザー操作に伴うAPI実行を1回行う必要がありま�
 - ver.1.9.0 (2023/12/02) コンフィグの音量を優先（関数の直接使用対応）
 - ver.1.10.0 (2023/12/21) ゲームパッドでの音声キャンセル時の不具合を修正
 - ver.1.11.0 (2024/01/22) iPhone用ボタンの文字列をパラメータ化
-- ver.1.12.0 (2024/01/22) 音声終わりメッセージ送りで連打扱いになる事象を修正
+- ver.1.12.0 (2024/01/22) 音声終わりメッセージ送りで連打扱いの事象を修正
 - ver.1.12.1 (2024/01/25) 上記の追加修正
 - ver.1.12.2 (2024/02/11) 選択肢のキャンセルボタンがタッチできないを修正
+- ver.1.13.0 (2024/02/12) Web Audio API 動作テスト追加（不要な機能）
+- ver.2.0.0 (2024/07/20) 自動音声合成を追加
 
  * 
+ * 
+ */
+
+/*~struct~pattern:
+ * 
+ * @param language
+ * @text 出力言語
+ * @desc 音声出力する言語。日本語は「ja-JP」です。
+ * @default ja-JP
+ * @type string
+ * 
+ * @param pitch
+ * @text ピッチ
+ * @desc 音声合成のピッチ（音の高低）です。
+ * @type number
+ * 
+ * @param rate
+ * @text レート
+ * @desc 音声合成のレート（速度）です。
+ * @type number
  * 
  */
 
@@ -211,6 +258,18 @@ const BUTTON_IOS_TEXT = PARAM["BUTTON_IOS_TEXT"];
 
 const MESSAGE_TOUCH = PARAM["MESSAGE_TOUCH"] === "true";
 const KEY_REPEAT = Number(PARAM["KEY_REPEAT"]) || 0;
+
+const VAR_AUTO_SPEAK = Number(PARAM["VAR_AUTO_SPEAK"]) || 0;
+const AUTO_SPEAK_PATTERN = JSON.parse(PARAM["AUTO_SPEAK_PATTERN"] || null);
+
+// 動作確認用
+const FORCE_BUTTON_IOS = false;
+
+// Web Audio API 動作テスト
+const WEB_AUDIO = false;
+const VERSION_PIXY = true;
+const AUDIO_SRC = "audio/se/Heal1.ogg";
+const AUDIO_ID = "test";
 
 //--------------------------------------
 // プラグインコマンド
@@ -345,7 +404,12 @@ Window_ScrollText.prototype.terminateMessage = function() {
 //--------------------------------------
 // iPhone用ボタン
 
-if (BUTTON_IOS && isiPhone()) {
+KRD_VOICE_OUTPUT.isiPhone = function() {
+	const r = /iPhone|iPad|iPod/i;
+	return !!navigator.userAgent.match(r);
+};
+
+KRD_VOICE_OUTPUT.createButtonElement = function() {
 	const button = document.createElement("button");
 	button.id = "speak";
 	button.textContent = BUTTON_IOS_TEXT;
@@ -356,17 +420,54 @@ if (BUTTON_IOS && isiPhone()) {
 	button.style.right  = "0px";
 	button.style.zIndex = "12";
 	document.body.appendChild(button);
+};
+
+// Web Audio API 動作テスト
+KRD_VOICE_OUTPUT.createAudioElement = function() {
+	const audio = document.createElement("audio");
+	audio.src = AUDIO_SRC;
+	audio.id = AUDIO_ID;
+	document.body.appendChild(audio);
+};
+
+// Web Audio API 動作テスト
+KRD_VOICE_OUTPUT.audioStart = function() {
+	if (VERSION_PIXY) {
+		// pixi.js を見て作った処理
+		const audioElement = new Audio(AUDIO_SRC);
+		audioElement.play();
+	} else {
+		// Web Audio API で調べた処理
+		const AudioContext = window.AudioContext || window.webkitAudioContext;
+		const audioContext = new AudioContext();
+		const audioElement = document.querySelector("audio");
+		const track = audioContext.createMediaElementSource(audioElement);
+		track.connect(audioContext.destination);
+		audioElement.play();
+	}
+};
+
+if (FORCE_BUTTON_IOS || (BUTTON_IOS && KRD_VOICE_OUTPUT.isiPhone())) {
+	KRD_VOICE_OUTPUT.createButtonElement();
+
+	if (WEB_AUDIO) {
+		// Web Audio API 動作テスト
+		KRD_VOICE_OUTPUT.createAudioElement();
+	}
 	
 	document.getElementById("speak").addEventListener("click", function(){
+		if (WEB_AUDIO) {
+			// Web Audio API 動作テスト
+			KRD_VOICE_OUTPUT.audioStart();
+		} else {
+			// 確認音
+			SoundManager.playOk();
+		}
+
 		window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
-		document.body.removeChild(button);
+		document.body.removeChild(document.getElementById("speak"));
 	});
 }
-
-function isiPhone () {
-	const r = /iPhone|iPad|iPod/i;
-	return !!navigator.userAgent.match(r);
-};
 
 //--------------------------------------
 // メッセージのタッチ操作を修正
@@ -434,6 +535,42 @@ Window_ChoiceList.prototype.processTouch = function() {
 		_Window_ChoiceList_processTouch.call(this, ...arguments);
 	}
 };
+
+//--------------------------------------
+
+const _Game_Message_add = Game_Message.prototype.add;
+Game_Message.prototype.add = function(text) {
+	const autoSpeak = $gameVariables.value(VAR_AUTO_SPEAK);
+	if (autoSpeak > 0) {
+		const param = JSON.parse(AUTO_SPEAK_PATTERN[autoSpeak - 1] || null);
+		if (param) {
+			const cutLangText = cutLangEsc(text);
+			const convText = Window_Base.prototype.convertEscapeCharacters(Window_Base.prototype.convertEscapeCharacters(cutLangText));
+			const rubyText = typeof KRD_RUBY !== "undefined" ? KRD_RUBY.returnRuby(convText) : convText;
+			const speakText = cutEsc(rubyText);
+			KRD_VOICE_OUTPUT.speak(speakText, param.language, null, Number(param.pitch), Number(param.rate));
+		}
+	}
+	_Game_Message_add.call(this, ...arguments);
+};
+
+function cutEsc(text) {
+	const regex1 = /\x1b..\[\d+\]/gi;
+	const regex2 = /\x1b.\[\d+\]/gi;
+	const regex3 = /\x1b./gi;
+	const result1 = text.toString().replace(regex1, "");
+	const result2 = result1.toString().replace(regex2, "");
+	const result3 = result2.toString().replace(regex3, "");
+	return result3;
+}
+
+function cutLangEsc(text) {
+	const regex1 = /\\LANGF\[.*\]/gi;
+	const regex2 = /\\LANGFEND/gi;
+	const result1 = text.toString().replace(regex1, "");
+	const result2 = result1.toString().replace(regex2, "");
+	return result2;
+}
 
 //--------------------------------------
 })();

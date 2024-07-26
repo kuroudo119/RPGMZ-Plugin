@@ -28,6 +28,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 - ver.0.0.1 (2024/07/26) 作成開始
 - ver.0.1.0 (2024/07/26) 非公開版完成
+- ver.1.0.0 (2024/07/26) 公開
 
  * 
  * 
@@ -185,7 +186,12 @@ Window_CrossTable = class extends Window_Table {
 		}
 	}
 
-	setChar(char, x, y) {
+	setChar(char, index) {
+		const baseIndex = this.baseIndex();
+		const maxCols = this.maxCols();
+		const x = (index - baseIndex) % maxCols;
+		const y = Math.floor((index - baseIndex) / maxCols);
+
 		this._field[y][x] = char;
 	}
 };
@@ -238,13 +244,7 @@ Scene_CrossTable = class extends Scene_Map {
 	};
 
 	commandSet() {
-		const index = this._crossTableWindow.index();
-		const baseIndex = this._crossTableWindow.baseIndex();
-		const maxCols = this._crossTableWindow.maxCols();
-		const x = (index - baseIndex) % maxCols;
-		const y = Math.floor((index - baseIndex) / maxCols);
-
-		this._crossTableWindow.setChar(this._crossTableWindow.okChar(), x, y);
+		this._crossTableWindow.setChar(this._crossTableWindow.okChar(), this._crossTableWindow.index());
 		this._crossTableWindow.refresh();
 		this._crossTableWindow.activate();
 	}

@@ -64,8 +64,14 @@
  * @type number
  * 
  * @param NOT_LONG_PRESS_IN_MESSAGE
- * @text メッセージ長押し抑止
- * @desc メッセージ表示中の長押しを抑止します: true ／ 抑止しない（デフォルト通り）: false
+ * @text メッセージ長押し延長
+ * @desc メッセージ表示中の長押し判定を伸ばします: true ／ 延長しない（デフォルト通り）: false
+ * @default false
+ * @type boolean
+ * 
+ * @param NO_SKIP_MESSAGE
+ * @text メッセージ長押し不可
+ * @desc メッセージ表示中の長押しによるメッセージ送りを不可とする: true ／ 可能（デフォルト通り）: false
  * @default false
  * @type boolean
  * 
@@ -107,7 +113,7 @@ krdRoundBar.css を入れてください。
 
 ## 補足
 
-### メッセージ長押し抑止
+### メッセージ長押し延長
 
 このパラメータがfalseの場合、
 メッセージ表示中の長押しをメッセージ終了時に受け付けてしまいます。
@@ -116,6 +122,14 @@ krdRoundBar.css を入れてください。
 このパラメータがtrueの場合、
 メッセージ表示中の長押しを受け付けませんが、
 メッセージ送りが遅くなります。
+
+## メッセージ長押し不可
+
+「メッセージ長押し延長」をさらに強化した設定で、
+このパラメータがtrueの場合、
+長押しによるメッセージ送りを不可とします。
+
+これにより、メッセージ終了時に長押し判定が残ることを防ぎます。
 
 ## 更新履歴
 
@@ -129,6 +143,7 @@ krdRoundBar.css を入れてください。
 - ver.2.1.0 (2024/04/27) メッセージ長押し抑止を追加
 - ver.2.2.0 (2024/05/02) イベント中は長押し無視を追加など
 - ver.2.3.0 (2024/07/18) メニューでの長押しキャンセルと併用可能にした
+- ver.2.4.0 (2024/07/29) メッセージ長押し不可を追加
 
  * 
  * 
@@ -159,6 +174,7 @@ const LONG_PRESS_INTERVAL = 12;
 const DEFAULT_INTERVAL = 6;
 
 const NOT_LONG_PRESS_IN_MESSAGE = PARAM["NOT_LONG_PRESS_IN_MESSAGE"] === "true";
+const NO_SKIP_MESSAGE = PARAM["NO_SKIP_MESSAGE"] === "true";
 
 //--------------------------------------
 // 長押し
@@ -378,6 +394,13 @@ Game_Temp.prototype.eraseKrdRoundBar = function() {
 const _Window_Message_terminateMessage = Window_Message.prototype.terminateMessage;
 Window_Message.prototype.terminateMessage = function() {
 	_Window_Message_terminateMessage.call(this, ...arguments);
+
+	// メッセージ表示中の長押し対応
+	// これにより早送りができなくなる。
+	if (NO_SKIP_MESSAGE) {
+		TouchInput.clear();
+	}
+
 	$gameTemp.eraseKrdRoundBar();
 
 	// メッセージ表示中の長押し対応

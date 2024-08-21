@@ -521,6 +521,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.30.0 (2023/12/28) 一部スクリプトをプラグインコマンド化
 - ver.1.31.0 (2023/12/29) 一部スクリプトをプラグインコマンド化
 - ver.1.32.0 (2024/04/20) クラス名を修正
+- ver.1.33.0 (2024/08/10) 自分用 TinyGetInfoWndMZ 併用処理改善
 
  * 
  * 
@@ -1472,12 +1473,20 @@ Game_Temp.prototype.processTroopCollapse = function() {
 	}
 };
 
+function useTinyGetInfo() {
+	if (typeof KRD_TINY_GET_INFO !== "undefined") {
+		return KRD_TINY_GET_INFO.dispSwitch();
+	} else {
+		return false;
+	}
+}
+
 Game_Temp.prototype.processEnemyCollapse = function(eventId) {
 	BattleManager.makeMapEnemyRewards(eventId);
 	if (USE_DISPLAY_REWARDS) {
 		BattleManager.displayRewards();
 		BattleManager.gainRewards();
-	} else if (typeof KRD_TINY_GET_INFO !== "undefined") {
+	} else if (useTinyGetInfo()) {
 		KRD_TINY_GET_INFO.addGetRewardsWindow(BattleManager._rewards.exp, BattleManager._rewards.gold);
 		BattleManager.gainExp();
 		BattleManager.gainGold();
@@ -1518,13 +1527,13 @@ Game_Actor.prototype.gainExp = function(exp) {
 		_Game_Actor_gainExp.call(this, ...arguments);
 	} else {
 		const newExp = this.currentExp() + Math.round(exp * this.finalExpRate());
-		this.changeExp(newExp, USE_DISPLAY_REWARDS || typeof KRD_TINY_GET_INFO !== "undefined");
+		this.changeExp(newExp, USE_DISPLAY_REWARDS || useTinyGetInfo());
 	}
 };
 
 const _Game_Actor_displayLevelUp = Game_Actor.prototype.displayLevelUp;
 Game_Actor.prototype.displayLevelUp = function(newSkills) {
-	if (!$gameParty.inBattle() && typeof KRD_TINY_GET_INFO !== "undefined") {
+	if (!$gameParty.inBattle() && useTinyGetInfo()) {
 		KRD_TINY_GET_INFO.addLevelUpWindow(this.name(), this._level);
 		return;
 	}

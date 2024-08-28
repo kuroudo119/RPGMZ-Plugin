@@ -12,6 +12,12 @@
  * @default -1
  * @min -1
  * 
+ * @param VAR_FORCE_LANGUAGE
+ * @text 強制言語指定変数番号
+ * @desc 「強制言語指定」が0以上かつ変数指定する場合の変数番号です。ゲーム起動直後は無効です。
+ * @type variable
+ * @default 0
+ * 
  * @param basicSection
  * @text 基本設定
  * 
@@ -166,6 +172,10 @@
 https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 ## 使い方
+
+## 基本事項
+
+設定していない単語・文章は言語番号 0 の文字列が使われます。
 
 ### 用語
 
@@ -403,6 +413,7 @@ System.jsonをコピーして、
 - ver.5.1.1 (2024/02/22) ヘルプに追記
 - ver.5.2.0 (2024/02/22) 内部処理を修正
 - ver.5.2.1 (2024/02/22) null チェック追加など
+- ver.5.3.0 (2024/08/28) パラメータ VAR_FORCE_LANGUAGE 追加
 
  * 
  * 
@@ -861,6 +872,7 @@ const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
 const FORCE_LANGUAGE = Number(PARAM["FORCE_LANGUAGE"]) || 0;
+const VAR_FORCE_LANGUAGE = Number(PARAM["VAR_FORCE_LANGUAGE"]) || 0;
 
 const LANGUAGE = JSON.parse(PARAM["argLanguage"] || null);
 
@@ -1735,7 +1747,11 @@ KRD_MULTILINGUAL.multilingual = function() {
 	if (this.canConfig()) {
 		return ConfigManager.multilingual;
 	} else {
-		return FORCE_LANGUAGE;
+		if (VAR_FORCE_LANGUAGE > 0) {
+			return $gameVariables?.value(VAR_FORCE_LANGUAGE) || 0;
+		} else {
+			return FORCE_LANGUAGE;
+		}
 	}
 };
 

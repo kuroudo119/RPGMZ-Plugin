@@ -46,6 +46,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.2.1.0 (2023/11/10) ショップシーンは対象外、攻撃回数追加条件変更
 - ver.2.2.0 (2024/05/16) 素手の二刀流を追加
 - ver.2.3.0 (2024/05/17) 素手の二刀流の処理を変更
+- ver.2.4.0 (2024/08/29) 「アイテム欄から装備」に対応
 
  * 
  * 
@@ -74,10 +75,31 @@ Game_Actor.prototype.canEquipWeapon = function(item) {
 	if (SceneManager._scene.constructor.name === "Scene_Shop") {
 		return base;
 	}
+	// 「アイテム欄から装備」の処理
+	if (SceneManager._scene.constructor.name === "Scene_Item") {
+		return base;
+	}
 
 	if (DUAL_SAME_WEAPON && this.isDualWield()) {
 		const weapon = this.weapons()[0];
 		return weapon ? base && item.wtypeId === weapon.wtypeId : base;
+	}
+	return base;
+};
+
+const _Game_Actor_canEquipArmor = Game_Actor.prototype.canEquipArmor;
+Game_Actor.prototype.canEquipArmor = function(item) {
+	const base = _Game_Actor_canEquipArmor.call(this, ...arguments);
+
+	// お店での装備可否チェック用の処理
+	// 盾封印の場合と合わせるためにコメントアウト
+	// if (SceneManager._scene.constructor.name === "Scene_Shop") {
+	// 	return base;
+	// }
+
+	// 二刀流時の盾
+	if (DUAL_SAME_WEAPON && this.isDualWield()) {
+		return item.etypeId !== 2;
 	}
 	return base;
 };

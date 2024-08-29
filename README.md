@@ -23,7 +23,7 @@
 
 [KRD_MZ_EquipByItemListをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_EquipByItemList.js)
 
-![アイテム欄から装備](img/KRD_MZ_EquipByItemList.png)
+![アイテム欄から装備](img/EquipByItemList.png)
 
 ## KRD_MZ_MinDamage（最低ダメージ）
 

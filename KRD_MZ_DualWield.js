@@ -47,6 +47,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.2.2.0 (2024/05/16) 素手の二刀流を追加
 - ver.2.3.0 (2024/05/17) 素手の二刀流の処理を変更
 - ver.2.4.0 (2024/08/29) 「アイテム欄から装備」に対応
+- ver.2.4.1 (2024/08/29) 「アイテム欄から装備」処理を修正
 
  * 
  * 
@@ -75,10 +76,6 @@ Game_Actor.prototype.canEquipWeapon = function(item) {
 	if (SceneManager._scene.constructor.name === "Scene_Shop") {
 		return base;
 	}
-	// 「アイテム欄から装備」の処理
-	if (SceneManager._scene.constructor.name === "Scene_Item") {
-		return base;
-	}
 
 	if (DUAL_SAME_WEAPON && this.isDualWield()) {
 		const weapon = this.weapons()[0];
@@ -99,7 +96,7 @@ Game_Actor.prototype.canEquipArmor = function(item) {
 
 	// 二刀流時の盾
 	if (DUAL_SAME_WEAPON && this.isDualWield()) {
-		return item.etypeId !== 2;
+		return base && item.etypeId !== 2;
 	}
 	return base;
 };

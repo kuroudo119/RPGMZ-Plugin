@@ -33,6 +33,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.4.0 (2024/08/28) アイコン表示位置を修正
 - ver.0.5.0 (2024/08/29) 能力値変化の表示能力値を最大の値に変更
 - ver.1.0.0 (2024/08/29) 公開
+- ver.1.1.0 (2024/08/29) 装備不可の能力値は非表示
 
  * 
  * 
@@ -158,11 +159,17 @@ class Window_MenuActorEquip extends Window_MenuActor {
 	}
 	
 	drawNewParam(x, y, paramId) {
-		const paramWidth = this.paramWidth();
-		const newValue = this._tempActor.param(paramId);
-		const diffvalue = newValue - this._actor.param(paramId);
-		this.changeTextColor(ColorManager.paramchangeTextColor(diffvalue));
-		this.drawText(newValue, x, y, paramWidth, "right");
+		const actor = this._tempActor;
+		if (actor && actor.canEquip(this.item())) {
+			const paramWidth = this.paramWidth();
+			const newValue = this._tempActor.param(paramId);
+			const diffvalue = newValue - this._actor.param(paramId);
+			this.changeTextColor(ColorManager.paramchangeTextColor(diffvalue));
+			this.drawText(newValue, x, y, paramWidth, "right");
+		} else {
+			this.resetTextColor();
+			this.drawText("-", x, y, 48, "center");
+		}
 	}
 
 	paramId() {

@@ -17,6 +17,14 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_EquipByItemList（アイテム欄から装備）
+
+アイテム欄の武器・防具を選択することで装備できます。
+
+[KRD_MZ_EquipByItemListをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_EquipByItemList.js)
+
+![アイテム欄から装備](img/KRD_MZ_EquipByItemList.png)
+
 ## KRD_MZ_MinDamage（最低ダメージ）
 
 ダメージが 0 などの低い場合に最低ダメージに置き換えます。  

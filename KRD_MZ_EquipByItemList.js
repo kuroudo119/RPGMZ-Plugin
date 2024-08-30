@@ -84,6 +84,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.0 (2024/08/29) 公開
 - ver.1.1.0 (2024/08/29) 装備不可の能力値は非表示
 - ver.1.2.0 (2024/08/30) マジックナンバーをパラメータ化
+- ver.1.2.1 (2024/08/31) スキル使用時のエラーを修正
 
  * 
  * 
@@ -269,7 +270,7 @@ class Window_MenuActorEquip extends Window_MenuActor {
 	}
 }
 
-Scene_ItemBase.prototype.createActorEquipWindow = function() {
+Scene_Item.prototype.createActorEquipWindow = function() {
 	const rect = this.actorWindowRect();
 	this._actorEquipWindow = new Window_MenuActorEquip(rect);
 	this._actorEquipWindow.setHandler("ok", this.onActorOk.bind(this));
@@ -277,8 +278,8 @@ Scene_ItemBase.prototype.createActorEquipWindow = function() {
 	this.addWindow(this._actorEquipWindow);
 };
 
-const _Scene_ItemBase_actorWindowRect = Scene_ItemBase.prototype.actorWindowRect;
-Scene_ItemBase.prototype.actorWindowRect = function() {
+const _Scene_Item_actorWindowRect = Scene_Item.prototype.actorWindowRect;
+Scene_Item.prototype.actorWindowRect = function() {
 	if (typeof KRD_MZ_UI_Landscape !== "undefined" && KRD_MZ_UI_Landscape) {
 		const wx = 0;
 		const wy = Math.min(this.mainAreaTop(), this.helpAreaTop());
@@ -286,7 +287,7 @@ Scene_ItemBase.prototype.actorWindowRect = function() {
 		const wh = this.mainAreaHeight() + this.helpAreaHeight();
 		return new Rectangle(wx, wy, ww, wh);
 	} else {
-		return _Scene_ItemBase_actorWindowRect.call(this, ...arguments);
+		return _Scene_Item_actorWindowRect.call(this, ...arguments);
 	}
 };
 
@@ -320,16 +321,16 @@ Scene_Item.prototype.onItemOk = function() {
 	}
 };
 
-const _Scene_ItemBase_showActorWindow = Scene_ItemBase.prototype.showActorWindow;
-Scene_ItemBase.prototype.showActorWindow = function() {
-	if (SceneManager._scene._itemWindow.isEquipCategory()) {
+const _Scene_Item_showActorWindow = Scene_Item.prototype.showActorWindow;
+Scene_Item.prototype.showActorWindow = function() {
+	if (this._itemWindow.isEquipCategory()) {
 		this.showActorEquipWindow();
 	} else {
-		_Scene_ItemBase_showActorWindow.call(this, ...arguments);
+		_Scene_Item_showActorWindow.call(this, ...arguments);
 	}
 };
 
-Scene_ItemBase.prototype.showActorEquipWindow = function() {
+Scene_Item.prototype.showActorEquipWindow = function() {
 	if (this.isCursorLeft()) {
 		 this._actorEquipWindow.x = Graphics.boxWidth - this._actorEquipWindow.width;
 	} else {
@@ -343,16 +344,16 @@ Scene_ItemBase.prototype.showActorEquipWindow = function() {
 	}
 };
 
-const _Scene_ItemBase_hideActorWindow = Scene_ItemBase.prototype.hideActorWindow;
-Scene_ItemBase.prototype.hideActorWindow = function() {
+const _Scene_Item_hideActorWindow = Scene_Item.prototype.hideActorWindow;
+Scene_Item.prototype.hideActorWindow = function() {
 	if (SceneManager._scene._itemWindow.isEquipCategory()) {
 		this.hideActorEquipWindow();
 	} else {
-		_Scene_ItemBase_hideActorWindow.call(this, ...arguments);
+		_Scene_Item_hideActorWindow.call(this, ...arguments);
 	}
 };
 
-Scene_ItemBase.prototype.hideActorEquipWindow = function() {
+Scene_Item.prototype.hideActorEquipWindow = function() {
 	this._actorEquipWindow.hide();
 	this._actorEquipWindow.deactivate();
 	if (this._useWindow) {
@@ -360,26 +361,26 @@ Scene_ItemBase.prototype.hideActorEquipWindow = function() {
 	}
 };
 
-Scene_ItemBase.prototype.isActorEquipWindowActive = function() {
+Scene_Item.prototype.isActorEquipWindowActive = function() {
 	return this._actorEquipWindow && this._actorEquipWindow.active;
 };
 
-const _Scene_ItemBase_onActorOk = Scene_ItemBase.prototype.onActorOk;
-Scene_ItemBase.prototype.onActorOk = function() {
+const _Scene_Item_onActorOk = Scene_Item.prototype.onActorOk;
+Scene_Item.prototype.onActorOk = function() {
 	if (this._itemWindow.isEquipCategory()) {
 		this.equipItem();
 	} else {
-		_Scene_ItemBase_onActorOk.call(this, ...arguments);
+		_Scene_Item_onActorOk.call(this, ...arguments);
 	}
 };
 
-const _Scene_ItemBase_onActorCancel = Scene_ItemBase.prototype.onActorCancel;
-Scene_ItemBase.prototype.onActorCancel = function() {
-	_Scene_ItemBase_onActorCancel.call(this, ...arguments);
+const _Scene_Item_onActorCancel = Scene_Item.prototype.onActorCancel;
+Scene_Item.prototype.onActorCancel = function() {
+	_Scene_Item_onActorCancel.call(this, ...arguments);
 	this.hideActorEquipWindow();
 };
 
-Scene_ItemBase.prototype.equipItem = function() {
+Scene_Item.prototype.equipItem = function() {
 	const actor = $gameParty.members()[this._actorEquipWindow.index()];
 	const item = this.item();
 	if (actor.canEquip(item)) {
@@ -397,7 +398,7 @@ Scene_ItemBase.prototype.equipItem = function() {
 	}
 };
 
-Scene_ItemBase.prototype.changeWeapon = function(item, actor) {
+Scene_Item.prototype.changeWeapon = function(item, actor) {
 	const slotId = item.etypeId - 1;
 	actor.changeEquip(slotId, item);
 	SoundManager.playEquip();
@@ -406,7 +407,7 @@ Scene_ItemBase.prototype.changeWeapon = function(item, actor) {
 	}
 };
 
-Scene_ItemBase.prototype.changeArmor = function(item, actor) {
+Scene_Item.prototype.changeArmor = function(item, actor) {
 	const slotId = item.etypeId - 1;
 	if (actor.equipSlots()[slotId] !== 1) {
 		actor.changeEquip(slotId, item);
@@ -419,7 +420,7 @@ Scene_ItemBase.prototype.changeArmor = function(item, actor) {
 	}
 };
 
-Scene_ItemBase.prototype.cannotEquip = function(item, actor) {
+Scene_Item.prototype.cannotEquip = function(item, actor) {
 	SoundManager.playBuzzer();
 	if (this._useWindow) {
 		this._useWindow.drawCannotEquip(item, actor);

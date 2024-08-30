@@ -5,6 +5,55 @@
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
  * 
+ * @param BASE_X
+ * @text 基本X
+ * @desc アクター情報のX座標に加算する値です。初期値 20
+ * @default 20
+ * @type number
+ * 
+ * @param BASE_Y
+ * @text 基本Y
+ * @desc アクター情報のY座標に加算する値です。初期値 20
+ * @default 20
+ * @type number
+ * 
+ * @param ACTOR_NAME_X
+ * @text アクター名X
+ * @desc アクター名のX座標を決めるための値です。初期値 -160
+ * @default -160
+ * @type number
+ * @min -10000
+ * 
+ * @param CURRENT_PARAM_X
+ * @text 現在能力値X
+ * @desc 現在の能力値のX座標を決めるための値です。初期値 140
+ * @default 140
+ * @type number
+ * 
+ * @param ARROW_X
+ * @text 矢印X
+ * @desc 矢印のX座標を決めるための値です。初期値 200
+ * @default 200
+ * @type number
+ * 
+ * @param NEW_PARAM_X
+ * @text 装備後能力値X
+ * @desc 装備後の能力値のX座標を決めるための値です。初期値 240
+ * @default 240
+ * @type number
+ * 
+ * @param PARAM_NAME_WIDTH
+ * @text 能力値名表示幅
+ * @desc 能力値名の表示幅の値です。基本的には「現在能力値X」と同じ値です。初期値 140
+ * @default 140
+ * @type number
+ * 
+ * @param PARAM_WIDTH
+ * @text 能力値表示幅
+ * @desc 能力値の表示幅の値です。初期値 48
+ * @default 48
+ * @type number
+ * 
  * @help
 # KRD_MZ_EquipByItemList.js
 
@@ -34,6 +83,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.5.0 (2024/08/29) 能力値変化の表示能力値を最大の値に変更
 - ver.1.0.0 (2024/08/29) 公開
 - ver.1.1.0 (2024/08/29) 装備不可の能力値は非表示
+- ver.1.2.0 (2024/08/30) マジックナンバーをパラメータ化
 
  * 
  * 
@@ -42,6 +92,22 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 (() => {
 
 "use strict";
+
+const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
+const PARAM = PluginManager.parameters(PLUGIN_NAME);
+
+const BASE_X = Number(PARAM["BASE_X"]) || 0;
+const BASE_Y = Number(PARAM["BASE_Y"]) || 0;
+
+const ACTOR_NAME_X = Number(PARAM["ACTOR_NAME_X"]) || 0;
+const CURRENT_PARAM_X = Number(PARAM["CURRENT_PARAM_X"]) || 0;
+const ARROW_X = Number(PARAM["ARROW_X"]) || 0;
+const NEW_PARAM_X = Number(PARAM["NEW_PARAM_X"]) || 0;
+
+const PARAM_NAME_WIDTH = Number(PARAM["PARAM_NAME_WIDTH"]) || 0;
+const PARAM_WIDTH = Number(PARAM["PARAM_WIDTH"]) || 0;
+
+const ICON_PADDING = 4;
 
 //--------------------------------------
 
@@ -83,10 +149,10 @@ class Window_MenuActorEquip extends Window_MenuActor {
 	}
 
 	drawActorEquipSimpleStatus(actor, x, y) {
-		x += 10;
-		y += 20;
+		x += BASE_X;
+		y += BASE_Y;
 		const lineHeight = this.lineHeight();
-		this.drawActorName(actor, x - 150, y);
+		this.drawActorName(actor, x + ACTOR_NAME_X, y);
 		this.resetTextColor();
 		this.drawActorEquip(actor, x, y);
 		this.drawEquipParam(actor, x, y + lineHeight);
@@ -101,7 +167,7 @@ class Window_MenuActorEquip extends Window_MenuActor {
 			const iconIndex = equip ? equip.iconIndex : 0;
 			const iconY = Math.floor((this.lineHeight() - ImageManager.iconWidth) / 2);
 			this.drawIcon(iconIndex, x, y + iconY);
-			this.drawText(name, x + ImageManager.iconWidth + 4, y);
+			this.drawText(name, x + ImageManager.iconWidth + ICON_PADDING, y);
 		}
 	}
 
@@ -132,16 +198,16 @@ class Window_MenuActorEquip extends Window_MenuActor {
 		this.updateTempActor();
 		this.drawParamName(x, y, paramId);
 		if (this._actor) {
-			this.drawCurrentParam(x + 140, y , paramId);
+			this.drawCurrentParam(x + CURRENT_PARAM_X, y , paramId);
 		}
-		this.rawRightArrow(x + 200, y);
+		this.rawRightArrow(x + ARROW_X, y);
 		if (this._tempActor) {
-			this.drawNewParam(x + 240, y, paramId);
+			this.drawNewParam(x + NEW_PARAM_X, y, paramId);
 		}
 	}
 
 	drawParamName(x, y, paramId) {
-		const width = 400;
+		const width = PARAM_NAME_WIDTH;
 		this.changeTextColor(ColorManager.systemColor());
 		this.drawText(TextManager.param(paramId), x, y, width);
 	}
@@ -167,8 +233,9 @@ class Window_MenuActorEquip extends Window_MenuActor {
 			this.changeTextColor(ColorManager.paramchangeTextColor(diffvalue));
 			this.drawText(newValue, x, y, paramWidth, "right");
 		} else {
+			const paramWidth = this.paramWidth();
 			this.resetTextColor();
-			this.drawText("-", x, y, 48, "center");
+			this.drawText("-", x, y, paramWidth, "center");
 		}
 	}
 
@@ -198,7 +265,7 @@ class Window_MenuActorEquip extends Window_MenuActor {
 	}
 
 	paramWidth() {
-		return 48;
+		return PARAM_WIDTH;
 	}
 }
 

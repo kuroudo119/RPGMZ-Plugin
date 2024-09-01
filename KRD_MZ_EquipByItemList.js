@@ -5,6 +5,14 @@
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
  * 
+ * @param CANNOT_WEAPON_TYPE
+ * @text 装備不可武器タイプ
+ * @desc アイテム欄から装備できない武器（武器タイプ）をカンマ区切りで記述します。
+ * 
+ * @param CANNOT_EQUIP_TYPE
+ * @text 装備不可装備タイプ
+ * @desc アイテム欄から装備できない防具（装備タイプ）をカンマ区切りで記述します。
+ * 
  * @param BASE_X
  * @text 基本X
  * @desc アクター情報のX座標に加算する値です。初期値 20
@@ -85,6 +93,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.1.0 (2024/08/29) 装備不可の能力値は非表示
 - ver.1.2.0 (2024/08/30) マジックナンバーをパラメータ化
 - ver.1.2.1 (2024/08/31) スキル使用時のエラーを修正
+- ver.1.3.0 (2024/09/01) 装備不可タイプを追加
 
  * 
  * 
@@ -96,6 +105,9 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
+
+const CANNOT_WEAPON_TYPE = PARAM["CANNOT_WEAPON_TYPE"].replace(" ", "").split(",");
+const CANNOT_EQUIP_TYPE = PARAM["CANNOT_EQUIP_TYPE"].replace(" ", "").split(",");
 
 const BASE_X = Number(PARAM["BASE_X"]) || 0;
 const BASE_Y = Number(PARAM["BASE_Y"]) || 0;
@@ -302,7 +314,7 @@ Scene_Item.prototype.create = function() {
 const _Window_ItemList_isEnabled = Window_ItemList.prototype.isEnabled;
 Window_ItemList.prototype.isEnabled = function(item) {
 	if (this.isEquipCategory()) {
-		return true;
+		return this.canEquipType(item);
 	} else {
 		return _Window_ItemList_isEnabled.call(this, ...arguments);
 	}
@@ -310,6 +322,15 @@ Window_ItemList.prototype.isEnabled = function(item) {
 
 Window_ItemList.prototype.isEquipCategory = function() {
 	return this._category === "weapon" || this._category === "armor";
+};
+
+Window_ItemList.prototype.canEquipType = function(item) {
+	if (DataManager.isWeapon(item) && CANNOT_WEAPON_TYPE.includes(item.wtypeId.toString())) {
+		return false;
+	} else if (DataManager.isArmor(item) && CANNOT_EQUIP_TYPE.includes(item.etypeId.toString())) {
+		return false;
+	}
+	return true;
 };
 
 const _Scene_Item_onItemOk = Scene_Item.prototype.onItemOk;

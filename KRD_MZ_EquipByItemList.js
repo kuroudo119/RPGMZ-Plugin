@@ -32,6 +32,13 @@
  * @type number
  * @min -10000
  * 
+ * @param ACTOR_NAME_Y
+ * @text アクター名Y
+ * @desc アクター名のY座標を決めるための値です。初期値 0
+ * @default 0
+ * @type number
+ * @min -10000
+ * 
  * @param CURRENT_PARAM_X
  * @text 現在能力値X
  * @desc 現在の能力値のX座標を決めるための値です。初期値 140
@@ -94,6 +101,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.2.0 (2024/08/30) マジックナンバーをパラメータ化
 - ver.1.2.1 (2024/08/31) スキル使用時のエラーを修正
 - ver.1.3.0 (2024/09/01) 装備不可タイプを追加
+- ver.1.4.0 (2024/09/03) アクター名Yを追加
 
  * 
  * 
@@ -113,6 +121,7 @@ const BASE_X = Number(PARAM["BASE_X"]) || 0;
 const BASE_Y = Number(PARAM["BASE_Y"]) || 0;
 
 const ACTOR_NAME_X = Number(PARAM["ACTOR_NAME_X"]) || 0;
+const ACTOR_NAME_Y = Number(PARAM["ACTOR_NAME_Y"]) || 0;
 const CURRENT_PARAM_X = Number(PARAM["CURRENT_PARAM_X"]) || 0;
 const ARROW_X = Number(PARAM["ARROW_X"]) || 0;
 const NEW_PARAM_X = Number(PARAM["NEW_PARAM_X"]) || 0;
@@ -165,7 +174,7 @@ class Window_MenuActorEquip extends Window_MenuActor {
 		x += BASE_X;
 		y += BASE_Y;
 		const lineHeight = this.lineHeight();
-		this.drawActorName(actor, x + ACTOR_NAME_X, y);
+		this.drawActorName(actor, x + ACTOR_NAME_X, y + ACTOR_NAME_Y);
 		this.resetTextColor();
 		this.drawActorEquip(actor, x, y);
 		this.drawEquipParam(actor, x, y + lineHeight);

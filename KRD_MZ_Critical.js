@@ -13,7 +13,7 @@
  * 
  * @param USE_CRITICAL_FLAG
  * @text 引数クリティカル追加
- * @desc ダメージ計算式でクリティカル有無 cri を使えるようにします。
+ * @desc ダメージ計算式でクリティカル有無 crit を使えるようにします。
  * @default false
  * @type boolean
  * 
@@ -37,6 +37,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2021/02/19) 非公開版完成
 - ver.0.2.0 (2023/07/03) クリティカルを引数に追加
 - ver.1.0.0 (2023/07/03) 公開
+- ver.1.0.1 (2024/09/07) 「引数クリティカル追加」が機能してなかったので修正
 
  * 
  * 
@@ -62,7 +63,7 @@ Game_Action.prototype.applyCritical = function(damage) {
 
 //--------------------------------------
 
-const KRD_Game_Action_makeDamageValue = Game_Action.prototype.makeDamageValue;
+const _Game_Action_makeDamageValue = Game_Action.prototype.makeDamageValue;
 Game_Action.prototype.makeDamageValue = function(target, critical) {
 	if (USE_CRITICAL_FLAG) {
 		const item = this.item();
@@ -85,20 +86,21 @@ Game_Action.prototype.makeDamageValue = function(target, critical) {
 		value = Math.round(value);
 		return value;
 	} else {
-		return KRD_Game_Action_makeDamageValue.apply(this, arguments);
+		return _Game_Action_makeDamageValue.call(this, ...arguments);
 	}
 };
 
-const KRD_Game_Action_evalDamageFormula = Game_Action.prototype.evalDamageFormula;
+const _Game_Action_evalDamageFormula = Game_Action.prototype.evalDamageFormula;
 Game_Action.prototype.evalDamageFormula = function(target, critical) {
 	if (USE_CRITICAL_FLAG) {
 		try {
-			const cri = critical;
-	
 			const item = this.item();
 			const a = this.subject(); // eslint-disable-line no-unused-vars
 			const b = target; // eslint-disable-line no-unused-vars
 			const v = $gameVariables._data; // eslint-disable-line no-unused-vars
+
+			a.crit = critical;
+
 			const sign = [3, 4].includes(item.damage.type) ? -1 : 1;
 			const value = Math.max(eval(item.damage.formula), 0) * sign;
 			return isNaN(value) ? 0 : value;
@@ -106,7 +108,7 @@ Game_Action.prototype.evalDamageFormula = function(target, critical) {
 			return 0;
 		}
 	} else {
-		return KRD_Game_Action_evalDamageFormula.apply(this, arguments);
+		return _Game_Action_evalDamageFormula.call(this, ...arguments);
 	}
 };
 

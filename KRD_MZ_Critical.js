@@ -11,12 +11,6 @@
  * @default 300
  * @type number
  * 
- * @param USE_CRITICAL_FLAG
- * @text 引数クリティカル追加
- * @desc ダメージ計算式でクリティカル有無 crit を使えるようにします。
- * @default false
- * @type boolean
- * 
  * @help
 # KRD_MZ_Critical.js
 
@@ -31,6 +25,11 @@
 このプラグインはMITライセンスです。
 https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
+## ダメージ計算式
+
+ダメージ計算式に a.critical が使えるようになります。
+三項演算子でお使いください。
+
 ## 更新履歴
 
 - ver.0.0.1 (2021/02/19) 作成開始
@@ -38,6 +37,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.2.0 (2023/07/03) クリティカルを引数に追加
 - ver.1.0.0 (2023/07/03) 公開
 - ver.1.0.1 (2024/09/07) 「引数クリティカル追加」が機能してなかったので修正
+- ver.1.1.0 (2024/09/07) 上記は使い方の誤りだったのでついでに機能変更
 
  * 
  * 
@@ -52,8 +52,6 @@ const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
 const CRITICAL_RATE = Number(PARAM["criticalRate"]) || 0;
 
-const USE_CRITICAL_FLAG = PARAM["USE_CRITICAL_FLAG"] === "true";
-
 //--------------------------------------
 
 // 上書き
@@ -65,51 +63,8 @@ Game_Action.prototype.applyCritical = function(damage) {
 
 const _Game_Action_makeDamageValue = Game_Action.prototype.makeDamageValue;
 Game_Action.prototype.makeDamageValue = function(target, critical) {
-	if (USE_CRITICAL_FLAG) {
-		const item = this.item();
-		const baseValue = this.evalDamageFormula(target, critical);
-		let value = baseValue * this.calcElementRate(target);
-		if (this.isPhysical()) {
-			value *= target.pdr;
-		}
-		if (this.isMagical()) {
-			value *= target.mdr;
-		}
-		if (baseValue < 0) {
-			value *= target.rec;
-		}
-		if (critical) {
-			value = this.applyCritical(value);
-		}
-		value = this.applyVariance(value, item.damage.variance);
-		value = this.applyGuard(value, target);
-		value = Math.round(value);
-		return value;
-	} else {
-		return _Game_Action_makeDamageValue.call(this, ...arguments);
-	}
-};
-
-const _Game_Action_evalDamageFormula = Game_Action.prototype.evalDamageFormula;
-Game_Action.prototype.evalDamageFormula = function(target, critical) {
-	if (USE_CRITICAL_FLAG) {
-		try {
-			const item = this.item();
-			const a = this.subject(); // eslint-disable-line no-unused-vars
-			const b = target; // eslint-disable-line no-unused-vars
-			const v = $gameVariables._data; // eslint-disable-line no-unused-vars
-
-			a.crit = critical;
-
-			const sign = [3, 4].includes(item.damage.type) ? -1 : 1;
-			const value = Math.max(eval(item.damage.formula), 0) * sign;
-			return isNaN(value) ? 0 : value;
-		} catch (e) {
-			return 0;
-		}
-	} else {
-		return _Game_Action_evalDamageFormula.call(this, ...arguments);
-	}
+	this.subject().critical = critical;
+	return _Game_Action_makeDamageValue.call(this, ...arguments);
 };
 
 //--------------------------------------

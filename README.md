@@ -17,6 +17,12 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_ParallaxNoTiling（遠景画像の繰り返しなし）
+
+タグのあるマップでは遠景画像の繰り返し表示をしないようにします。
+
+[KRD_MZ_ParallaxNoTilingをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_ParallaxNoTiling.js)
+
 ## KRD_MZ_EquipByItemList（アイテム欄から装備）
 
 アイテム欄の武器・防具を選択することで装備できます。

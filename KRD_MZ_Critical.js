@@ -38,6 +38,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.0 (2023/07/03) 公開
 - ver.1.0.1 (2024/09/07) 「引数クリティカル追加」が機能してなかったので修正
 - ver.1.1.0 (2024/09/07) 上記は使い方の誤りだったのでついでに機能変更
+- ver.1.2.0 (2024/09/14) 計算式の a, b 両方にクリティカルを設定
 
  * 
  * 
@@ -64,6 +65,7 @@ Game_Action.prototype.applyCritical = function(damage) {
 const _Game_Action_makeDamageValue = Game_Action.prototype.makeDamageValue;
 Game_Action.prototype.makeDamageValue = function(target, critical) {
 	this.subject().critical = critical;
+	target.critical = critical;
 	return _Game_Action_makeDamageValue.call(this, ...arguments);
 };
 

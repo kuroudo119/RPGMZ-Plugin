@@ -17,6 +17,12 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_Properties（能力値（ダメージ計算式用プロパティ変更＆能力値内部計算））
+
+ダメージ計算式で使う atk などの値を内部的に変更する……など。
+
+[KRD_MZ_Propertiesをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Properties.js)
+
 ## KRD_MZ_ParallaxNoTiling（遠景画像の繰り返しなし）
 
 タグのあるマップでは遠景画像の繰り返し表示をしないようにします。

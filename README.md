@@ -17,6 +17,15 @@
 
 ![クリスマス勤労](img/Xmas.png)
 
+## KRD_MZ_UI_DescInRect（選択肢内説明）
+
+ヘルプWindowをなくして、説明文を選択肢の枠内に記述します。  
+このプラグインにはWindowサイズを変更する機能はありません。
+
+[KRD_MZ_UI_DescInRectをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_UI_DescInRect.js)
+
+![選択肢内説明](img/DescInRect.png)
+
 ## KRD_MZ_Properties（能力値（ダメージ計算式用プロパティ変更＆能力値内部計算））
 
 ダメージ計算式で使う atk などの値を内部的に変更する……など。

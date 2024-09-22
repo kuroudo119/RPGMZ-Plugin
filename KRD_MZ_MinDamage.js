@@ -49,6 +49,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2024/07/11) 非公開版完成
 - ver.1.0.0 (2024/07/11) 公開
 - ver.1.1.0 (2024/09/22) 「最低ダメージ能力値」を追加
+- ver.1.1.1 (2024/09/22) 微修正
 
  * 
  * 
@@ -93,7 +94,7 @@ Game_Action.prototype.minDamage = function() {
 	if (isNaN(MIN_DAMAGE_PARAM)) {
 		return MIN_DAMAGE;
 	} else {
-		const damage = this.subject().param(MIN_DAMAGE_PARAM) * MIN_DAMAGE_PARAM_RATE;
+		const damage = Math.floor(this.subject().param(MIN_DAMAGE_PARAM) * MIN_DAMAGE_PARAM_RATE);
 		return damage > MIN_DAMAGE ? damage : MIN_DAMAGE;
 	}
 };

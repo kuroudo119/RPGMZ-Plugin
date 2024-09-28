@@ -27,6 +27,12 @@
 4. このソフトウェアの利用について保証はありません。
 5. 作者はこのソフトウェアについての責任を負いません。
 
+## KRD_MZ_Preemptive（イベント戦闘でも先制判定）
+
+イベント戦闘でも先制判定を行い、先制攻撃または不意打ちが発生するようにします。
+
+[KRD_MZ_Preemptiveをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Preemptive.js)
+
 ## KRD_MZ_UI_DescInRect（選択肢内説明）
 
 ヘルプWindowをなくして、説明文を選択肢の枠内に記述します。  

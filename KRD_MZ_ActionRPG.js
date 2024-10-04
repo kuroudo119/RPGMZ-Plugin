@@ -281,7 +281,7 @@
  * 
  * @command setSelfSwitchAllDeadEvent
  * @text KO敵キャラ消去セルフスイッチ
- * @desc 戦闘不能の敵キャラのセルフスイッチ D を ON にして、「イベントの一時消去」します。
+ * @desc 戦闘不能の敵キャラの「戦闘不能セルフスイッチ」を ON にします。
  * 
  * @command processTroopCollapse
  * @text 敵キャラ撃破報酬獲得
@@ -522,6 +522,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.31.0 (2023/12/29) 一部スクリプトをプラグインコマンド化
 - ver.1.32.0 (2024/04/20) クラス名を修正
 - ver.1.33.0 (2024/08/10) 自分用 TinyGetInfoWndMZ 併用処理改善
+- ver.2.0.0 (2024/10/04) EventReSpawn 対応
 
  * 
  * 
@@ -996,25 +997,29 @@ Scene_Map.prototype.createMapEnemySprite = function() {
 	const metaIdList = $gameMap.metaIdList(META_ENEMY);
 
 	metaIdList.forEach(eventId => {
-		const characterSprites = SceneManager._scene._spriteset._characterSprites;
-		const index = $gameMap.characterSpritesIndex(eventId);
-		const cs = characterSprites[index];
-		const event = $gameMap.event(eventId);
-		const battler = $gameMap.enemy(eventId);
-		const noDamage = event.event().meta[NO_DAMAGE];
-		if (characterSprites && cs && event) {
-			if (USE_DAMAGE_POPUP) {
-				this.createDamagePopup(cs, battler);
-			}
-			if (USE_HP_GAUGE && !noDamage) {
-				this.createHpGauge(cs, battler);
-			}
-			if (USE_STATE_ICON) {
-				const h = event._size ? event._size[1] : 48;
-				this.createStateIcon(cs, battler, h);
-			}
-		}
+		this.createMapEnemySpriteOne(eventId);
 	}, this);
+};
+
+Scene_Map.prototype.createMapEnemySpriteOne = function(eventId, baseIndex) {
+	const characterSprites = SceneManager._scene._spriteset._characterSprites;
+	const index = baseIndex ? baseIndex : $gameMap.characterSpritesIndex(eventId);
+	const cs = characterSprites[index];
+	const event = $gameMap.event(eventId);
+	const battler = $gameMap.enemy(eventId);
+	const noDamage = event.event().meta[NO_DAMAGE];
+	if (characterSprites && cs && event) {
+		if (USE_DAMAGE_POPUP) {
+			this.createDamagePopup(cs, battler);
+		}
+		if (USE_HP_GAUGE && !noDamage) {
+			this.createHpGauge(cs, battler);
+		}
+		if (USE_STATE_ICON) {
+			const h = event._size ? event._size[1] : 48;
+			this.createStateIcon(cs, battler, h);
+		}
+	}
 };
 
 Scene_Map.prototype.createMapPlayerSprite = function() {
@@ -1217,7 +1222,7 @@ Game_Temp.prototype.eraseAllDeadEvent = function() {
 };
 
 // -------------------------------------
-// 戦闘不能の敵イベントのセルフスイッチONと一時消去
+// 戦闘不能の敵イベントのセルフスイッチON
 
 Game_Temp.prototype.setSelfSwitchAllDeadEvent = function() {
 	if (this._deadList) {
@@ -1228,7 +1233,6 @@ Game_Temp.prototype.setSelfSwitchAllDeadEvent = function() {
 			const alphabet = SELF_SWITCH_DEAD;
 			const value = true;
 			$gameTemp.setSelfSwitch(mapId, eventId, alphabet, value);
-			$gameMap.eraseEvent(id);
 		});
 	}
 };
@@ -1515,9 +1519,9 @@ BattleManager.makeMapEnemyRewards = function(eventId) {
 	const enemy = $gameMap.enemy(eventId);
 	const goldRate = Game_Troop.prototype.goldRate.call(this);
 	this._rewards = {
-		 gold: enemy.gold() * goldRate,
-		 exp: enemy.exp(),
-		 items: enemy.makeDropItems()
+		gold: enemy.gold() * goldRate,
+		exp: enemy.exp(),
+		items: enemy.makeDropItems()
 	};
 };
 
@@ -2161,6 +2165,16 @@ Game_Interpreter.prototype.enemyHpByBattle = function() {
 	if (damage > 0) {
 	  enemy.gainHp(-damage);
 	}
+};
+
+// -------------------------------------
+// イベント動的生成プラグイン(EventReSpawn) 対応
+
+const _Spriteset_Map_makePrefabEventSprite = Spriteset_Map.prototype.makePrefabEventSprite;
+Spriteset_Map.prototype.makePrefabEventSprite = function(event) {
+	_Spriteset_Map_makePrefabEventSprite.call(this, ...arguments);
+	const tail = this._characterSprites.length - 1;
+	SceneManager._scene.createMapEnemySpriteOne(event.eventId(), tail);
 };
 
 // -------------------------------------

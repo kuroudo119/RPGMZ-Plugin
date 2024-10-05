@@ -523,6 +523,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.32.0 (2024/04/20) クラス名を修正
 - ver.1.33.0 (2024/08/10) 自分用 TinyGetInfoWndMZ 併用処理改善
 - ver.2.0.0 (2024/10/04) EventReSpawn 対応
+- ver.2.0.1 (2024/10/05) EventReSpawn 対応のバグ修正
 
  * 
  * 
@@ -2173,8 +2174,11 @@ Game_Interpreter.prototype.enemyHpByBattle = function() {
 const _Spriteset_Map_makePrefabEventSprite = Spriteset_Map.prototype.makePrefabEventSprite;
 Spriteset_Map.prototype.makePrefabEventSprite = function(event) {
 	_Spriteset_Map_makePrefabEventSprite.call(this, ...arguments);
-	const tail = this._characterSprites.length - 1;
-	SceneManager._scene.createMapEnemySpriteOne(event.eventId(), tail);
+
+	if (event.enemy()) {
+		const tail = this._characterSprites.length - 1;
+		SceneManager._scene.createMapEnemySpriteOne(event.eventId(), tail);
+	}
 };
 
 // -------------------------------------

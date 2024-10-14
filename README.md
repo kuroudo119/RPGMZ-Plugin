@@ -27,6 +27,12 @@
 4. このソフトウェアの利用について保証はありません。
 5. 作者はこのソフトウェアについての責任を負いません。
 
+## KRD_MZ_FollowerNotCollide（フォロワー非衝突（すり抜け））
+
+フォロワーとイベントを衝突が衝突しなくなります。
+
+[KRD_MZ_FollowerNotCollideをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_FollowerNotCollide.js)
+
 ## KRD_MZ_Preemptive（イベント戦闘でも先制判定）
 
 イベント戦闘でも先制判定を行い、先制攻撃または不意打ちが発生するようにします。

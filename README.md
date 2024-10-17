@@ -29,7 +29,7 @@
 
 ## KRD_MZ_FollowerNotCollide（フォロワー非衝突（すり抜け））
 
-フォロワーとイベントを衝突が衝突しなくなります。
+フォロワーとイベントが衝突しなくなります。
 
 [KRD_MZ_FollowerNotCollideをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_FollowerNotCollide.js)
 

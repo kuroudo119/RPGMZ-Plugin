@@ -524,6 +524,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.33.0 (2024/08/10) 自分用 TinyGetInfoWndMZ 併用処理改善
 - ver.2.0.0 (2024/10/04) EventReSpawn 対応
 - ver.2.0.1 (2024/10/05) EventReSpawn 対応のバグ修正
+- ver.2.1.0 (2024/11/13) イベント衝突処理の汎用化（スクリプト）
 
  * 
  * 
@@ -939,12 +940,12 @@ Game_Event.prototype.createEnemy = function(eventId) {
 
 Game_Event.prototype.setLaunchPosition = function(x, y) {
 	this._launch = {};
-	this._launch.x = x;
-	this._launch.y = y;
+	this._launch.x = x ? x : this.event().x;
+	this._launch.y = y ? y : this.event().y;
 };
 
 Game_Event.prototype.getLaunchPosition = function() {
-	return this._launch || {x:0, y:0};
+	return this._launch || {x : this.event().x, y : this.event().y};
 };
 
 // -------------------------------------
@@ -1252,11 +1253,16 @@ Game_Temp.prototype.checkCollision = function(attackId, defenseId) {
 };
 
 Game_Temp.prototype.checkCollisionMain = function(player, event) {
+	if (!event) {
+		return 0;
+	}
+
 	if (event.isDeadEnemy && event.isDeadEnemy()) {
 		return 0;
 	}
 	if (event.eventId) {
-		const noDamage = $gameMap.event(event.eventId()).event().meta[NO_DAMAGE];
+		// const noDamage = $gameMap.event(event.eventId()).event().meta[NO_DAMAGE];
+		const noDamage = event.event().meta[NO_DAMAGE];
 		if (noDamage) {
 			return 0;
 		}
@@ -1448,11 +1454,11 @@ Game_Temp.prototype.checkCollisionAll = function(attackId) {
 	return {"eventId": 0, "collision": 0};
 };
 
-Game_Temp.prototype.anyCollision = function(attackId, collisionCode) {
+Game_Temp.prototype.anyCollision = function(attackId, collisionCode, tag) {
 	const attacker = $gameMap.event(attackId);
-	const metaIdList = $gameMap.metaIdList(META_ENEMY);
+	const eventIdList = tag ? $gameMap.metaIdList(tag) : $gameMap.events().map(event => event._eventId);
 
-	const findId = metaIdList.find(id => {
+	const findId = eventIdList.find(id => {
 		const collision = this.checkCollisionMain(attacker, $gameMap.event(id));
 		return !!collisionCode.includes(collision);
 	}, this);
@@ -1720,7 +1726,7 @@ Game_Interpreter.prototype.playerCollision = function(skillId, eventId) {
 
 Game_Interpreter.prototype.enemyCollision = function(skillId, eventId) {
 	const collisionCode = [FRONT, SIDE, BACK, E_FRONT];
-	const targetId = $gameTemp.anyCollision(eventId, collisionCode);
+	const targetId = $gameTemp.anyCollision(eventId, collisionCode, META_ENEMY);
 	
 	const key = SELF_AFTER_ENEMY_DAMAGE ? [$gameMap.mapId(), targetId, SELF_AFTER_ENEMY_DAMAGE] : null;
 	const self = key ? $gameSelfSwitches.value(key) : false;
@@ -1740,6 +1746,24 @@ Game_Interpreter.prototype.enemyCollision = function(skillId, eventId) {
 	}
 
 	return false;
+};
+
+// -------------------------------------
+// イベント衝突でのコモンイベント実行
+
+Game_Interpreter.prototype.doCollisionEvent = function(commonEventIdPlayer, commonEventIdEvent) {
+	const eventId = this.eventId();
+	const collisionCode = [FRONT, SIDE, BACK, E_FRONT];
+	const collisionPlayer = $gameTemp.playerCollision(eventId, collisionCode);
+	const collisionEvent = $gameTemp.anyCollision(eventId, collisionCode);
+
+	if (collisionPlayer) {
+		return this.command117([commonEventIdPlayer]);
+	} else if (collisionEvent) {
+		return this.command117([commonEventIdEvent]);
+	} else {
+		return false;
+	}
 };
 
 // -------------------------------------
@@ -1778,8 +1802,8 @@ Game_Interpreter.prototype.checkOverStep = function(step, launchEventId) {
 	const event = $gameMap.event(this.eventId());
 	const launch = event.getLaunchPosition();
 	const direction = event.direction();
-	const diffX = Math.abs(event.x - launch.x);
-	const diffY = Math.abs(event.y - launch.y);
+	const diffX = Math.abs($gameMap.deltaX(event.x, launch.x));
+	const diffY = Math.abs($gameMap.deltaY(event.y, launch.y));
 	const eventStep = this.eventStep(direction, diffX, diffY);
 
 	if (eventStep >= step) {
@@ -1916,11 +1940,11 @@ Game_Interpreter.prototype.getLaunchData = function(launchTag, ballTag) {
 Game_Interpreter.prototype.launchBall = function(launch, ballId, alphabet, direction) {
 	$gameTemp.setEventLocation(ballId, launch.x, launch.y, direction);
 	$gameTemp.setSelfSwitch($gameMap.mapId(), ballId, alphabet, true);
-	this.setLaunchPosition(launch, ballId);
+	this.setLaunchPosition(launch.x, launch.y, ballId);
 };
 
-Game_Interpreter.prototype.setLaunchPosition = function(launch, ballId) {
-	$gameMap.event(ballId)?.setLaunchPosition(launch.x, launch.y);
+Game_Interpreter.prototype.setLaunchPosition = function(x, y, eventId) {
+	$gameMap.event(eventId)?.setLaunchPosition(x, y);
 };
 
 // -------------------------------------

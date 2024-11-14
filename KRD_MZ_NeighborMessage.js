@@ -37,6 +37,7 @@
  * @arg text
  * @text メッセージ
  * @desc 表示するメッセージです。
+ * @type multiline_string
  * 
  * @help
 # KRD_MZ_NeighborMessage.js
@@ -110,6 +111,7 @@ KRD_MZ_NeighborBalloon
 - ver.2.0.0 (2024/03/29) プラグインパラメータなど大きな変更
 - ver.2.1.0 (2024/03/31) イベントにメッセージ表示を追加
 - ver.2.1.1 (2024/04/11) 隣接時フキダシ表示への競合を修正
+- ver.2.2.0 (2024/11/14) プラグインコマンドの複数回実行に対応
 
  * 
  * 
@@ -140,6 +142,8 @@ const OPACITY = 255;
 const BLEND_MODE = 0;
 const DURATION = 1;
 const EASING_TYPE = 0;
+
+const D_TEXT_SETTING = {window: true};
 
 //--------------------------------------
 
@@ -183,19 +187,24 @@ Game_Event.prototype.doDTextPicture = function(text) {
 	const convText = Window_Base.prototype.convertEscapeCharacters(text);
 	const cutRubyText = cutRuby(convText);
 	const plusCount = cutRubyText.toString().length * USE_LENGTH;
-	this._pictureCount = MESSAGE_COUNT + plusCount;
+	const minusY = this.minusY(cutRubyText);
 
-	const fontSize = FONT_SIZE;
-	$gameScreen.setDTextPicture(convText, fontSize);
+	// DTextPicture プラグインの設定をする。
+	$gameScreen.setDTextPicture(convText, FONT_SIZE);
+	$gameScreen.setDtextSetting(D_TEXT_SETTING);
 
-	const setting = {window: true};
-	$gameScreen.setDtextSetting(setting);
+	const msgPicture = {
+		pictureId: $gameScreen.getMsgPictureId(),
+		pictureCount: MESSAGE_COUNT + plusCount,
+		x: this.screenX(),
+		minusY: minusY,
+		y: this.screenY() - minusY,
+	};
 
-	this._msgPictureId = $gameScreen.getMsgPictureId();
-	this._msgX = this.screenX();
-	this._minusY = this.minusY(cutRubyText);
-	this._msgY = this.screenY() - this._minusY;
-	$gameScreen.showPicture(this._msgPictureId, NAME, ORIGIN, this._msgX, this._msgY, SCALE_X, SCALE_Y, OPACITY, BLEND_MODE);
+	this._msgPictureList = this._msgPictureList ? this._msgPictureList : [];
+	this._msgPictureList.push(msgPicture);
+
+	$gameScreen.showPicture(msgPicture.pictureId, NAME, ORIGIN, msgPicture.x, msgPicture.y, SCALE_X, SCALE_Y, OPACITY, BLEND_MODE);
 };
 
 Game_Event.prototype.minusY = function(text) {
@@ -216,32 +225,42 @@ function cutRuby(text) {
 	return typeof KRD_RUBY !== "undefined" ? KRD_RUBY.cutRuby(text) : text;
 }
 
-Game_Event.prototype.moveMessage = function() {
+Game_Event.prototype.moveMessage = function(msgPicture) {
 	const x = this.screenX();
-	const y = this.screenY() - this._minusY;
-	$gameScreen.movePicture(this._msgPictureId, ORIGIN, x, y, SCALE_X, SCALE_Y, OPACITY, BLEND_MODE, DURATION, EASING_TYPE);
+	const y = this.screenY() - msgPicture.minusY;
+	$gameScreen.movePicture(msgPicture.pictureId, ORIGIN, x, y, SCALE_X, SCALE_Y, OPACITY, BLEND_MODE, DURATION, EASING_TYPE);
 };
 
-Game_Event.prototype.eraseMessage = function() {
-	$gameScreen.erasePicture(this._msgPictureId);
-	$gameScreen.setMsgPictureId(this._msgPictureId);
-	this._msgPictureId = null;
+Game_Event.prototype.eraseMessage = function(msgPicture) {
+	$gameScreen.erasePicture(msgPicture.pictureId);
+	$gameScreen.setMsgPictureId(msgPicture.pictureId);
+	msgPicture.pictureId = null;
 };
 
 const _Game_Event_update = Game_Event.prototype.update;
 Game_Event.prototype.update = function() {
 	_Game_Event_update.call(this, ...arguments);
-	this.updatePictureCount();
+	this.updatePictureCountAll();
 };
 
-Game_Event.prototype.updatePictureCount = function() {
-	if (this._pictureCount != null) {
-		if (this._pictureCount > 0) {
-			this.moveMessage();
-			this._pictureCount--;
-		} else if (this._pictureCount <= 0) {
-			this.eraseMessage();
-			this._pictureCount = null;
+Game_Event.prototype.updatePictureCountAll = function() {
+	if (this._msgPictureList) {
+		for (const msgPicture of this._msgPictureList) {
+			this.updatePictureCount(msgPicture);
+		}
+
+		this._msgPictureList = this._msgPictureList.filter(msgPicture => msgPicture.pictureCount != null);
+	}
+};
+
+Game_Event.prototype.updatePictureCount = function(msgPicture) {
+	if (msgPicture.pictureCount != null) {
+		if (msgPicture.pictureCount > 0) {
+			this.moveMessage(msgPicture);
+			msgPicture.pictureCount--;
+		} else if (msgPicture.pictureCount <= 0) {
+			this.eraseMessage(msgPicture);
+			msgPicture.pictureCount = null;
 		}
 	}
 };

@@ -525,6 +525,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.2.0.0 (2024/10/04) EventReSpawn 対応
 - ver.2.0.1 (2024/10/05) EventReSpawn 対応のバグ修正
 - ver.2.1.0 (2024/11/13) イベント衝突処理の汎用化（スクリプト）
+- ver.2.1.1 (2024/11/14) リファクタリング
 
  * 
  * 
@@ -1252,6 +1253,7 @@ Game_Temp.prototype.checkCollision = function(attackId, defenseId) {
 	return 0;
 };
 
+// ここの player はイベントにもなる。
 Game_Temp.prototype.checkCollisionMain = function(player, event) {
 	if (!event) {
 		return 0;
@@ -1260,12 +1262,8 @@ Game_Temp.prototype.checkCollisionMain = function(player, event) {
 	if (event.isDeadEnemy && event.isDeadEnemy()) {
 		return 0;
 	}
-	if (event.eventId) {
-		// const noDamage = $gameMap.event(event.eventId()).event().meta[NO_DAMAGE];
-		const noDamage = event.event().meta[NO_DAMAGE];
-		if (noDamage) {
-			return 0;
-		}
+	if (event.eventId && event.event().meta[NO_DAMAGE]) {
+		return 0;
 	}
 
 	const playerDirection = player.direction();
@@ -1456,7 +1454,7 @@ Game_Temp.prototype.checkCollisionAll = function(attackId) {
 
 Game_Temp.prototype.anyCollision = function(attackId, collisionCode, tag) {
 	const attacker = $gameMap.event(attackId);
-	const eventIdList = tag ? $gameMap.metaIdList(tag) : $gameMap.events().map(event => event._eventId);
+	const eventIdList = tag ? $gameMap.metaIdList(tag) : this.eventIdList(attacker.eventId());
 
 	const findId = eventIdList.find(id => {
 		const collision = this.checkCollisionMain(attacker, $gameMap.event(id));
@@ -1464,6 +1462,14 @@ Game_Temp.prototype.anyCollision = function(attackId, collisionCode, tag) {
 	}, this);
 
 	return findId;
+};
+
+Game_Temp.prototype.eventIdList = function(notUseId) {
+	if (notUseId) {
+		return $gameMap.events().map(event => event._eventId).filter(id => id !== notUseId);
+	} else {
+		return $gameMap.events().map(event => event._eventId);
+	}
 };
 
 Game_Temp.prototype.playerCollision = function(attackId, collisionCode) {

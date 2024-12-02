@@ -31,6 +31,8 @@
 
 [KRD_MZ_IconTextをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_IconText.js)
 
+![アイコン文字列](img/iconText.png)
+
 ## KRD_MZ_FollowerNotCollide（フォロワー非衝突（すり抜け））
 
 フォロワーとイベントが衝突しなくなります。

@@ -34,11 +34,19 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 <itemText:文字列>
 
+## 制御文字 IT
+
+「文章の表示」などで、
+制御文字 \IT[16,字] が使えます。
+
+16はアイコン番号、字は文字列です。
+
 ## 更新履歴
 
 - ver.0.0.1 (2024/12/02) 作成開始
 - ver.0.1.0 (2024/12/02) 非公開版完成
 - ver.1.0.0 (2024/12/02) 公開
+- ver.1.0.1 (2024/12/03) 内部的にマジックナンバーを削減
 
  * 
  * 
@@ -49,6 +57,9 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 "use strict";
 
 const FONT_SIZE = 16;
+const PADDING = 2;
+const ALIGN = "right";
+
 const TAG_ITEM_TEXT = "itemText";
 
 //--------------------------------------
@@ -62,10 +73,10 @@ Window_Base.prototype.drawIcon = function(iconIndex, x, y, text) {
 };
 
 Window_Base.prototype.drawIconText = function(text = "", x, y) {
-	const width = ImageManager.iconWidth - 4;
+	const width = ImageManager.iconWidth - PADDING * 2;
 	const baseFontSize = this.contents.fontSize;
 	this.contents.fontSize = FONT_SIZE;
-	this.drawText(text, x, y - 2, width, "right");
+	this.drawText(text, x, y - PADDING, width, ALIGN);
 	this.contents.fontSize = baseFontSize;
 };
 

@@ -47,6 +47,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2024/12/02) 非公開版完成
 - ver.1.0.0 (2024/12/02) 公開
 - ver.1.0.1 (2024/12/03) 内部的にマジックナンバーを削減
+- ver.1.0.2 (2024/12/03) 内部処理を修正
 
  * 
  * 
@@ -58,6 +59,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 const FONT_SIZE = 16;
 const PADDING = 2;
+const BOTTOM = 2;
 const ALIGN = "right";
 
 const TAG_ITEM_TEXT = "itemText";
@@ -76,7 +78,7 @@ Window_Base.prototype.drawIconText = function(text = "", x, y) {
 	const width = ImageManager.iconWidth - PADDING * 2;
 	const baseFontSize = this.contents.fontSize;
 	this.contents.fontSize = FONT_SIZE;
-	this.drawText(text, x, y - PADDING, width, ALIGN);
+	this.drawText(text, x, y - BOTTOM, width, ALIGN);
 	this.contents.fontSize = baseFontSize;
 };
 

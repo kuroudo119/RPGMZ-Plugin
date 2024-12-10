@@ -13,14 +13,14 @@
  * 
  * @param PADDING
  * @text 横余白
- * @desc 左右の余白です。デフォルト：2
- * @default 2
+ * @desc 左右の余白です。デフォルト：4
+ * @default 4
  * @type number
  * 
  * @param BOTTOM
  * @text 下余白
- * @desc 下側の余白です。デフォルト：2
- * @default 2
+ * @desc 下側の余白です。デフォルト：1
+ * @default 1
  * @type number
  * @min -100
  * 
@@ -77,6 +77,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.1 (2024/12/03) 内部的にマジックナンバーを削減
 - ver.1.0.2 (2024/12/03) 内部処理を修正
 - ver.2.0.0 (2024/12/09) タグ修正、内部データのプラグインパラメータ化
+- ver.2.0.1 (2024/12/10) 文字の X 座標を修正
 
  * 
  * 
@@ -110,7 +111,7 @@ Window_Base.prototype.drawIconText = function(text = "", x, y) {
 	const width = ImageManager.iconWidth - PADDING * 2;
 	const baseFontSize = this.contents.fontSize;
 	this.contents.fontSize = FONT_SIZE;
-	this.drawText(text, x, y - bottom(this), width, ALIGN);
+	this.drawText(text, x + PADDING, y - bottom(this), width, ALIGN);
 	this.contents.fontSize = baseFontSize;
 };
 

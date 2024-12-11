@@ -211,6 +211,8 @@ iPhoneではユーザー操作に伴うAPI実行を1回行う必要がありま�
 - ver.1.12.2 (2024/02/11) 選択肢のキャンセルボタンがタッチできないを修正
 - ver.1.13.0 (2024/02/12) Web Audio API 動作テスト追加（不要な機能）
 - ver.2.0.0 (2024/07/20) 自動音声合成を追加
+- ver.2.1.0 (2024/07/25) 自動音声合成のKRD_MZ_BattleResult_OneLine対応
+- ver.2.2.0 (2024/12/11) 正規表現を見直した
 
  * 
  * 
@@ -544,8 +546,7 @@ Game_Message.prototype.add = function(text) {
 	if (autoSpeak > 0) {
 		const param = JSON.parse(AUTO_SPEAK_PATTERN[autoSpeak - 1] || null);
 		if (param) {
-			const cutLangText = cutLangEsc(text);
-			const convText = Window_Base.prototype.convertEscapeCharacters(Window_Base.prototype.convertEscapeCharacters(cutLangText));
+			const convText = Window_Base.prototype.convertEscapeCharacters(Window_Base.prototype.convertEscapeCharacters(text));
 			const rubyText = typeof KRD_RUBY !== "undefined" ? KRD_RUBY.returnRuby(convText) : convText;
 			const speakText = cutEsc(rubyText);
 			KRD_VOICE_OUTPUT.speak(speakText, param.language, null, Number(param.pitch), Number(param.rate));
@@ -555,18 +556,8 @@ Game_Message.prototype.add = function(text) {
 };
 
 function cutEsc(text) {
-	const regex1 = /\x1b..\[\d+\]/gi;
-	const regex2 = /\x1b.\[\d+\]/gi;
-	const regex3 = /\x1b./gi;
-	const result1 = text.toString().replace(regex1, "");
-	const result2 = result1.toString().replace(regex2, "");
-	const result3 = result2.toString().replace(regex3, "");
-	return result3;
-}
-
-function cutLangEsc(text) {
-	const regex1 = /\\LANGF\[.*\]/gi;
-	const regex2 = /\\LANGFEND/gi;
+	const regex1 = /\x1b[A-Z]*?\[.*?\]/gi;
+	const regex2 = /\x1b./gi;
 	const result1 = text.toString().replace(regex1, "");
 	const result2 = result1.toString().replace(regex2, "");
 	return result2;

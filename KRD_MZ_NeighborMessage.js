@@ -112,6 +112,8 @@ KRD_MZ_NeighborBalloon
 - ver.2.1.0 (2024/03/31) イベントにメッセージ表示を追加
 - ver.2.1.1 (2024/04/11) 隣接時フキダシ表示への競合を修正
 - ver.2.2.0 (2024/11/14) プラグインコマンドの複数回実行に対応
+- ver.2.2.1 (2024/12/02) 出るかもしれないエラー対応
+- ver.2.2.2 (2024/12/16) eraseAllMessage を修正
 
  * 
  * 
@@ -226,15 +228,19 @@ function cutRuby(text) {
 }
 
 Game_Event.prototype.moveMessage = function(msgPicture) {
-	const x = this.screenX();
-	const y = this.screenY() - msgPicture.minusY;
-	$gameScreen.movePicture(msgPicture.pictureId, ORIGIN, x, y, SCALE_X, SCALE_Y, OPACITY, BLEND_MODE, DURATION, EASING_TYPE);
+	if (msgPicture) {
+		const x = this.screenX();
+		const y = this.screenY() - msgPicture.minusY;
+		$gameScreen.movePicture(msgPicture.pictureId, ORIGIN, x, y, SCALE_X, SCALE_Y, OPACITY, BLEND_MODE, DURATION, EASING_TYPE);
+	}
 };
 
 Game_Event.prototype.eraseMessage = function(msgPicture) {
-	$gameScreen.erasePicture(msgPicture.pictureId);
-	$gameScreen.setMsgPictureId(msgPicture.pictureId);
-	msgPicture.pictureId = null;
+	if (msgPicture) {
+		$gameScreen.erasePicture(msgPicture.pictureId);
+		$gameScreen.setMsgPictureId(msgPicture.pictureId);
+		msgPicture.pictureId = null;
+	}
 };
 
 const _Game_Event_update = Game_Event.prototype.update;
@@ -304,11 +310,7 @@ Game_Screen.prototype.maxPictures = function() {
 //--------------------------------------
 
 Game_Map.prototype.eraseAllMessage = function() {
-	this.events().forEach(event => {
-		if (event.event().meta[TAG_TEXT] != undefined) {
-			event.eraseMessage();
-		}
-	});
+	$gameScreen._msgPictureIdListMaster.forEach(pid => $gameScreen.erasePicture(pid));
 };
 
 const _Scene_Map_terminate = Scene_Map.prototype.terminate;

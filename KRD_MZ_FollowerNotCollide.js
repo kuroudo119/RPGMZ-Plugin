@@ -38,6 +38,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2024/10/14) 作成開始
 - ver.0.1.0 (2024/10/14) 非公開版完成
 - ver.1.0.0 (2024/10/14) 公開
+- ver.1.1.0 (2024/12/18) イベントとの重なりを修正
 
  * 
  * 
@@ -49,24 +50,19 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 //--------------------------------------
 
-const _Game_CharacterBase_screenZ = Game_CharacterBase.prototype.screenZ;
-Game_CharacterBase.prototype.screenZ = function() {
-	const base = _Game_CharacterBase_screenZ.call(this, ...arguments);
-	if (this.isObjectCharacter()) {
-		return 1;
-	} else {
-		return base;
-	}
-};
-
-//--------------------------------------
-
 Game_Followers.prototype.isSomeoneCollided = function(x, y) {
 	return false;
 };
 
-Game_Follower.prototype.screenZ = function() {
-	return 2;
+//--------------------------------------
+
+const _Game_Event_screenZ = Game_Event.prototype.screenZ;
+Game_Event.prototype.screenZ = function() {
+	if (this.isNormalPriority() && this._moveType !== 0) {
+		return _Game_Event_screenZ.call(this, ...arguments) + 1;
+	} else {
+		return _Game_Event_screenZ.call(this, ...arguments);
+	}
 };
 
 //--------------------------------------

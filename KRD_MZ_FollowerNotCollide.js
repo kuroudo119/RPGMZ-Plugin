@@ -65,9 +65,7 @@ Game_Event.prototype.screenZ = function() {
 	const index = characterSpritesIndex(this.eventId());
 	const sprite = characterSprites[index];
 	if (sprite) {
-		const height = sprite.height;
-		const width = sprite.width;
-		if (height > BASE_SIZE || width > BASE_SIZE) {
+		if (sprite.height > BASE_SIZE || sprite.width > BASE_SIZE) {
 			return _Game_Event_screenZ.call(this, ...arguments) + 1;
 		}
 	}

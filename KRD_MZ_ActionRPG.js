@@ -526,6 +526,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.2.0.1 (2024/10/05) EventReSpawn 対応のバグ修正
 - ver.2.1.0 (2024/11/13) イベント衝突処理の汎用化（スクリプト）
 - ver.2.1.1 (2024/11/14) リファクタリング
+- ver.2.2.0 (2024/12/21) sprite の取得方法を変更
 
  * 
  * 
@@ -588,6 +589,8 @@ const SELF_AFTER_ENEMY_DAMAGE = PARAM["selfAfterEnemyDamage"];
 const PLAYER_ID = -1;
 
 const SELF_SWITCH_DEAD = PARAM["SELF_SWITCH_DEAD"];
+
+const BASE_SIZE = 48;
 
 // -------------------------------------
 // プラグインコマンド
@@ -1005,22 +1008,21 @@ Scene_Map.prototype.createMapEnemySprite = function() {
 };
 
 Scene_Map.prototype.createMapEnemySpriteOne = function(eventId, baseIndex) {
-	const characterSprites = SceneManager._scene._spriteset._characterSprites;
-	const index = baseIndex ? baseIndex : $gameMap.characterSpritesIndex(eventId);
-	const cs = characterSprites[index];
 	const event = $gameMap.event(eventId);
 	const battler = $gameMap.enemy(eventId);
 	const noDamage = event.event().meta[NO_DAMAGE];
-	if (characterSprites && cs && event) {
+	const spriteset = SceneManager._scene._spriteset;
+	const sprite = spriteset.findTargetSprite(event);
+	if (sprite && event) {
 		if (USE_DAMAGE_POPUP) {
-			this.createDamagePopup(cs, battler);
+			this.createDamagePopup(sprite, battler);
 		}
 		if (USE_HP_GAUGE && !noDamage) {
-			this.createHpGauge(cs, battler);
+			this.createHpGauge(sprite, battler);
 		}
 		if (USE_STATE_ICON) {
 			const h = event._size ? event._size[1] : 48;
-			this.createStateIcon(cs, battler, h);
+			this.createStateIcon(sprite, battler, h);
 		}
 	}
 };
@@ -1030,20 +1032,19 @@ Scene_Map.prototype.createMapPlayerSprite = function() {
 		return;
 	}
 
-	const characterSprites = SceneManager._scene._spriteset._characterSprites;
-	const index = characterSprites.findIndex(cs => cs._character.constructor.name === "Game_Player");
-	const cs = characterSprites[index];
+	const spriteset = SceneManager._scene._spriteset;
+	const sprite = spriteset.findTargetSprite($gamePlayer);
 	const battler = $gameParty.leader();
-	if (characterSprites && cs) {
+	if (sprite) {
 		if (ALWAYS_DAMAGE_POPUP || (USE_DAMAGE_POPUP && $gameParty.inMapBattle())) {
-			this.createDamagePopup(cs, battler);
+			this.createDamagePopup(sprite, battler);
 		}
 		if (ALWAYS_PLAYER_HP || (USE_HP_GAUGE_PLAYER && $gameParty.inMapBattle())) {
-			this.createHpGauge(cs, battler);
+			this.createHpGauge(sprite, battler);
 		}
 		if (ALWAYS_STATE_ICON || (USE_STATE_ICON && $gameParty.inMapBattle())) {
-			const h = $gamePlayer._size ? $gamePlayer._size[1] : 48;
-			this.createStateIcon(cs, battler, h);
+			const h = $gamePlayer._size ? $gamePlayer._size[1] : BASE_SIZE;
+			this.createStateIcon(sprite, battler, h);
 		}
 	}
 };
@@ -1053,28 +1054,22 @@ Scene_Map.prototype.createMapFollowerSprite = function() {
 		return;
 	}
 
-	if ($gamePlayer.followers().isVisible()) {
-		const characterSprites = SceneManager._scene._spriteset._characterSprites;
-		const csIndexList = characterSprites.map((cs, index) => {
-			if (cs._character.constructor.name === "Game_Follower") {
-				return index;
-			}
-		}).filter(i => !isNaN(i));
-		const followers = $gameParty.battleMembers().filter((e, index) => index > 0);
-
-		followers.forEach((battler, index) => {
-			const cs = characterSprites[csIndexList[csIndexList.length - index - 1]];
-
-			if (characterSprites && cs) {
+	const followers = $gamePlayer.followers();
+	if (followers.isVisible()) {
+		followers._data.forEach(follower => {
+			const battler = follower.actor();
+			const spriteset = SceneManager._scene._spriteset;
+			const sprite = spriteset.findTargetSprite(follower);
+			if (sprite) {
 				if (ALWAYS_DAMAGE_POPUP || (USE_DAMAGE_POPUP && $gameParty.inMapBattle())) {
-					this.createDamagePopup(cs, battler);
+					this.createDamagePopup(sprite, battler);
 				}
 				if (ALWAYS_FOLLOWER_HP || (USE_HP_GAUGE_FOLLOWER && $gameParty.inMapBattle())) {
-					this.createHpGauge(cs, battler);
+					this.createHpGauge(sprite, battler);
 				}
 				if (ALWAYS_STATE_ICON || (USE_STATE_ICON && $gameParty.inMapBattle())) {
-					const h = $gamePlayer._size ? $gamePlayer._size[1] : 48;
-					this.createStateIcon(cs, battler, h);
+					const h = $gamePlayer._size ? $gamePlayer._size[1] : BASE_SIZE;
+					this.createStateIcon(sprite, battler, h);
 				}
 			}
 		}, this);
@@ -1101,10 +1096,6 @@ Scene_Map.prototype.createStateIcon = function(characterSprite, battler, h) {
 	const stateIcon = new KRD_Sprite_MapStateIcon(h);
 	stateIcon.setup(battler);
 	characterSprite.addChild(stateIcon);
-};
-
-Game_Map.prototype.characterSpritesIndex = function(eventId) {
-	return this.events().findIndex(event => event.eventId() === eventId);
 };
 
 //--------------------------------------

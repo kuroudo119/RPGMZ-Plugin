@@ -40,6 +40,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.0 (2024/10/14) 公開
 - ver.1.1.0 (2024/12/18) イベントとの重なりを修正
 - ver.1.1.1 (2024/12/18) イベントとの重なりを修正
+- ver.1.2.0 (2024/12/21) sprite の取得方法を変更
 
  * 
  * 
@@ -61,9 +62,8 @@ Game_Followers.prototype.isSomeoneCollided = function(x, y) {
 
 const _Game_Event_screenZ = Game_Event.prototype.screenZ;
 Game_Event.prototype.screenZ = function() {
-	const characterSprites = SceneManager._scene._spriteset._characterSprites;
-	const index = characterSpritesIndex(this.eventId());
-	const sprite = characterSprites[index];
+	const spriteset = SceneManager._scene._spriteset;
+	const sprite = spriteset.findTargetSprite(this);
 	if (sprite) {
 		if (sprite.height > BASE_SIZE || sprite.width > BASE_SIZE) {
 			return _Game_Event_screenZ.call(this, ...arguments) + 1;
@@ -76,10 +76,6 @@ Game_Event.prototype.screenZ = function() {
 		return _Game_Event_screenZ.call(this, ...arguments);
 	}
 };
-
-function characterSpritesIndex(eventId) {
-	return $gameMap.events().findIndex(event => event.eventId() === eventId);
-}
 
 //--------------------------------------
 })();

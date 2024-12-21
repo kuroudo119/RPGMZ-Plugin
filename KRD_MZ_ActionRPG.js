@@ -1021,7 +1021,7 @@ Scene_Map.prototype.createMapEnemySpriteOne = function(eventId, baseIndex) {
 			this.createHpGauge(sprite, battler);
 		}
 		if (USE_STATE_ICON) {
-			const h = event._size ? event._size[1] : 48;
+			const h = event._size ? event._size[1] : BASE_SIZE;
 			this.createStateIcon(sprite, battler, h);
 		}
 	}

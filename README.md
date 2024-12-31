@@ -7,13 +7,19 @@
 
 [Twitter(現X)はこちら](https://twitter.com/kuroudo119)
 
-[お勉強ゲーム「お姉さんと勉強」PLiCyさんにて公開中](https://plicy.net/GamePlay/177672)
+## 公開中ゲーム
 
-[3分ゲーム「キャッチボール・スタジアム」PLiCyさんにて公開中](https://plicy.net/GamePlay/182350)
+### PLiCyさんにて公開中
 
-[トランプゲーム「ブラックジャック」PLiCyさんにて公開中](https://plicy.net/GamePlay/180915)
+[お勉強ゲーム「お姉さんと勉強」](https://plicy.net/GamePlay/177672)
 
-[試作ゲーム「クリスマス勤労」PLiCyさんにて公開中](https://plicy.net/GamePlay/170692)
+[3分ゲーム「キャッチボール・スタジアム」](https://plicy.net/GamePlay/182350)
+
+[トランプゲーム「ブラックジャック」](https://plicy.net/GamePlay/180915)
+
+[試作ゲーム「クリスマス勤労」](https://plicy.net/GamePlay/170692)
+
+[動作確認用「音声入力テスト」](https://plicy.net/GamePlay/167862)
 
 ![クリスマス勤労](img/Xmas.png)
 

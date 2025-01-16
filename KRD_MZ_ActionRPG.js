@@ -526,7 +526,9 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.2.0.1 (2024/10/05) EventReSpawn 対応のバグ修正
 - ver.2.1.0 (2024/11/13) イベント衝突処理の汎用化（スクリプト）
 - ver.2.1.1 (2024/11/14) リファクタリング
-- ver.2.2.0 (2024/12/21) sprite の取得方法を変更
+- ver.2.2.0 (2024/12/21) sprite を findTargetSprite で取得
+- ver.2.2.1 (2024/12/22) リファクタリング
+- ver.2.3.0 (2025/01/16) 自律移動用スクリプトを追加
 
  * 
  * 
@@ -1000,29 +1002,29 @@ Scene_Map.prototype.createMapBattlerSprite = function() {
 };
 
 Scene_Map.prototype.createMapEnemySprite = function() {
-	const metaIdList = $gameMap.metaIdList(META_ENEMY);
+	const metaList = $gameMap.metaList(META_ENEMY);
 
-	metaIdList.forEach(eventId => {
-		this.createMapEnemySpriteOne(eventId);
+	metaList.forEach(event => {
+		this.createMapEnemySpriteOne(event);
 	}, this);
 };
 
-Scene_Map.prototype.createMapEnemySpriteOne = function(eventId, baseIndex) {
-	const event = $gameMap.event(eventId);
-	const battler = $gameMap.enemy(eventId);
-	const noDamage = event.event().meta[NO_DAMAGE];
-	const spriteset = SceneManager._scene._spriteset;
-	const sprite = spriteset.findTargetSprite(event);
-	if (sprite && event) {
-		if (USE_DAMAGE_POPUP) {
-			this.createDamagePopup(sprite, battler);
-		}
-		if (USE_HP_GAUGE && !noDamage) {
-			this.createHpGauge(sprite, battler);
-		}
-		if (USE_STATE_ICON) {
-			const h = event._size ? event._size[1] : BASE_SIZE;
-			this.createStateIcon(sprite, battler, h);
+Scene_Map.prototype.createMapEnemySpriteOne = function(event) {
+	const battler = event.enemy();
+	if (battler) {
+		const noDamage = event.event().meta[NO_DAMAGE];
+		const sprite = this._spriteset.findTargetSprite(event);
+		if (sprite) {
+			if (USE_DAMAGE_POPUP) {
+				this.createDamagePopup(sprite, battler);
+			}
+			if (USE_HP_GAUGE && !noDamage) {
+				this.createHpGauge(sprite, battler);
+			}
+			if (USE_STATE_ICON) {
+				const h = event._size ? event._size[1] : BASE_SIZE;
+				this.createStateIcon(sprite, battler, h);
+			}
 		}
 	}
 };
@@ -1032,10 +1034,9 @@ Scene_Map.prototype.createMapPlayerSprite = function() {
 		return;
 	}
 
-	const spriteset = SceneManager._scene._spriteset;
-	const sprite = spriteset.findTargetSprite($gamePlayer);
+	const sprite = this._spriteset.findTargetSprite($gamePlayer);
 	const battler = $gameParty.leader();
-	if (sprite) {
+	if (sprite && battler) {
 		if (ALWAYS_DAMAGE_POPUP || (USE_DAMAGE_POPUP && $gameParty.inMapBattle())) {
 			this.createDamagePopup(sprite, battler);
 		}
@@ -1058,9 +1059,8 @@ Scene_Map.prototype.createMapFollowerSprite = function() {
 	if (followers.isVisible()) {
 		followers._data.forEach(follower => {
 			const battler = follower.actor();
-			const spriteset = SceneManager._scene._spriteset;
-			const sprite = spriteset.findTargetSprite(follower);
-			if (sprite) {
+			const sprite = this._spriteset.findTargetSprite(follower);
+			if (sprite && battler) {
 				if (ALWAYS_DAMAGE_POPUP || (USE_DAMAGE_POPUP && $gameParty.inMapBattle())) {
 					this.createDamagePopup(sprite, battler);
 				}
@@ -1471,6 +1471,26 @@ Game_Temp.prototype.playerCollision = function(attackId, collisionCode) {
 };
 
 // -------------------------------------
+// マップイベントの自律移動用スクリプト
+
+Game_Event.prototype.collisionDamage = function() {
+	const collisionCode = [FRONT, SIDE, BACK, E_FRONT];
+	const targetId = $gameTemp.anyCollision(this.eventId(), collisionCode, META_ENEMY);
+	const skillId = this.event().meta[SKILL_ID];
+	
+	if (targetId > 0 && skillId > 0) {
+		const waitMode = true;
+		$gameTemp.showSkillAnimation(skillId, targetId, waitMode);
+		$gameTemp.mapDamageEnemy(targetId, skillId);
+		$gameTemp.mapPopupEnemy(targetId);
+
+		return true;
+	}
+
+	return false;
+};
+
+// -------------------------------------
 // マップバトル報酬
 
 Game_Temp.prototype.processTroopCollapse = function() {
@@ -1627,6 +1647,11 @@ Game_Temp.prototype.addStatePlayer = function(stateId) {
 
 Game_Temp.prototype.setSelfSwitch = function(mapId, eventId, alphabet, value) {
 	const key = [mapId, eventId, alphabet];
+	$gameSelfSwitches.setValue(key, value);
+};
+
+Game_Event.prototype.setSelfSwitch = function(alphabet, value) {
+	const key = [$gameMap.mapId(), this.eventId(), alphabet];
 	$gameSelfSwitches.setValue(key, value);
 };
 
@@ -2197,8 +2222,7 @@ Spriteset_Map.prototype.makePrefabEventSprite = function(event) {
 	_Spriteset_Map_makePrefabEventSprite.call(this, ...arguments);
 
 	if (event.enemy()) {
-		const tail = this._characterSprites.length - 1;
-		SceneManager._scene.createMapEnemySpriteOne(event.eventId(), tail);
+		SceneManager._scene.createMapEnemySpriteOne(event);
 	}
 };
 

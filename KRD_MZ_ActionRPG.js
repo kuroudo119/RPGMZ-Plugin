@@ -529,6 +529,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.2.2.0 (2024/12/21) sprite を findTargetSprite で取得
 - ver.2.2.1 (2024/12/22) リファクタリング
 - ver.2.3.0 (2025/01/16) 自律移動用スクリプトを追加
+- ver.2.4.0 (2025/01/16) 自律移動用スクリプトを追加
 
  * 
  * 
@@ -1128,9 +1129,11 @@ Game_Temp.prototype.mapPopupTroop = function() {
 // マップダメージ
 
 Game_Temp.prototype.mapDamage = function(target, subject, skillId) {
-	this._action = new KRD_Game_MapAction(subject);
-	this._action.setSkill(skillId);
-	this._action.apply(target);
+	if (subject) {
+		this._action = new KRD_Game_MapAction(subject);
+		this._action.setSkill(skillId);
+		this._action.apply(target);
+	}
 };
 
 Game_Temp.prototype.mapDamageEnemy = function(eventId, skillId) {
@@ -1473,9 +1476,9 @@ Game_Temp.prototype.playerCollision = function(attackId, collisionCode) {
 // -------------------------------------
 // マップイベントの自律移動用スクリプト
 
-Game_Event.prototype.collisionDamage = function() {
+Game_Event.prototype.enemyCollision = function(tag = META_ENEMY) {
 	const collisionCode = [FRONT, SIDE, BACK, E_FRONT];
-	const targetId = $gameTemp.anyCollision(this.eventId(), collisionCode, META_ENEMY);
+	const targetId = $gameTemp.anyCollision(this.eventId(), collisionCode, tag);
 	const skillId = this.event().meta[SKILL_ID];
 	
 	if (targetId > 0 && skillId > 0) {
@@ -1483,6 +1486,24 @@ Game_Event.prototype.collisionDamage = function() {
 		$gameTemp.showSkillAnimation(skillId, targetId, waitMode);
 		$gameTemp.mapDamageEnemy(targetId, skillId);
 		$gameTemp.mapPopupEnemy(targetId);
+
+		return true;
+	}
+
+	return false;
+};
+
+Game_Event.prototype.playerCollision = function() {
+	const collisionCode = [FRONT, SIDE, BACK, E_FRONT];
+	const collision = $gameTemp.playerCollision(this.eventId(), collisionCode);
+	const characterId = PLAYER_ID;
+	const skillId = this.event().meta[SKILL_ID];
+
+	if (collision && skillId > 0) {
+		const waitMode = true;
+		$gameTemp.showSkillAnimation(skillId, characterId, waitMode);
+		$gameTemp.mapDamagePlayer(this.eventId(), skillId);
+		$gameTemp.mapPopupPlayer();
 
 		return true;
 	}

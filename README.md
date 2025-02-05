@@ -31,6 +31,12 @@
 4. このソフトウェアの利用について保証はありません。
 5. 作者はこのソフトウェアについての責任を負いません。
 
+## KRD_MZ_TestLearnSkill（アイテム使用スキル習得のスキルタイプチェック）
+
+アイテム使用でスキル習得する時にスキルタイプを持っているかチェックします。
+
+[KRD_MZ_TestLearnSkillをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_TestLearnSkill.js)
+
 ## KRD_MZ_IconText（アイコン文字列）
 
 アイコンに文字列を表示します。

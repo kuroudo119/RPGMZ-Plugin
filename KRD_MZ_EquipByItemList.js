@@ -102,6 +102,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.2.1 (2024/08/31) スキル使用時のエラーを修正
 - ver.1.3.0 (2024/09/01) 装備不可タイプを追加
 - ver.1.4.0 (2024/09/03) アクター名Yを追加
+- ver.1.5.0 (2025/02/15) selectLast を使用
 
  * 
  * 
@@ -206,11 +207,13 @@ class Window_MenuActorEquip extends Window_MenuActor {
 	}
 
 	updateTempActor() {
-		if (this._actor && this._slotId >= 0) {
-			const actor = JsonEx.makeDeepCopy(this._actor);
-			const item = this.item();
-			actor.forceChangeEquip(item.etypeId - 1, item);
-			this.setTempActor(actor);
+		const item = this.item();
+		if (item) {
+			if (this._actor && this._slotId >= 0) {
+				const actor = JsonEx.makeDeepCopy(this._actor);
+				actor.forceChangeEquip(item.etypeId - 1, item);
+				this.setTempActor(actor);
+			}
 		}
 	}
 
@@ -297,6 +300,7 @@ Scene_Item.prototype.createActorEquipWindow = function() {
 	this._actorEquipWindow.setHandler("ok", this.onActorOk.bind(this));
 	this._actorEquipWindow.setHandler("cancel", this.onActorCancel.bind(this));
 	this.addWindow(this._actorEquipWindow);
+	this._actorEquipWindow.selectLast();
 };
 
 const _Scene_Item_actorWindowRect = Scene_Item.prototype.actorWindowRect;

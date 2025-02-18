@@ -31,6 +31,13 @@
 4. このソフトウェアの利用について保証はありません。
 5. 作者はこのソフトウェアについての責任を負いません。
 
+## KRD_MZ_Bypass（drawTextをdrawTextExに変更）
+
+drawTextをdrawTextExに変更することで制御文字を使えるようにします。  
+ただし、センタリングなどができなくなります。
+
+[KRD_MZ_Bypassをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Bypass.js)
+
 ## KRD_MZ_TestLearnSkill（アイテム使用スキル習得のスキルタイプチェック）
 
 アイテム使用でスキル習得する時にスキルタイプを持っているかチェックします。

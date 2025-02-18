@@ -38,6 +38,8 @@ drawTextをdrawTextExに変更することで制御文字を使えるように�
 
 [KRD_MZ_Bypassをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Bypass.js)
 
+![Bypass](img/Bypass.png)
+
 ## KRD_MZ_TestLearnSkill（アイテム使用スキル習得のスキルタイプチェック）
 
 アイテム使用でスキル習得する時にスキルタイプを持っているかチェックします。

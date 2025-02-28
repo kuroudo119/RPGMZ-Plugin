@@ -20,19 +20,13 @@
  * @text ONアイコン
  * @desc スキルON時のアイコン。初期値: 160
  * @default 160
- * @type number
+ * @type icon
  * 
  * @param offIcon
  * @text OFFアイコン
  * @desc スキルOFF時のアイコン。初期値: 16
  * @default 16
- * @type number
- * 
- * @param iconY
- * @text アイコンY
- * @desc アイコンY座標の表示位置調整。初期値: 2
- * @default 2
- * @type number
+ * @type icon
  * 
  * @param showCount
  * @text カウンタ表示
@@ -45,12 +39,14 @@
  * @desc カウンタX座標の表示位置調整。初期値: 0
  * @default 0
  * @type number
+ * @min -10000
  * 
  * @param COUNTER_Y
  * @text カウンタY
  * @desc カウンタY座標の表示位置調整。初期値: 0
  * @default 0
  * @type number
+ * @min -10000
  * 
  * @param commandName
  * @text メニューコマンド名
@@ -154,6 +150,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.7.0 (2023/09/23) パラメータ追加 (スキル習得時自動ON)
 - ver.1.8.0 (2023/09/24) 戦闘で使えるスキルのみON可能
 - ver.1.8.1 (2023/09/30) KRD_RUBY 周りの処理を修正
+- ver.1.9.0 (2024/08/31) アイコン表示位置を修正
+- ver.2.0.0 (2025/02/28) 仕様変更した
 
  * 
  * 
@@ -173,8 +171,6 @@ const SKILL_TYPE = JSON.parse("[" + PARAM["skillTypes"] + "]");
 const MAX_SKILLS = Number(PARAM["maxSkills"]) || 0;
 const ON_ICON = Number(PARAM["onIcon"]) || 0;
 const OFF_ICON = Number(PARAM["offIcon"]) || 0;
-
-const ICON_Y = Number(PARAM["iconY"]) || 0;
 
 const SHOW_COUNT = PARAM["showCount"] === "true";
 const COUNTER_X = Number(PARAM["COUNTER_X"]) || 0;
@@ -264,10 +260,24 @@ Scene_SkillSelect = class extends Scene_Skill {
 };
 
 //--------------------------------------
+
+function isSceneSkill() {
+	return SceneManager._scene.constructor === Scene_Skill;
+}
+
+function isSceneSkillSelect() {
+	return SceneManager._scene.constructor === Scene_SkillSelect;
+}
+
+function isSceneBattle() {
+	return SceneManager._scene.constructor === Scene_Battle;
+}
+
+//--------------------------------------
 // 内部データ
 
 Game_Actor.prototype.cannotSelectSkillType = function(stypeId) {
-	if (SceneManager._scene.constructor.name !== "Scene_Skill") {
+	if (!isSceneSkill()) {
 		if (SKILL_TYPE.includes(stypeId)) {
 			return false;
 		} else {
@@ -278,9 +288,9 @@ Game_Actor.prototype.cannotSelectSkillType = function(stypeId) {
 	}
 };
 
-const KRD_Game_Actor_initMembers = Game_Actor.prototype.initMembers;
+const _Game_Actor_initMembers = Game_Actor.prototype.initMembers;
 Game_Actor.prototype.initMembers = function() {
-	KRD_Game_Actor_initMembers.apply(this, arguments);
+	_Game_Actor_initMembers.call(this, ...arguments);
 	this._useSkills = this._useSkills || {};
 };
 
@@ -334,7 +344,7 @@ Game_Actor.prototype.offUseSkill = function(id, stypeId) {
 };
 
 Game_Actor.prototype.isOnSkill = function(id, stypeId) {
-	if (SceneManager._scene.constructor.name === "Scene_SkillSelect") {
+	if (isSceneSkillSelect()) {
 		if (SKILL_TYPE.includes(stypeId)) {
 			if (!this._useSkills[stypeId]) {
 				this._useSkills[stypeId] = [];
@@ -363,28 +373,58 @@ Game_Party.prototype.onAllSkill = function() {
 	this.members().forEach(actor => actor.onAllSkill());
 }
 
-const KRD_Game_Actor_learnSkill = Game_Actor.prototype.learnSkill;
+const _Game_Actor_learnSkill = Game_Actor.prototype.learnSkill;
 Game_Actor.prototype.learnSkill = function(skillId) {
 	if (LEARN_SKILL_ON) {
 		if (!this.isLearnedSkill(skillId)) {
-			KRD_Game_Actor_learnSkill.apply(this, arguments);
+			_Game_Actor_learnSkill.call(this, ...arguments);
 			const stypeId = $dataSkills[skillId].stypeId;
-			const occasion = $dataSkills[skillId].occasion;
-			if ($gameTemp.isBattleSkill(occasion)) {
-				this.onUseSkill(skillId, stypeId);
-			}
+
+			// occasionに関係なくするのでコメントアウト
+			// const occasion = $dataSkills[skillId].occasion;
+			// if ($gameTemp.isBattleSkill(occasion)) {
+			// 	this.onUseSkill(skillId, stypeId);
+			// }
+			this.onUseSkill(skillId, stypeId);
 		}
 	} else {
-		KRD_Game_Actor_learnSkill.apply(this, arguments);
+		_Game_Actor_learnSkill.call(this, ...arguments);
+	}
+};
+
+Game_Actor.prototype.useSkills = function() {
+	const list = [];
+	const stypeList = Object.keys(this._useSkills);
+	for (const stype of stypeList) {
+		this._useSkills[stype].sort((a, b) => {
+			return (Number(a) || 0) - (Number(b) || 0);
+		});
+
+		for (const id of this._useSkills[stype]) {
+			const skills = this._skills.concat(this.addedSkills());
+			if (skills.includes(id) && !list.includes($dataSkills[id])) {
+				list.push($dataSkills[id]);
+			}
+		}
+	}
+	return list;
+};
+
+const _Game_Actor_hasSkill = Game_Actor.prototype.hasSkill;
+Game_Actor.prototype.hasSkill = function(skillId) {
+	if (isSceneBattle()) {
+		return this.useSkills().includes($dataSkills[skillId]);
+	} else {
+		return _Game_Actor_hasSkill.call(this, ...arguments);
 	}
 };
 
 //--------------------------------------
 // スキルタイプ画面
 
-const KRD_Window_SkillType_makeCommandList = Window_SkillType.prototype.makeCommandList;
+const _Window_SkillType_makeCommandList = Window_SkillType.prototype.makeCommandList;
 Window_SkillType.prototype.makeCommandList = function() {
-	if (SceneManager._scene.constructor.name === "Scene_SkillSelect") {
+	if (isSceneSkillSelect()) {
 		if (this._actor) {
 			const skillTypes = this._actor.skillTypes();
 			for (const stypeId of skillTypes) {
@@ -395,41 +435,62 @@ Window_SkillType.prototype.makeCommandList = function() {
 			}
 		}
 	} else {
-		KRD_Window_SkillType_makeCommandList.apply(this, arguments);
+		_Window_SkillType_makeCommandList.call(this, ...arguments);
 	}
 };
 
 //--------------------------------------
 // スキルリスト画面
 
-const KRD_Window_SkillList_makeItemList = Window_SkillList.prototype.makeItemList;
+const _Window_SkillList_makeItemList = Window_SkillList.prototype.makeItemList;
 Window_SkillList.prototype.makeItemList = function() {
-	KRD_Window_SkillList_makeItemList.apply(this, arguments);
-	if (SceneManager._scene.constructor.name === "Scene_SkillSelect") {
+	if (isSceneSkillSelect()) {
+		_Window_SkillList_makeItemList.call(this, ...arguments);
 		this._data.push(null);
+	} else {
+		this.makeItemListOnlyUsable();
 	}
 };
 
-const KRD_Window_SkillList_selectLast = Window_SkillList.prototype.selectLast;
+Window_SkillList.prototype.makeItemListOnlyUsable = function() {
+	if (this._actor) {
+		if (SKILL_TYPE.includes(this._stypeId)) {
+			this._data = this._actor.useSkills().filter(item => this.includes(item));
+		} else {
+			this._data = this._actor.skills().filter(item => this.includes(item));
+		}
+
+		if (this._data && this.sortList) {
+			this.sortList();
+		}
+	} else {
+		this._data = [];
+	}
+};
+
+const _Window_SkillList_selectLast = Window_SkillList.prototype.selectLast;
 Window_SkillList.prototype.selectLast = function() {
 	// null を push したことで indexOf で null が引っかかるので別処理。
 	if (this._actor.lastSkill() === null) {
 		this.forceSelect(0);
 	} else {
-		KRD_Window_SkillList_selectLast.apply(this, arguments);
+		_Window_SkillList_selectLast.call(this, ...arguments);
 	}
 };
 
-const KRD_Window_SkillList_isEnabled = Window_SkillList.prototype.isEnabled;
+const _Window_SkillList_isEnabled = Window_SkillList.prototype.isEnabled;
 Window_SkillList.prototype.isEnabled = function(item) {
-	if (SceneManager._scene.constructor.name === "Scene_SkillSelect") {
-		if (item) {
-			return $gameTemp.isBattleSkill(item.occasion);
-		} else {
-			return true;
-		}
+	if (isSceneSkillSelect()) {
+
+		// スキルON／OFFは全スキルが対象とするためコメントアウト
+		// if (item) {
+		// 	return $gameTemp.isBattleSkill(item.occasion);
+		// } else {
+		// 	return true;
+		// }
+		return true;
 	} else {
-		return KRD_Window_SkillList_isEnabled.apply(this, arguments);
+		return _Window_SkillList_isEnabled.call(this, ...arguments);
 	}
 };
 
@@ -437,16 +498,20 @@ Game_Temp.prototype.isBattleSkill = function(occasion) {
 	return [0, 1].includes(occasion);
 };
 
-const KRD_Window_SkillList_drawItem = Window_SkillList.prototype.drawItem;
+const _Window_SkillList_drawItem = Window_SkillList.prototype.drawItem;
 Window_SkillList.prototype.drawItem = function(index) {
-	if (this.itemAt(index)) {
-		if (this.drawDescription) {
-			this.drawItemDesc(index);
+	if (isSceneSkillSelect()) {
+		if (this.itemAt(index)) {
+			if (this.drawDescription) {
+				this.drawItemDesc(index);
+			} else {
+				this.drawItemDefault(index);
+			}
 		} else {
-			this.drawItemDefault(index);
+			this.drawItemNull(index);
 		}
 	} else {
-		this.drawItemNull(index);
+		_Window_SkillList_drawItem.call(this, ...arguments);
 	}
 };
 
@@ -457,7 +522,7 @@ Window_SkillList.prototype.drawItemDefault = function(index) {
 		const costWidth = this.costWidth();
 		const rect = this.itemLineRect(index);
 		this.changePaintOpacity(this.isEnabled(skill));
-		this.drawCheck(skill, rect.x, rect.y + ICON_Y);
+		this.drawCheck(skill, rect.x, rect.y);
 		this.drawItemName(skill, rect.x + checkWidth, rect.y, rect.width - costWidth - checkWidth);
 		this.drawSkillCost(skill, rect.x, rect.y, rect.width);
 		this.changePaintOpacity(true);
@@ -472,7 +537,7 @@ Window_SkillList.prototype.drawItemDesc = function(index) {
 		const rect = this.itemRectWithPadding(index);
 		const y = rect.y;
 		this.changePaintOpacity(this.isEnabled(skill));
-		this.drawCheck(skill, rect.x, y + ICON_Y);
+		this.drawCheck(skill, rect.x, y);
 		this.drawItemName(skill, rect.x + checkWidth, y, rect.width - costWidth - checkWidth);
 		this.drawSkillCost(skill, rect.x, y, rect.width);
 		this.drawDescription(skill, rect.x, y + this.lineHeight(), rect.width);
@@ -489,6 +554,13 @@ Window_SkillList.prototype.drawItemNull = function(index) {
 	}
 };
 
+const _Window_SkillList_drawSkillCost = Window_SkillList.prototype.drawSkillCost;
+Window_SkillList.prototype.drawSkillCost = function(skill, x, y, width) {
+	if (!isSceneSkillSelect()) {
+		_Window_SkillList_drawSkillCost.call(this, ...arguments);
+	}
+};
+
 Window_SkillList.prototype.isCheck = function(skill) {
 	return skill && SKILL_TYPE.includes(skill.stypeId);
 };
@@ -498,11 +570,11 @@ Window_SkillList.prototype.drawCheck = function(skill, x, y) {
 		return;
 	}
 
-	const rubyY = (typeof KRD_RUBY !== "undefined" && KRD_RUBY.isRuby(skill.name)) ? 0 : 2;
+	const plusY = Math.floor((this.lineHeight() - ImageManager.iconHeight) / 2);
 	if (this.isOnSkill(skill)) {
-		this.drawIcon(ON_ICON, x, y + rubyY);
+		this.drawIcon(ON_ICON, x, y + plusY);
 	} else {
-		this.drawIcon(OFF_ICON, x, y + rubyY);
+		this.drawIcon(OFF_ICON, x, y + plusY);
 	}
 };
 
@@ -510,29 +582,32 @@ Window_SkillList.prototype.isOnSkill = function(skill) {
 	return skill && this._actor.isOnSkill(skill.id, skill.stypeId);
 };
 
-const KRD_Window_SkillList_isCurrentItemEnabled = Window_SkillList.prototype.isCurrentItemEnabled;
+const _Window_SkillList_isCurrentItemEnabled = Window_SkillList.prototype.isCurrentItemEnabled;
 Window_SkillList.prototype.isCurrentItemEnabled = function() {
-	if (SceneManager._scene.constructor.name === "Scene_SkillSelect") {
+	if (isSceneSkillSelect()) {
 		if (this._actor && this._data) {
-			const data = this._data[this.index()];
-			if (data) {
-				const id = data.id;
-				const stypeId = data.stypeId;
-				const occasion = data.occasion;
-				const canSkillSelect = this._actor.canSkillAdd(id, stypeId) || this._actor.canSkillMinus(id, stypeId);
-				return $gameTemp.isBattleSkill(occasion) && canSkillSelect;
-			}
+
+			// occasionに関係なくするのでコメントアウト
+			// const data = this._data[this.index()];
+			// if (data) {
+				// const id = data.id;
+				// const stypeId = data.stypeId;
+				// const occasion = data.occasion;
+				// const canSkillSelect = this._actor.canSkillAdd(id, stypeId) || this._actor.canSkillMinus(id, stypeId);
+				// return $gameTemp.isBattleSkill(occasion) && canSkillSelect;
+			// }
+			return true;
 		}
 	}
-	return KRD_Window_SkillList_isCurrentItemEnabled.apply(this, arguments);
+	return _Window_SkillList_isCurrentItemEnabled.call(this, ...arguments);
 };
 
 //--------------------------------------
 // 選択数表示
 
-const KRD_Window_SkillStatus_refresh = Window_SkillStatus.prototype.refresh;
+const _Window_SkillStatus_refresh = Window_SkillStatus.prototype.refresh;
 Window_SkillStatus.prototype.refresh = function() {
-	KRD_Window_SkillStatus_refresh.apply(this, arguments);
+	_Window_SkillStatus_refresh.call(this, ...arguments);
 
 	if (SHOW_COUNT && this._actor 
 	&& SceneManager._scene._itemWindow && this._actor._useSkills) {
@@ -553,9 +628,9 @@ Window_SkillStatus.prototype.refresh = function() {
 	}
 };
 
-const KRD_Window_SkillType_select = Window_SkillType.prototype.select;
+const _Window_SkillType_select = Window_SkillType.prototype.select;
 Window_SkillType.prototype.select = function(index) {
-	KRD_Window_SkillType_select.apply(this, arguments);
+	_Window_SkillType_select.call(this, ...arguments);
 	if (SHOW_COUNT && SceneManager._scene._statusWindow) {
 		SceneManager._scene._statusWindow.refresh();
 	}
@@ -564,7 +639,7 @@ Window_SkillType.prototype.select = function(index) {
 //--------------------------------------
 // メニューコマンド
 
-const KRD_Window_MenuCommand_addMainCommands = Window_MenuCommand.prototype.addMainCommands;
+const _Window_MenuCommand_addMainCommands = Window_MenuCommand.prototype.addMainCommands;
 Window_MenuCommand.prototype.addMainCommands = function() {
 	if (AFTER_SKILL_COMMAND) {
 		const enabled = this.areMainCommandsEnabled();
@@ -584,7 +659,7 @@ Window_MenuCommand.prototype.addMainCommands = function() {
 			this.addCommand(TextManager.status, "status", enabled);
 		}
 	} else {
-		KRD_Window_MenuCommand_addMainCommands.apply(this, arguments);
+		_Window_MenuCommand_addMainCommands.call(this, ...arguments);
 		this.addSkillOnOffCommand();
 	}
 };
@@ -596,18 +671,18 @@ Window_MenuCommand.prototype.addSkillOnOffCommand = function() {
 	}
 };
 
-const KRD_Scene_Menu_createCommandWindow = Scene_Menu.prototype.createCommandWindow;
+const _Scene_Menu_createCommandWindow = Scene_Menu.prototype.createCommandWindow;
 Scene_Menu.prototype.createCommandWindow = function() {
-	KRD_Scene_Menu_createCommandWindow.apply(this, arguments);
+	_Scene_Menu_createCommandWindow.call(this, ...arguments);
 	this._commandWindow.setHandler("skillSelect", this.commandPersonal.bind(this));
 };
 
-const KRD_Scene_Menu_onPersonalOk = Scene_Menu.prototype.onPersonalOk;
+const _Scene_Menu_onPersonalOk = Scene_Menu.prototype.onPersonalOk;
 Scene_Menu.prototype.onPersonalOk = function() {
 	if (this._commandWindow.currentSymbol() === "skillSelect") {
 		SceneManager.push(Scene_SkillSelect);
 	} else {
-		KRD_Scene_Menu_onPersonalOk.apply(this, arguments);
+		_Scene_Menu_onPersonalOk.call(this, ...arguments);
 	}
 };
 
@@ -616,41 +691,11 @@ Scene_Menu.prototype.onPersonalOk = function() {
 
 Window_BattleSkill.prototype.drawItem = function(index) {
 	// バトル画面ではアイコンなし
-	KRD_Window_SkillList_drawItem.apply(this, arguments);
+	_Window_SkillList_drawItem.call(this, ...arguments);
 };
 
 Window_BattleSkill.prototype.makeItemList = function() {
-	if (this._actor) {
-		if (SKILL_TYPE.includes(this._stypeId)) {
-			this._data = this._actor.useSkills().filter(item => this.includes(item));
-		} else {
-			this._data = this._actor.skills().filter(item => this.includes(item));
-		}
-
-		if (this._data && this.sortList) {
-			this.sortList();
-		}
-	} else {
-		this._data = [];
-	}
-};
-
-Game_Actor.prototype.useSkills = function() {
-	const list = [];
-	const stypeList = Object.keys(this._useSkills);
-	for (const stype of stypeList) {
-		this._useSkills[stype].sort((a, b) => {
-			return (Number(a) || 0) - (Number(b) || 0);
-		});
-
-		for (const id of this._useSkills[stype]) {
-			const skills = this._skills.concat(this.addedSkills());
-			if (skills.includes(id) && !list.includes($dataSkills[id])) {
-				list.push($dataSkills[id]);
-			}
-		}
-	}
-	return list;
+	this.makeItemListOnlyUsable();
 };
 
 //--------------------------------------

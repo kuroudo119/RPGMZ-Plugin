@@ -31,6 +31,12 @@
 4. このソフトウェアの利用について保証はありません。
 5. 作者はこのソフトウェアについての責任を負いません。
 
+## KRD_MZ_RecoveryMagicRate（回復魔法割合）
+
+「薬の知識」の回復魔法バージョンです。
+
+[KRD_MZ_RecoveryMagicRateをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_RecoveryMagicRate.js)
+
 ## KRD_MZ_Bypass（drawTextをdrawTextExに変更）
 
 drawTextをdrawTextExに変更することで制御文字を使えるようにします。  

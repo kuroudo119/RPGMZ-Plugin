@@ -414,6 +414,7 @@ System.jsonをコピーして、
 - ver.5.2.0 (2024/02/22) 内部処理を修正
 - ver.5.2.1 (2024/02/22) null チェック追加など
 - ver.5.3.0 (2024/08/28) パラメータ VAR_FORCE_LANGUAGE 追加
+- ver.5.3.1 (2025/03/04) 内部処理 jsonParse の一段階を初期処理に移動
 
  * 
  * 
@@ -875,21 +876,52 @@ const FORCE_LANGUAGE = Number(PARAM["FORCE_LANGUAGE"]) || 0;
 const VAR_FORCE_LANGUAGE = Number(PARAM["VAR_FORCE_LANGUAGE"]) || 0;
 
 const LANGUAGE = JSON.parse(PARAM["argLanguage"] || null);
+const OPTION_TEXT = JSON.parse(PARAM["argOptionText"] || null);
 
-let OPTION_TEXT = null;
-if (PARAM["argOptionText"]) {
-	OPTION_TEXT = JSON.parse(PARAM["argOptionText"] || null);
+//--------------------------------------
+// データ
+
+const GAME_TITLE_BASE = JSON.parse(PARAM["argGameTitle"] || null);
+const GAME_TITLE = [];
+jsonParse(GAME_TITLE_BASE, GAME_TITLE);
+
+const CURRENCY_UNIT_BASE = JSON.parse(PARAM["argCurrencyUnit"] || null);
+const CURRENCY_UNIT = [];
+jsonParse(CURRENCY_UNIT_BASE, CURRENCY_UNIT);
+
+const ELEMENTS_BASE = JSON.parse(PARAM["argElements"] || null);
+const ELEMENTS = [];
+jsonParse(ELEMENTS_BASE, ELEMENTS);
+
+const SKILL_TYPES_BASE = JSON.parse(PARAM["argSkillTypes"] || null);
+const SKILL_TYPES = [];
+jsonParse(SKILL_TYPES_BASE, SKILL_TYPES);
+
+const EQUIP_TYPES_BASE = JSON.parse(PARAM["argEquipTypes"] || null);
+const EQUIP_TYPES = [];
+jsonParse(EQUIP_TYPES_BASE, EQUIP_TYPES);
+
+const BASIC_BASE = JSON.parse(PARAM["argBasic"] || null);
+const BASIC = [];
+jsonParse(BASIC_BASE, BASIC);
+
+const PARAMS_BASE = JSON.parse(PARAM["argParams"] || null);
+const PARAMS = [];
+jsonParse(PARAMS_BASE, PARAMS);
+
+const COMMANDS_BASE = JSON.parse(PARAM["argCommands"] || null);
+const COMMANDS = [];
+jsonParse(COMMANDS_BASE, COMMANDS);
+
+const MESSAGES_BASE = JSON.parse(PARAM["argMessages"] || null);
+const MESSAGES = [];
+jsonParse(MESSAGES_BASE, MESSAGES);
+
+function jsonParse(base, list) {
+	base?.forEach(e => list.push(JSON.parse(e)));
 }
 
-const GAME_TITLE = JSON.parse(PARAM["argGameTitle"] || null);
-const CURRENCY_UNIT = JSON.parse(PARAM["argCurrencyUnit"] || null);
-const ELEMENTS = JSON.parse(PARAM["argElements"] || null);
-const SKILL_TYPES = JSON.parse(PARAM["argSkillTypes"] || null);
-const EQUIP_TYPES = JSON.parse(PARAM["argEquipTypes"] || null);
-const BASIC = JSON.parse(PARAM["argBasic"] || null);
-const PARAMS = JSON.parse(PARAM["argParams"] || null);
-const COMMANDS = JSON.parse(PARAM["argCommands"] || null);
-const MESSAGES = JSON.parse(PARAM["argMessages"] || null);
+//--------------------------------------
 
 const GLOBAL_NAME = PARAM["globalName"] || "$dataUniques";
 const USE_LANGF = PARAM["USE_LANGF"] === "true";
@@ -1089,7 +1121,7 @@ TextManager.basic = function(id) {
 	}
 
 	if (BASIC) {
-		const preData = BASIC[language - 1] ? JSON.parse(BASIC[language - 1]) : null;
+		const preData = BASIC[language - 1];
 		if (preData && preData.basic) {
 			const data = JSON.parse(preData.basic);
 			return data[id] || _TextManager_basic.call(this, ...arguments);
@@ -1114,7 +1146,7 @@ TextManager.param = function(id) {
 	}
 
 	if (PARAMS) {
-		const preData = PARAMS[language - 1] ? JSON.parse(PARAMS[language - 1]) : null;
+		const preData = PARAMS[language - 1];
 		if (preData && preData.params) {
 			const data = JSON.parse(preData.params);
 			return data[id] || _TextManager_param.call(this, ...arguments);
@@ -1139,7 +1171,7 @@ TextManager.command = function(id) {
 	}
 
 	if (COMMANDS) {
-		const preData = COMMANDS[language - 1] ? JSON.parse(COMMANDS[language - 1]) : null;
+		const preData = COMMANDS[language - 1];
 		if (preData && preData.commands) {
 			const data = JSON.parse(preData.commands);
 			return data[id] || _TextManager_command.call(this, ...arguments);
@@ -1164,7 +1196,7 @@ TextManager.message = function(id) {
 	}
 
 	if (MESSAGES) {
-		const data = MESSAGES[language - 1] ? JSON.parse(MESSAGES[language - 1]) : null;
+		const data = MESSAGES[language - 1];
 		return data ? data[id] : _TextManager_message.call(this, ...arguments);
 	} else {
 		return _TextManager_message.call(this, ...arguments);
@@ -1184,7 +1216,7 @@ Object.defineProperty(TextManager, "currencyUnit", {
 		}
 	
 		if (CURRENCY_UNIT) {
-			const data = CURRENCY_UNIT[language - 1] ? JSON.parse(CURRENCY_UNIT[language - 1]) : null;
+			const data = CURRENCY_UNIT[language - 1];
 			return data && data.currencyUnit ? data.currencyUnit : $dataSystem.currencyUnit;
 		} else {
 			return $dataSystem.currencyUnit;
@@ -1241,7 +1273,7 @@ TextManager.skillType = function(id) {
 	}
 
 	if (SKILL_TYPES) {
-		const preData = SKILL_TYPES[language - 1] ? JSON.parse(SKILL_TYPES[language - 1]) : null;
+		const preData = SKILL_TYPES[language - 1];
 		if (preData && preData.skillTypes) {
 			const data = JSON.parse(preData.skillTypes);
 			return data[id - 1] || $dataSystem.skillTypes[id];
@@ -1285,7 +1317,7 @@ TextManager.equipType = function(id) {
 	}
 
 	if (EQUIP_TYPES) {
-		const preData = EQUIP_TYPES[language - 1] ? JSON.parse(EQUIP_TYPES[language - 1]) : null;
+		const preData = EQUIP_TYPES[language - 1];
 		if (preData && preData.equipTypes) {
 			const data = JSON.parse(preData.equipTypes);
 			return data[id - 1] || $dataSystem.equipTypes[id];
@@ -1315,7 +1347,7 @@ TextManager.element = function(id) {
 	}
 
 	if (ELEMENTS) {
-		const preData = ELEMENTS[language - 1] ? JSON.parse(ELEMENTS[language - 1]) : null;
+		const preData = ELEMENTS[language - 1];
 		if (preData && preData.elements) {
 			const data = JSON.parse(preData.elements);
 			return data[id - 1] || $dataSystem.elements[id];
@@ -1360,7 +1392,7 @@ Scene_Title.prototype.getGameTitle = function() {
 	} else {
 		if (GAME_TITLE) {
 			const language = KRD_MULTILINGUAL.multilingual();
-			const data = GAME_TITLE[language - 1] ? JSON.parse(GAME_TITLE[language - 1]) : null;
+			const data = GAME_TITLE[language - 1];
 			return data && data.gameTitle ? data.gameTitle : null;
 		}
 	}

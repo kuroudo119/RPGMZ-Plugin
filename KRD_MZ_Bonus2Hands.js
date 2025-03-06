@@ -44,16 +44,36 @@ KRD_MZ_GroupTarget プラグインが必要です。
 盾（スロット2）を装備していない時、
 HP吸収になります。
 
+### 両手持ち時会心率アップ
+
+スキルのメモ欄に <critical2Hands:99> と書き、
+盾（スロット2）を装備していない時、
+会心率が 99% アップします。
+
+### 両手持ち時ステート付与
+
+スキルのメモ欄に 
+<state2Hands:12>
+<stateRate2Hands:99>
+と書き、
+盾（スロット2）を装備していない時、
+攻撃時にステート 12 を 99% 付与します。
+（ステート有効度などの影響あり）
+
+【注意】
+使用効果欄に、
+ステート付与 0% で構わないので何か設定してください。
+
 ## 更新履歴
 
 - ver.0.0.1 (2025/03/05) 作成開始
 - ver.0.1.0 (2025/03/05) 非公開版完成
 - ver.1.0.0 (2025/03/05) 公開
+- ver.1.1.0 (2025/03/06) 公開
 
  * 
  * 
  */
-
 
 (() => {
 
@@ -61,11 +81,34 @@ HP吸収になります。
 
 const TAG_GROUP_2HANDS = "group2Hands";
 const TAG_DRAIN_2HANDS = "drain2Hands";
+const TAG_CRITICAL_2HANDS = "critical2Hands";
+const TAG_STATE_2HANDS = "state2Hands";
+const TAG_STATE_RATE_2HANDS = "stateRate2Hands";
 
 //--------------------------------------
 
 Game_Actor.prototype.hasNoShield = function() {
 	return !this.equips()[1];
+};
+
+Game_BattlerBase.prototype.isTwoHands = function() {
+	return false;
+};
+
+Game_Actor.prototype.isTwoHands = function(tag, item) {
+	const hasTag = item.meta[tag];
+	const twoHands = this.hasNoShield();
+	return hasTag && twoHands;
+};
+
+Game_BattlerBase.prototype.twoHandsValue = function() {
+	return null;
+};
+
+Game_Actor.prototype.twoHandsValue = function(tag, item) {
+	const value = item.meta[tag];
+	const twoHands = this.hasNoShield();
+	return twoHands ? value : null;
 };
 
 //--------------------------------------
@@ -74,9 +117,8 @@ Game_Actor.prototype.hasNoShield = function() {
 const _Game_Action_isForEnemyGroup = Game_Action.prototype.isForEnemyGroup;
 Game_Action.prototype.isForEnemyGroup = function() {
 	const base = _Game_Action_isForEnemyGroup.call(this, ...arguments);
-	const hasTag = !!this.item().meta[TAG_GROUP_2HANDS];
-	const twoHands = this.subject().isActor() && this.subject().hasNoShield();
-	return base || (hasTag && twoHands);
+	const twoHands = this.subject().isTwoHands(TAG_GROUP_2HANDS, this.item());
+	return base || twoHands;
 };
 
 //--------------------------------------
@@ -84,9 +126,49 @@ Game_Action.prototype.isForEnemyGroup = function() {
 const _Game_Action_isDrain = Game_Action.prototype.isDrain;
 Game_Action.prototype.isDrain = function() {
 	const base = _Game_Action_isDrain.call(this, ...arguments);
-	const hasTag = !!this.item().meta[TAG_DRAIN_2HANDS];
-	const twoHands = this.subject().isActor() && this.subject().hasNoShield();
-	return base || (hasTag && twoHands);
+	const twoHands = this.subject().isTwoHands(TAG_DRAIN_2HANDS, this.item());
+	return base || twoHands;
+};
+
+//--------------------------------------
+
+const _Game_Action_itemCri = Game_Action.prototype.itemCri;
+Game_Action.prototype.itemCri = function(target) {
+	const value = this.subject().twoHandsValue(TAG_CRITICAL_2HANDS, this.item());
+	if (value != null) {
+		const cri = (Number(value) || 0) / 100;
+		return this.item().damage.critical
+		? (this.subject().cri + cri) * (1 - target.cev)
+		: 0;
+	} else {
+		return _Game_Action_itemCri.call(this, ...arguments);
+	}
+};
+
+//--------------------------------------
+
+const _Game_Action_applyItemEffect = Game_Action.prototype.applyItemEffect;
+Game_Action.prototype.applyItemEffect = function(target, effect) {
+	_Game_Action_applyItemEffect.call(this, ...arguments);
+	this.itemEffectState2Hands(target);
+};
+
+Game_Action.prototype.itemEffectState2Hands = function(target) {
+	const value = this.subject().twoHandsValue(TAG_STATE_2HANDS, this.item());
+	const value2 = this.subject().twoHandsValue(TAG_STATE_RATE_2HANDS, this.item());
+	if (value != null && value2 != null) {
+		const stateId = Number(value) || 0;
+		const rate = Number(value2) || 0;
+		if (stateId > 0 && rate > 0) {
+			let chance = rate / 100;
+			chance *= target.stateRate(stateId);
+			chance *= this.lukEffectRate(target);
+			if (Math.random() < chance) {
+				target.addState(stateId);
+				this.makeSuccess(target);
+			}
+		}
+	}
 };
 
 //--------------------------------------

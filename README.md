@@ -34,7 +34,7 @@
 ## KRD_MZ_Bonus2Hands（両手持ちボーナス）
 
 盾を装備していない時、追加効果が得られるようにできる。  
-追加効果は、グループ攻撃、吸収攻撃。
+追加効果は、グループ攻撃、吸収攻撃、会心率アップ、ステート付与。
 
 [KRD_MZ_Bonus2Handsをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Bonus2Hands.js)
 

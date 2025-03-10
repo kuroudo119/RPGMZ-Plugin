@@ -7,6 +7,8 @@
 
 [Twitter(現X)はこちら](https://twitter.com/kuroudo119)
 
+[マシュマロもあります](https://marshmallow-qa.com/uxnvf71gp8ibzus)
+
 ## 公開中ゲーム
 
 ### PLiCyさんにて公開中

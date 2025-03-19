@@ -64,6 +64,26 @@
  * @desc 能力値に加算する値をカンマ区切りで値を8個記述します。
  * @default 0, 0, 0, 0, 0, 0, 0, 0
  * 
+ * @param USE_HP_LEVEL_RATE
+ * @text 敵レベルによるHP補正
+ * @desc 敵レベルに応じてその敵HPを補正する：true ／補正しない：false
+ * @default 0
+ * @type switch
+ * 
+ * @param BORDER_LEVEL
+ * @text レベル境界値
+ * @desc レベル差分を取得する基準となる値です。
+ * @default 50
+ * @type number
+ * @parent USE_HP_LEVEL_RATE
+ * 
+ * @param HP_LEVEL_RATE
+ * @text HPレベル割合
+ * @desc レベル差分に掛ける値です。
+ * @default 8
+ * @type number
+ * @parent USE_HP_LEVEL_RATE
+ * 
  * @help
 # KRD_MZ_Properties.js
 
@@ -89,6 +109,15 @@ KRD_MZ_Critical プラグインが有効な場合に使えます。
 
 本プラグインはアクター、敵キャラ両方に適用されます。
 
+## 敵レベルによるHP補正
+
+この機能を使うと、敵レベルに応じて敵の最大HPを補正することができます。
+敵レベルの設定には別プラグインが必要です。
+
+敵レベル ‐ レベル境界値 = レベル差分
+レベル差分 * HPレベル割合 = 加算値（負数あり）
+を算出し、最大HPに加算値を加えます。
+
 ## 更新履歴
 
 - ver.0.0.1 (2022/12/03) 作成開始
@@ -106,6 +135,8 @@ KRD_MZ_Critical プラグインが有効な場合に使えます。
 - ver.0.11.0 (2024/04/07) 追加値の割合をプラグインパラメータにした
 - ver.0.12.0 (2024/09/14) 防御力のクリティカル補正などを追加
 - ver.1.0.0 (2024/09/14) 公開
+- ver.1.1.0 (2025/02/24) 敵レベルによるHP補正を追加
+- ver.1.2.0 (2025/03/19) 敵レベルによるHP補正をスイッチに変更
 
  * 
  * 
@@ -132,6 +163,11 @@ const DEF_CRI_RATE = (Number(PARAM["DEF_CRI_RATE"]) || 0) / 100;
 const MDF_CRI_RATE = (Number(PARAM["MDF_CRI_RATE"]) || 0) / 100;
 
 const PLUS_POINT = PARAM["PLUS_POINT"];
+
+const USE_HP_LEVEL_RATE = Number(PARAM["USE_HP_LEVEL_RATE"]) || 0;
+const BORDER_LEVEL = Number(PARAM["BORDER_LEVEL"]) || 0;
+const HP_LEVEL_RATE = Number(PARAM["HP_LEVEL_RATE"]) || 0;
+const MIN_HP = 1;
 
 //--------------------------------------
 
@@ -179,6 +215,23 @@ Object.defineProperties(Game_BattlerBase.prototype, {
 		get: function() {
 			const critical = this.critical ? MDF_CRI_RATE : 1;
 			return Math.floor(this.param(5) * critical);
+		},
+		configurable: true
+	},
+});
+
+Object.defineProperties(Game_Enemy.prototype, {
+	mhp: {
+		get: function() {
+			if ($gameSwitches.value(USE_HP_LEVEL_RATE)) {
+				const level = this.level || 0;
+				if (level > 0) {
+					const base = Math.floor(this.param(0) * HP_RATE);
+					const diff = level - BORDER_LEVEL;
+					return Math.max(base + diff * HP_LEVEL_RATE, MIN_HP);
+				}
+			}
+			return Math.floor(this.param(0) * HP_RATE);
 		},
 		configurable: true
 	},

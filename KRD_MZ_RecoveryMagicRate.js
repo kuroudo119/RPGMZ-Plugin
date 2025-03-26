@@ -53,6 +53,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2025/03/04) 作成開始
 - ver.0.1.0 (2025/03/04) 非公開版完成
 - ver.1.0.0 (2025/03/04) 公開
+- ver.1.0.1 (2025/03/26) アイテムにも有効だったのでスキルに限定
 
  * 
  * 
@@ -154,8 +155,10 @@ Game_Action.prototype.makeDamageValue = function(target, critical) {
 		 value *= target.rec;
 
 		// 追加 start
-		const recoveryRate = this.subject().recm;
-		value *= recoveryRate;
+		if (this.isSkill()) {
+			const recoveryRate = this.subject().recm;
+			value *= recoveryRate;
+		}
 		// 追加 end
 	}
 	if (critical) {

@@ -4,6 +4,7 @@
  * @url https://twitter.com/kuroudo119/
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
+ * @orderAfter KRD_MZ_ShieldBlock
  * 
  * @param criticalRate
  * @text クリティカル倍率
@@ -27,8 +28,8 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 ## ダメージ計算式
 
-ダメージ計算式に a.critical が使えるようになります。
-三項演算子でお使いください。
+ダメージ計算式に b.critical が使えるようになります。
+三項演算子で使う想定です。
 
 ## 更新履歴
 
@@ -39,6 +40,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.1 (2024/09/07) 「引数クリティカル追加」が機能してなかったので修正
 - ver.1.1.0 (2024/09/07) 上記は使い方の誤りだったのでついでに機能変更
 - ver.1.2.0 (2024/09/14) 計算式の a, b 両方にクリティカルを設定
+- ver.2.0.0 (2025/04/06) 計算式の b のみに変更
 
  * 
  * 
@@ -64,9 +66,14 @@ Game_Action.prototype.applyCritical = function(damage) {
 
 const _Game_Action_makeDamageValue = Game_Action.prototype.makeDamageValue;
 Game_Action.prototype.makeDamageValue = function(target, critical) {
-	this.subject().critical = critical;
 	target.critical = critical;
 	return _Game_Action_makeDamageValue.call(this, ...arguments);
+};
+
+const _Game_Action_apply = Game_Action.prototype.apply;
+Game_Action.prototype.apply = function(target) {
+	_Game_Action_apply.call(this, ...arguments);
+	target.critical = false;
 };
 
 //--------------------------------------

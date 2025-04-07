@@ -20,7 +20,7 @@
  * @param STAR_SIZE
  * @text 星サイズ
  * @desc 星の文字サイズです。
- * @default 22
+ * @default 20
  * @type number
  * 
  * @param STAR_MAX_COST
@@ -28,6 +28,19 @@
  * @desc スキルコストを表示する際に確保する幅を決めるためのTPの値です。
  * @default 25
  * @type number
+ * 
+ * @param USE_INIT_TP
+ * @text デフォルト初期TP処理
+ * @desc ツクールデフォルトの初期TP処理を使用する：true ／「初期TP値」を使用する：false
+ * @default false
+ * @type boolean
+ * 
+ * @param INIT_TP_VALUE
+ * @text 初期TP値
+ * @desc 戦闘開始時に設定する初期TP値です。負数の場合この処理を行いません。
+ * @type number
+ * @default 25
+ * @min -1
  * 
  * @help
 # KRD_MZ_StarGauge.js
@@ -48,6 +61,9 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.0.1 (2024/05/23) 作成開始
 - ver.0.1.0 (2024/05/23) 非公開版完成
 - ver.1.0.0 (2024/05/24) 公開
+- ver.1.1.0 (2024/10/06) 他プラグインからstarSizeを変更可
+- ver.1.2.0 (2025/04/05) drawItemを変更、initTp処理を追加
+- ver.1.3.0 (2025/04/07) 初期TP値を追加
 
  * 
  * 
@@ -67,11 +83,37 @@ const STAR_COUNT = Number(PARAM["STAR_COUNT"]) || 1;
 const STAR_SIZE = Number(PARAM["STAR_SIZE"]) || 1;
 const STAR_MAX_COST = Number(PARAM["STAR_MAX_COST"]) || 1;
 
+const USE_INIT_TP = PARAM["USE_INIT_TP"] === "true";
+const INIT_TP_VALUE = Number(PARAM["INIT_TP_VALUE"]) || 0;
+
+const PLUS_GAUGE_X = 4;
+
 //--------------------------------------
 
 KRD_Sprite_StarGauge = class extends Sprite_Gauge {
+	initialize() {
+		super.initialize(...arguments);
+		this.setStarSize();
+	}
+
 	drawGauge() {
 		// 使用しない
+	}
+
+	setStarSize(size = STAR_SIZE) {
+		this._starSize = size;
+	}
+
+	starSize() {
+		return this._starSize;
+	}
+
+	baseStarSize() {
+		return STAR_SIZE;
+	}
+
+	gaugeX() {
+		return super.gaugeX() + PLUS_GAUGE_X;
 	}
 
 	drawValue() {
@@ -80,7 +122,7 @@ KRD_Sprite_StarGauge = class extends Sprite_Gauge {
 		const width = this.bitmapWidth();
 		const height = this.textHeight();
 		const text = makeStar(this.currentValue());
-		this.bitmap.fontSize = STAR_SIZE;
+		this.bitmap.fontSize = this.starSize();
 		this.bitmap.textColor = ColorManager.normalColor();
 		this.bitmap.drawText(text, x, y, width, height, "left");
 	}
@@ -108,6 +150,20 @@ Window_StatusBase.prototype.placeGauge = function(actor, type, x, y) {
 };
 
 // 上書き
+Window_SkillList.prototype.drawItem = function(index) {
+	const skill = this.itemAt(index);
+	if (skill) {
+		 const costWidth = this.costWidth();
+		 const rect = this.itemLineRect(index);
+		 const textWidth = rect.width - costWidth;
+		 this.changePaintOpacity(this.isEnabled(skill));
+		 this.drawItemName(skill, rect.x, rect.y, textWidth);
+		 this.drawSkillCost(skill, rect.x + textWidth, rect.y, costWidth);
+		 this.changePaintOpacity(1);
+	}
+};
+
+// 上書き
 Window_SkillList.prototype.costWidth = function() {
 	return this.textWidth("000" + makeStar(STAR_MAX_COST));
 };
@@ -123,6 +179,17 @@ Window_SkillList.prototype.drawSkillCost = function(skill, x, y, width) {
 	}
 	this.changeTextColor(ColorManager.mpCostColor());
 	this.drawText(text, x, y, width, "right");
+};
+
+//--------------------------------------
+
+const _Game_Battler_initTp = Game_Battler.prototype.initTp;
+Game_Battler.prototype.initTp = function() {
+	if (USE_INIT_TP) {
+		_Game_Battler_initTp.call(this, ...arguments);
+	} else if (INIT_TP_VALUE >= 0) {
+		this.setTp(INIT_TP_VALUE);
+	}
 };
 
 //--------------------------------------

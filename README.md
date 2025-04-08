@@ -36,6 +36,13 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_KeepTypeActorChange（スキル画面アクター変更時スキルタイプ index 保持）
+
+メニュー内のスキル画面でアクターを変更した時、スキルタイプの index を保持します。  
+（デフォルトでは一番上にカーソルが戻ります）
+
+[KRD_MZ_KeepTypeActorChangeをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_KeepTypeActorChange.js)
+
 ## KRD_MZ_Bonus2Hands（両手持ちボーナス）
 
 盾を装備していない時、追加効果が得られるようにできる。  

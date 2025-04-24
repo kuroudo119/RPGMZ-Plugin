@@ -8,6 +8,13 @@
  * @param front
  * @text 装備コマンド（前）
  * 
+ * @param SW_EQUIP_WEAPON
+ * @text SW「装備コマンド（前）」
+ * @desc 装備コマンド（前）の選択可否を決めるスイッチ番号です。このスイッチがON：選択可能 ／ OFF：選択不可
+ * @type switch
+ * @default 0
+ * @parent front
+ * 
  * @param slotTypeWeapon
  * @text 装備タイプ（前）
  * @desc 前部分の装備タイプ番号をカンマ区切りで記述。初期値は「1, 2, 3, 4」
@@ -23,6 +30,13 @@
  * @param back
  * @text 装備コマンド（後）
  * 
+ * @param SW_EQUIP_SKILL
+ * @text SW「装備コマンド（後）」
+ * @desc 装備コマンド（後）の選択可否を決めるスイッチ番号です。このスイッチがON：選択可能 ／ OFF：選択不可
+ * @type switch
+ * @default 0
+ * @parent back
+ * 
  * @param slotTypeSkill
  * @text 装備タイプ（後）
  * @desc 後ろ部分の装備タイプ番号をカンマ区切りで記述。初期値は「5」
@@ -34,6 +48,12 @@
  * @desc 後ろ部分の装備コマンド名を記述します。初期値は「装飾品」
  * @default 装飾品
  * @parent back
+ * 
+ * @param LIST_ACTOR_CHANGE_EQUIP
+ * @text 装備一覧アクター変更
+ * @desc 装備一覧部分でページアップ・ダウンするとアクターチェンジする。
+ * @default true
+ * @type boolean
  * 
  * @help
 # KRD_MZ_DivideEquip.js
@@ -72,6 +92,9 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.1.0 (2022/06/09) 非公開版完成
 - ver.0.2.0 (2022/06/10) パラメータ追加
 - ver.1.0.0 (2022/06/10) 公開
+- ver.1.0.1 (2022/06/17) 多言語プラグインでやるべき処理をそちらに移動
+- ver.1.1.0 (2024/02/28) 一覧でもアクターチェンジ
+- ver.1.2.0 (2024/04/24) スイッチでの選択可否を追加
 
  * 
  * 
@@ -99,6 +122,11 @@ const SKILL_INDEX = WEAPON_SLOTS.length;
 
 const EQUIP_WEAPON_NAME = PARAM["equipWeaponName"];
 const EQUIP_SKILL_NAME = PARAM["equipSkillName"];
+
+const LIST_ACTOR_CHANGE_EQUIP = PARAM["LIST_ACTOR_CHANGE_EQUIP"] === "true";
+
+const SW_EQUIP_WEAPON = Number(PARAM["SW_EQUIP_WEAPON"]) || 0;
+const SW_EQUIP_SKILL = Number(PARAM["SW_EQUIP_SKILL"]) || 0;
 
 //--------------------------------------
 Scene_EquipDivide = class extends Scene_Equip {
@@ -148,6 +176,12 @@ Scene_EquipWeapon = class extends Scene_EquipDivide {
 		this._slotWindow.setHandler("ok", this.onSlotOk.bind(this));
 		this._slotWindow.setHandler("cancel", this.onSlotCancel.bind(this));
 		this.addWindow(this._slotWindow);
+
+		// 一覧でもアクターチェンジ
+		if (LIST_ACTOR_CHANGE_EQUIP) {
+			this._slotWindow.setHandler("pagedown", this.nextActor.bind(this));
+			this._slotWindow.setHandler("pageup", this.previousActor.bind(this));
+		}
 	}
 };
 
@@ -167,6 +201,12 @@ Scene_EquipSkill = class extends Scene_EquipDivide {
 		this._slotWindow.setHandler("ok", this.onSlotOk.bind(this));
 		this._slotWindow.setHandler("cancel", this.onSlotCancel.bind(this));
 		this.addWindow(this._slotWindow);
+
+		// 一覧でもアクターチェンジ
+		if (LIST_ACTOR_CHANGE_EQUIP) {
+			this._slotWindow.setHandler("pagedown", this.nextActor.bind(this));
+			this._slotWindow.setHandler("pageup", this.previousActor.bind(this));
+		}
 	}
 };
 
@@ -221,7 +261,7 @@ Window_EquipSlotSkill = class extends Window_EquipSlotDivide {
 };
 
 //--------------------------------------
-const KRD_Game_Actor_equipSlots = Game_Actor.prototype.equipSlots;
+const _Game_Actor_equipSlots = Game_Actor.prototype.equipSlots;
 Game_Actor.prototype.equipSlots = function() {
 	if (WEAPON_SLOTS && SKILL_SLOTS) {
 		const slots = WEAPON_SLOTS.concat(SKILL_SLOTS);
@@ -230,11 +270,11 @@ Game_Actor.prototype.equipSlots = function() {
 		}
 		return slots;
 	} else {
-		return KRD_Game_Actor_equipSlots.apply(this, arguments);
+		return _Game_Actor_equipSlots.call(this, ...arguments);
 	}
 };
 
-const KRD_Game_Actor_clearEquipments = Game_Actor.prototype.clearEquipments;
+const _Game_Actor_clearEquipments = Game_Actor.prototype.clearEquipments;
 Game_Actor.prototype.clearEquipments = function(index, slots) {
 	if (index >= 0 && slots) {
 		const maxSlots = index + slots.length;
@@ -244,11 +284,11 @@ Game_Actor.prototype.clearEquipments = function(index, slots) {
 			}
 		}
 	} else {
-		KRD_Game_Actor_clearEquipments.apply(this, arguments);
+		_Game_Actor_clearEquipments.call(this, ...arguments);
 	}
 };
 
-const KRD_Game_Actor_optimizeEquipments = Game_Actor.prototype.optimizeEquipments;
+const _Game_Actor_optimizeEquipments = Game_Actor.prototype.optimizeEquipments;
 Game_Actor.prototype.optimizeEquipments = function(index, slots) {
 	if (index >= 0 && slots) {
 		const maxSlots = index + slots.length;
@@ -259,7 +299,7 @@ Game_Actor.prototype.optimizeEquipments = function(index, slots) {
 			}
 		}
 	} else {
-		KRD_Game_Actor_optimizeEquipments.apply(this, arguments);
+		_Game_Actor_optimizeEquipments.call(this, ...arguments);
 	}
 };
 
@@ -276,24 +316,40 @@ Window_MenuCommand.prototype.addMainCommands = function() {
 		this.addCommand(TextManager.equip, "equip", enabled);
 	}
 
-	this.addCommand(EQUIP_WEAPON_NAME, "equipWeapon", enabled);
-	this.addCommand(EQUIP_SKILL_NAME, "equipSkill", enabled);
+	this.addCommand(EQUIP_WEAPON_NAME, "equipWeapon", this.equipWeaponEnabled());
+	this.addCommand(EQUIP_SKILL_NAME, "equipSkill", this.equipSkillEnabled());
 
 	if (this.needsCommand("status")) {
 		this.addCommand(TextManager.status, "status", enabled);
 	}
 };
 
+Window_MenuCommand.prototype.equipWeaponEnabled = function() {
+	return this.checkSwitch(SW_EQUIP_WEAPON);
+};
+
+Window_MenuCommand.prototype.equipSkillEnabled = function() {
+	return this.checkSwitch(SW_EQUIP_SKILL);
+};
+
+Window_MenuCommand.prototype.checkSwitch = function(id) {
+	if (id > 0) {
+		return $gameSwitches.value(id);
+	} else {
+		return true;
+	}
+};
+
 //--------------------------------------
-const KRD_Scene_Menu_createCommandWindow = Scene_Menu.prototype.createCommandWindow;
+const _Scene_Menu_createCommandWindow = Scene_Menu.prototype.createCommandWindow;
 Scene_Menu.prototype.createCommandWindow = function() {
-	KRD_Scene_Menu_createCommandWindow.apply(this, arguments);
+	_Scene_Menu_createCommandWindow.call(this, ...arguments);
 	this._commandWindow.setHandler("equipWeapon", this.commandPersonal.bind(this));
 	this._commandWindow.setHandler("equipSkill", this.commandPersonal.bind(this));
 };
 
 
-const KRD_Scene_Menu_onPersonalOk = Scene_Menu.prototype.onPersonalOk;
+const _Scene_Menu_onPersonalOk = Scene_Menu.prototype.onPersonalOk;
 Scene_Menu.prototype.onPersonalOk = function() {
 	const symbol = this._commandWindow.currentSymbol();
 	if (symbol === "equipWeapon") {
@@ -301,18 +357,7 @@ Scene_Menu.prototype.onPersonalOk = function() {
 	} else if (symbol === "equipSkill") {
 		SceneManager.push(Scene_EquipSkill);
 	} else {
-		KRD_Scene_Menu_onPersonalOk.apply(this, arguments);
-	}
-};
-
-//--------------------------------------
-const KRD_Window_Command_commandName = Window_Command.prototype.commandName;
-Window_Command.prototype.commandName = function(index) {
-	if (typeof KRD_MULTILINGUAL !== "undefined") {
-		const name = KRD_MULTILINGUAL.getLangText(this._list[index].name);
-		return name;
-	} else {
-		return KRD_Window_Command_commandName.apply(this, arguments);
+		_Scene_Menu_onPersonalOk.call(this, ...arguments);
 	}
 };
 

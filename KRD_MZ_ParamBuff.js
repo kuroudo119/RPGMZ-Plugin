@@ -66,15 +66,121 @@
  * 
  * @param MAX_BUFF
  * @text 最大強化回数
- * @desc 強化を重ねがけできる回数です。システム値は 2 ですが初期値 4 です。
+ * 
+ * @param MAX_BUFF_MHP
+ * @text 最大HP 最大強化回数
+ * @desc 最大HPに強化を重ねがけできる回数です。システム値は 2 ですが初期値 4 です。
  * @default 4
  * @type number
+ * @parent MAX_BUFF
+ * 
+ * @param MAX_BUFF_MMP
+ * @text 最大MP 最大強化回数
+ * @desc 最大MPに強化を重ねがけできる回数です。システム値は 2 ですが初期値 4 です。
+ * @default 4
+ * @type number
+ * @parent MAX_BUFF
+ * 
+ * @param MAX_BUFF_ATK
+ * @text 攻撃力 最大強化回数
+ * @desc 攻撃力に強化を重ねがけできる回数です。システム値は 2 ですが初期値 4 です。
+ * @default 4
+ * @type number
+ * @parent MAX_BUFF
+ * 
+ * @param MAX_BUFF_DEF
+ * @text 防御力 最大強化回数
+ * @desc 防御力に強化を重ねがけできる回数です。システム値は 2 ですが初期値 4 です。
+ * @default 4
+ * @type number
+ * @parent MAX_BUFF
+ * 
+ * @param MAX_BUFF_MAT
+ * @text 魔法力 最大強化回数
+ * @desc 魔法力に強化を重ねがけできる回数です。システム値は 2 ですが初期値 4 です。
+ * @default 4
+ * @type number
+ * @parent MAX_BUFF
+ * 
+ * @param MAX_BUFF_MDF
+ * @text 魔法防御 最大強化回数
+ * @desc 魔法防御に強化を重ねがけできる回数です。システム値は 2 ですが初期値 4 です。
+ * @default 4
+ * @type number
+ * @parent MAX_BUFF
+ * 
+ * @param MAX_BUFF_AGI
+ * @text 敏捷性 最大強化回数
+ * @desc 敏捷性に強化を重ねがけできる回数です。システム値は 2 ですが初期値 4 です。
+ * @default 4
+ * @type number
+ * @parent MAX_BUFF
+ * 
+ * @param MAX_BUFF_LUK
+ * @text 運 最大強化回数
+ * @desc 運に強化を重ねがけできる回数です。システム値は 2 ですが初期値 4 です。
+ * @default 4
+ * @type number
+ * @parent MAX_BUFF
  * 
  * @param MAX_DEBUFF
  * @text 最大弱体回数
- * @desc 弱体を重ねがけできる回数です。システム値は 2 ですが初期値 3 です。
- * @default 3
+ * 
+ * @param MAX_DEBUFF_MHP
+ * @text 最大HP 最大弱体回数
+ * @desc 弱体を重ねがけできる回数です。システム値は 2 ですが初期値 2 です。
+ * @default 2
  * @type number
+ * @parent MAX_DEBUFF
+ * 
+ * @param MAX_DEBUFF_MMP
+ * @text 最大MP 最大弱体回数
+ * @desc 弱体を重ねがけできる回数です。システム値は 2 ですが初期値 2 です。
+ * @default 2
+ * @type number
+ * @parent MAX_DEBUFF
+ * 
+ * @param MAX_DEBUFF_ATK
+ * @text 攻撃力 最大弱体回数
+ * @desc 弱体を重ねがけできる回数です。システム値は 2 ですが初期値 2 です。
+ * @default 2
+ * @type number
+ * @parent MAX_DEBUFF
+ * 
+ * @param MAX_DEBUFF_DEF
+ * @text 防御力 最大弱体回数
+ * @desc 防御力弱体を重ねがけできる回数です。システム値は 2 ですが初期値 4 です。
+ * @default 4
+ * @type number
+ * @parent MAX_DEBUFF
+ * 
+ * @param MAX_DEBUFF_MAT
+ * @text 魔法力 最大弱体回数
+ * @desc 魔法力に弱体を重ねがけできる回数です。システム値は 2 ですが初期値 2 です。
+ * @default 2
+ * @type number
+ * @parent MAX_DEBUFF
+ * 
+ * @param MAX_DEBUFF_MDF
+ * @text 魔法防御 最大弱体回数
+ * @desc 魔法防御に弱体を重ねがけできる回数です。システム値は 2 ですが初期値 4 です。
+ * @default 4
+ * @type number
+ * @parent MAX_DEBUFF
+ * 
+ * @param MAX_DEBUFF_AGI
+ * @text 敏捷性 最大弱体回数
+ * @desc 敏捷性に弱体を重ねがけできる回数です。システム値は 2 ですが初期値 2 です。
+ * @default 2
+ * @type number
+ * @parent MAX_DEBUFF
+ * 
+ * @param MAX_DEBUFF_LUK
+ * @text 運 最大弱体回数
+ * @desc 運に弱体を重ねがけできる回数です。システム値は 2 ですが初期値 2 です。
+ * @default 2
+ * @type number
+ * @parent MAX_DEBUFF
  * 
  * @param ICON_BUFF_START
  * @text バフ用アイコン画像初期値
@@ -115,6 +221,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.1.0 (2023/10/29) 最大回数を変更可能にした
 - ver.1.1.1 (2023/10/31) パラメータの初期値を変更した
 - ver.1.1.2 (2023/11/13) パラメータの初期値を変更した
+- ver.2.0.0 (2025/06/18) 最大回数を能力値ごとにした
 
  * 
  * 
@@ -147,8 +254,45 @@ const PARAM_BUFF_RATE = [
 	LUK_BUFF_RATE
 ];
 
-const MAX_BUFF = Number(PARAM["MAX_BUFF"] || 0);
-const MAX_DEBUFF = -(Number(PARAM["MAX_DEBUFF"] || 0));
+const MAX_BUFF_MHP = Number(PARAM["MAX_BUFF_MHP"] || 0);
+const MAX_BUFF_MMP = Number(PARAM["MAX_BUFF_MMP"] || 0);
+const MAX_BUFF_ATK = Number(PARAM["MAX_BUFF_ATK"] || 0);
+const MAX_BUFF_DEF = Number(PARAM["MAX_BUFF_DEF"] || 0);
+const MAX_BUFF_MAT = Number(PARAM["MAX_BUFF_MAT"] || 0);
+const MAX_BUFF_MDF = Number(PARAM["MAX_BUFF_MDF"] || 0);
+const MAX_BUFF_AGI = Number(PARAM["MAX_BUFF_AGI"] || 0);
+const MAX_BUFF_LUK = Number(PARAM["MAX_BUFF_LUK"] || 0);
+
+const MAX_BUFF = [
+	MAX_BUFF_MHP,
+	MAX_BUFF_MMP,
+	MAX_BUFF_ATK,
+	MAX_BUFF_DEF,
+	MAX_BUFF_MAT,
+	MAX_BUFF_MDF,
+	MAX_BUFF_AGI,
+	MAX_BUFF_LUK
+];
+
+const MAX_DEBUFF_MHP = Number(PARAM["MAX_DEBUFF_MHP"] || 0);
+const MAX_DEBUFF_MMP = Number(PARAM["MAX_DEBUFF_MMP"] || 0);
+const MAX_DEBUFF_ATK = Number(PARAM["MAX_DEBUFF_ATK"] || 0);
+const MAX_DEBUFF_DEF = Number(PARAM["MAX_DEBUFF_DEF"] || 0);
+const MAX_DEBUFF_MAT = Number(PARAM["MAX_DEBUFF_MAT"] || 0);
+const MAX_DEBUFF_MDF = Number(PARAM["MAX_DEBUFF_MDF"] || 0);
+const MAX_DEBUFF_AGI = Number(PARAM["MAX_DEBUFF_AGI"] || 0);
+const MAX_DEBUFF_LUK = Number(PARAM["MAX_DEBUFF_LUK"] || 0);
+
+const MAX_DEBUFF = [
+	MAX_DEBUFF_MHP,
+	MAX_DEBUFF_MMP,
+	MAX_DEBUFF_ATK,
+	MAX_DEBUFF_DEF,
+	MAX_DEBUFF_MAT,
+	MAX_DEBUFF_MDF,
+	MAX_DEBUFF_AGI,
+	MAX_DEBUFF_LUK
+];
 
 const ICON_BUFF_START = Number(PARAM["ICON_BUFF_START"] || 0);
 const ICON_DEBUFF_START = Number(PARAM["ICON_DEBUFF_START"] || 0);
@@ -162,12 +306,12 @@ Game_BattlerBase.prototype.paramBuffRate = function(paramId) {
 
 // 上書き
 Game_BattlerBase.prototype.isMaxBuffAffected = function(paramId) {
-	return this._buffs[paramId] === MAX_BUFF;
+	return this._buffs[paramId] === MAX_BUFF[paramId];
 };
 
 // 上書き
 Game_BattlerBase.prototype.isMaxDebuffAffected = function(paramId) {
-	return this._buffs[paramId] === MAX_DEBUFF;
+	return this._buffs[paramId] === -MAX_DEBUFF[paramId];
 };
 
 // 上書き

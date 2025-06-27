@@ -11,47 +11,112 @@
  * @default 0
  * @type number
  * 
+ * @param BASIC
+ * @text 基本設定
+ * 
  * @param itemRows
  * @text アイテム行数
  * @desc アイテム画面のアイテムの行数。
  * @default 4
  * @type number
+ * @parent BASIC
  * 
  * @param skillRows
  * @text スキル行数
  * @desc スキル画面のスキルの行数。
- * @default 3
+ * @default 4
  * @type number
+ * @parent BASIC
  * 
  * @param equipRows
  * @text 装備行数
  * @desc 装備画面の装備中装備品の行数。装備アイテム画面もこの値と同じ。
  * @default 4
  * @type number
+ * @parent BASIC
  * 
  * @param buyRows
  * @text ショップ購入行数
  * @desc ショップ画面での購入時の行数。
  * @default 4
  * @type number
+ * @parent BASIC
  * 
  * @param sellRows
  * @text ショップ売却行数
  * @desc ショップ画面での売却時のアイテム行数。
  * @default 3
  * @type number
+ * @parent BASIC
  * 
  * @param choiceRows
  * @text アイテム選択行数
  * @desc アイテム選択イベントの行数。
- * @default 1
+ * @default 4
  * @type number
+ * @parent BASIC
  * 
  * @param battleRows
  * @text バトル画面行数
  * @desc バトル画面でのアイテム・スキルの行数。
- * @default 1
+ * @default 4
  * @type number
+ * @parent BASIC
+ * 
+ * @param DESC_ONE_LINE
+ * @text 説明文1行モード
+ * @desc 説明文を最初の1行のみ表示します：true ／ 説明文すべて表示します：false
+ * @default false
+ * @type boolean
+ * 
+ * @param ONE_LINE_ITEM_ROWS
+ * @text アイテム行数
+ * @desc アイテム画面のアイテムの行数。
+ * @default 5
+ * @type number
+ * @parent DESC_ONE_LINE
+ * 
+ * @param ONE_LINE_SKILL_ROWS
+ * @text スキル行数
+ * @desc スキル画面のスキルの行数。
+ * @default 5
+ * @type number
+ * @parent DESC_ONE_LINE
+ * 
+ * @param ONE_LINE_EQUIP_ROWS
+ * @text 装備行数
+ * @desc 装備画面の装備中装備品の行数。装備アイテム画面もこの値と同じ。
+ * @default 6
+ * @type number
+ * @parent DESC_ONE_LINE
+ * 
+ * @param ONE_LINE_BUY_ROWS
+ * @text ショップ購入行数
+ * @desc ショップ画面での購入時の行数。
+ * @default 6
+ * @type number
+ * @parent DESC_ONE_LINE
+ * 
+ * @param ONE_LINE_SELL_ROWS
+ * @text ショップ売却行数
+ * @desc ショップ画面での売却時のアイテム行数。
+ * @default 4
+ * @type number
+ * @parent DESC_ONE_LINE
+ * 
+ * @param ONE_LINE_CHOICE_ROWS
+ * @text アイテム選択行数
+ * @desc アイテム選択イベントの行数。
+ * @default 4
+ * @type number
+ * @parent DESC_ONE_LINE
+ * 
+ * @param ONE_LINE_BATTLE_ROWS
+ * @text バトル画面行数
+ * @desc バトル画面でのアイテム・スキルの行数。
+ * @default 5
+ * @type number
+ * @parent DESC_ONE_LINE
  * 
  * @param equipSlotMode
  * @text 装備枠名上書き
@@ -59,17 +124,17 @@
  * @default true
  * @type boolean
  * 
+ * @param ITEM_MINUS_Y
+ * @text アイテム一覧Y補正
+ * @desc アイテム一覧の表示の縦位置を上側に修正します。
+ * @default 0
+ * @type number
+ * 
  * @param SKILL_MINUS_Y
  * @text スキル一覧Y補正
  * @desc スキル一覧の表示の縦位置を上側に修正します。
  * @default 0
  * @type number
- * 
- * @param DESC_ONE_LINE
- * @text 説明文1行モード
- * @desc 説明文を最初の1行のみ表示します：true ／ 説明文すべて表示します：false
- * @default false
- * @type boolean
  * 
  * @param ACTOR_COMMAND_DESC
  * @text アクターコマンド説明
@@ -141,6 +206,13 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.10.0 (2024/08/15) LANDSCAPE_PLUGIN 用の値をベタ書きで変更
 - ver.0.11.0 (2024/08/17) DESC_ONE_LINE を追加
 - ver.1.0.0 (2024/09/17) 公開
+- ver.1.1.0 (2024/09/25) LANDSCAPE_PLUGIN 用の値を変更
+- ver.1.2.0 (2025/02/04) descOneLine 関数を追加
+- ver.1.3.0 (2025/02/10) ショップ画面の表示位置変更
+- ver.1.4.0 (2025/04/05) 星型ゲージプラグインとの併用を追加
+- ver.1.5.0 (2025/05/04) Landscapeでの売却の行数を可変にした
+- ver.1.6.0 (2025/05/11) LANDSCAPE_PLUGIN 用の値を変更
+- ver.1.7.0 (2025/06/27) 1行モード用の行数のパラメータを追加
 
  * 
  * 
@@ -154,39 +226,56 @@ const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
 const LANDSCAPE_PLUGIN = typeof KRD_MZ_UI_Landscape !== "undefined" ? KRD_MZ_UI_Landscape : false;
-const LANDSCAPE_ROWS_2 = 2;
-const LANDSCAPE_ROWS_3 = 3;
 
 const DESC_FONT_SIZE = Number(PARAM["descFontSize"]) || 0;
 
-const PARAM_ITEM_ROWS = Number(PARAM["itemRows"]) || 4;
-const PARAM_SKILL_ROWS = Number(PARAM["skillRows"]) || 3;
-const PARAM_EQUIP_ROWS = Number(PARAM["equipRows"]) || 4;
-const PARAM_BUY_ROWS = Number(PARAM["buyRows"]) || 4;
-const PARAM_SELL_ROWS = Number(PARAM["sellRows"]) || 3;
-const PARAM_CHOICE_ROWS = Number(PARAM["choiceRows"]) || 1;
-const PARAM_BATTLE_ROWS = Number(PARAM["battleRows"]) || 1;
+const PARAM_ITEM_ROWS = Number(PARAM["itemRows"]) || 0;
+const PARAM_SKILL_ROWS = Number(PARAM["skillRows"]) || 0;
+const PARAM_EQUIP_ROWS = Number(PARAM["equipRows"]) || 0;
+const PARAM_BUY_ROWS = Number(PARAM["buyRows"]) || 0;
+const PARAM_SELL_ROWS = Number(PARAM["sellRows"]) || 0;
+const PARAM_CHOICE_ROWS = Number(PARAM["choiceRows"]) || 0;
+const PARAM_BATTLE_ROWS = Number(PARAM["battleRows"]) || 0;
 
-const ITEM_ROWS = LANDSCAPE_PLUGIN ? LANDSCAPE_ROWS_3 : PARAM_ITEM_ROWS;
-const SKILL_ROWS = LANDSCAPE_PLUGIN ? LANDSCAPE_ROWS_3 : PARAM_SKILL_ROWS;
-const EQUIP_ROWS = LANDSCAPE_PLUGIN ? LANDSCAPE_ROWS_3 : PARAM_EQUIP_ROWS;
-const BUY_ROWS = LANDSCAPE_PLUGIN ? LANDSCAPE_ROWS_3 : PARAM_BUY_ROWS;
-const SELL_ROWS = LANDSCAPE_PLUGIN ? LANDSCAPE_ROWS_3 : PARAM_SELL_ROWS;
-const CHOICE_ROWS = LANDSCAPE_PLUGIN ? LANDSCAPE_ROWS_2 : PARAM_CHOICE_ROWS;
-const BATTLE_ROWS = LANDSCAPE_PLUGIN ? LANDSCAPE_ROWS_3 : PARAM_BATTLE_ROWS;
+const PARAM_DESC_ONE_LINE = PARAM["DESC_ONE_LINE"] === "true";
+const DESC_ONE_LINE = LANDSCAPE_PLUGIN ? true : PARAM_DESC_ONE_LINE;
+
+const ONE_LINE_ITEM_ROWS = Number(PARAM["ONE_LINE_ITEM_ROWS"]) || 0;
+const ONE_LINE_SKILL_ROWS = Number(PARAM["ONE_LINE_SKILL_ROWS"]) || 0;
+const ONE_LINE_EQUIP_ROWS = Number(PARAM["ONE_LINE_EQUIP_ROWS"]) || 0;
+const ONE_LINE_BUY_ROWS = Number(PARAM["ONE_LINE_BUY_ROWS"]) || 0;
+const ONE_LINE_SELL_ROWS = Number(PARAM["ONE_LINE_SELL_ROWS"]) || 0;
+const ONE_LINE_CHOICE_ROWS = Number(PARAM["ONE_LINE_CHOICE_ROWS"]) || 0;
+const ONE_LINE_BATTLE_ROWS = Number(PARAM["ONE_LINE_BATTLE_ROWS"]) || 0;
+
+function getRows(basicRows, oneLineRows, landscapePlus = 0) {
+	if (LANDSCAPE_PLUGIN) {
+		return oneLineRows + landscapePlus;
+	} else {
+		return DESC_ONE_LINE ? oneLineRows : basicRows;
+	}
+}
+
+const ITEM_ROWS = getRows(PARAM_ITEM_ROWS, ONE_LINE_ITEM_ROWS, -1);
+const SKILL_ROWS = getRows(PARAM_SKILL_ROWS, ONE_LINE_SKILL_ROWS, -1);
+const EQUIP_SLOT_ROWS = getRows(PARAM_EQUIP_ROWS, ONE_LINE_EQUIP_ROWS, -3);
+const EQUIP_ITEM_ROWS = getRows(PARAM_EQUIP_ROWS, ONE_LINE_EQUIP_ROWS, -2);
+const BUY_ROWS = getRows(PARAM_BUY_ROWS, ONE_LINE_BUY_ROWS, -3);
+const SELL_ROWS = getRows(PARAM_SELL_ROWS, ONE_LINE_SELL_ROWS);
+const CHOICE_ROWS = getRows(PARAM_CHOICE_ROWS, ONE_LINE_CHOICE_ROWS, -2);
+const BATTLE_ROWS = getRows(PARAM_BATTLE_ROWS, ONE_LINE_BATTLE_ROWS, -1);
 
 const SLOT_MODE = PARAM["equipSlotMode"] === "true";
 
-const ACTOR_COMMAND_DESC = LANDSCAPE_PLUGIN ? false : PARAM["ACTOR_COMMAND_DESC"] === "true";
+const ACTOR_COMMAND_DESC = PARAM["ACTOR_COMMAND_DESC"] === "true";
 const BATTLE_ITEM_DESC = PARAM["BATTLE_ITEM_DESC"];
 const BATTLE_SKILLTYPE_DESC = PARAM["BATTLE_SKILLTYPE_DESC"] ? JSON.parse(PARAM["BATTLE_SKILLTYPE_DESC"]) : [];
 
 const USE_VARIABLE_ATTACK_NAME = PARAM["USE_VARIABLE_ATTACK_NAME"] === "true";
 const BATTLE_COMMAND_ICON_LANGUAGE = PARAM["BATTLE_COMMAND_ICON_LANGUAGE"] ? JSON.parse("[" + PARAM["BATTLE_COMMAND_ICON_LANGUAGE"] + "]") : [];
 
+const ITEM_MINUS_Y = Number(PARAM["ITEM_MINUS_Y"]) || 0;
 const SKILL_MINUS_Y = Number(PARAM["SKILL_MINUS_Y"]) || 0;
-
-const DESC_ONE_LINE = PARAM["DESC_ONE_LINE"] === "true";
 
 //--------------------------------------
 // 説明をrectに表示（共通）
@@ -217,15 +306,6 @@ Window_Base.prototype.drawTextDesc = function(text, x, y, width) {
 		str.forEach((desc, i) => {
 			const plusY = i > 0 ? -(baseFontSize - fontSize - 2) : 0;
 			const lineY = y + this.lineHeight() * i + plusY;
-
-			// 処理内容を忘れたためコメントアウト
-			// if (desc.match(/\[.*?\]/)) {
-			// 	this.drawTextDescOneLine(desc, x, lineY, width, fontSize);
-			// } else {
-			// 	this.contents.fontSize = fontSize;
-			// 	this.drawText(desc, x, lineY, width);
-			// }
-
 			this.contents.fontSize = fontSize;
 			this.drawText(desc, x, lineY, width);
 		});
@@ -235,17 +315,9 @@ Window_Base.prototype.drawTextDesc = function(text, x, y, width) {
 };
 
 // 自作関数
-// Window_Base.prototype.drawTextDescOneLine = function(text, x, y, width, fontSize) {
-// 	if (typeof KRD_RUBY !== "undefined") {
-// 		if (KRD_RUBY.isCutRubyLanguage() || KRD_RUBY.isCutBaseLanguage()) {
-// 			const desc = KRD_RUBY.cutIcon(text);
-// 			this.contents.fontSize = fontSize;
-// 			this.drawText(desc, x, y, width);
-// 			return;
-// 		}
-// 	}
-// 	this.drawTextEx("\\FS[" + fontSize +"]" + text, x, y, width);
-// };
+Window_Base.prototype.descOneLine = function() {
+	return DESC_ONE_LINE;
+};
 
 //--------------------------------------
 // ヘルプWindowを非表示
@@ -270,7 +342,7 @@ Window_ItemList.prototype.drawItem = function(index) {
 	if (item) {
 		const numberWidth = this.numberWidth();
 		const rect = this.itemRectWithPadding(index);
-		const y = rect.y + this.itemPadding();
+		const y = rect.y + this.itemPadding() - ITEM_MINUS_Y;
 		this.changePaintOpacity(this.isEnabled(item));
 		this.drawItemName(item, rect.x, y, rect.width - numberWidth);
 		this.drawItemNumber(item, rect.x, y, rect.width);
@@ -287,6 +359,14 @@ Window_SkillList.prototype.itemHeight = function() {
 };
 
 Window_SkillList.prototype.drawItem = function(index) {
+	if (typeof KRD_Sprite_StarGauge !== "undefined") {
+		this.drawItemStar(index);
+	} else {
+		this.drawItemMain(index);
+	}
+};
+
+Window_SkillList.prototype.drawItemMain = function(index) {
 	const skill = this.itemAt(index);
 	if (skill) {
 		const costWidth = this.costWidth();
@@ -300,11 +380,26 @@ Window_SkillList.prototype.drawItem = function(index) {
 	}
 };
 
+Window_SkillList.prototype.drawItemStar = function(index) {
+	const skill = this.itemAt(index);
+	if (skill) {
+		const costWidth = this.costWidth();
+		const rect = this.itemRectWithPadding(index);
+		const textWidth = rect.width - costWidth;
+		const y = rect.y + this.itemPadding() - SKILL_MINUS_Y;
+		this.changePaintOpacity(this.isEnabled(skill));
+		this.drawItemName(skill, rect.x, y, textWidth);
+		this.drawSkillCost(skill, rect.x + textWidth, y, costWidth);
+		this.drawDescription(skill, rect.x, y + this.lineHeight(), rect.width);
+		this.changePaintOpacity(true);
+	}
+};
+
 //--------------------------------------
 // 装備画面
 
 Window_EquipSlot.prototype.itemHeight = function() {
-	return Math.floor(this.innerHeight / EQUIP_ROWS);
+	return Math.floor(this.innerHeight / EQUIP_SLOT_ROWS);
 };
 
 Window_EquipSlot.prototype.drawItem = function(index) {
@@ -314,7 +409,7 @@ Window_EquipSlot.prototype.drawItem = function(index) {
 		const slotNameWidth = this.slotNameWidth();
 		const rect = this.itemRectWithPadding(index);
 		const itemWidth = rect.width - slotNameWidth;
-		const y = rect.y + this.itemPadding();
+		const y = rect.y + this.itemPadding() - ITEM_MINUS_Y;
 		this.changeTextColor(ColorManager.systemColor());
 		this.changePaintOpacity(this.isEnabled(index));
 		if (SLOT_MODE) {
@@ -334,7 +429,7 @@ Window_EquipSlot.prototype.drawItem = function(index) {
 };
 
 Window_EquipItem.prototype.itemHeight = function() {
-	return Math.floor(this.innerHeight / EQUIP_ROWS);
+	return Math.floor(this.innerHeight / EQUIP_ITEM_ROWS);
 };
 
 //--------------------------------------
@@ -345,34 +440,18 @@ Window_ShopBuy.prototype.itemHeight = function() {
 };
 
 Window_ShopBuy.prototype.drawItem = function(index) {
-	if (LANDSCAPE_PLUGIN) {
-		const item = this.itemAt(index);
-		const price = this.price(item);
-		const rect = this.itemRectWithPadding(index);
-		const priceWidth = this.priceWidth();
-		const priceX = rect.x + rect.width - priceWidth;
-		const nameWidth = rect.width;
-		const y = rect.y + this.itemPadding();
-		const plusY = -10;
-		this.changePaintOpacity(this.isEnabled(item));
-		this.drawItemName(item, rect.x, y, nameWidth);
-		this.drawText(price, priceX, y + this.lineHeight(), priceWidth, "right");
-		this.drawDescription(item, rect.x, y + (this.lineHeight() * 2) + plusY, rect.width);
-		this.changePaintOpacity(true);
-	} else {
-		const item = this.itemAt(index);
-		const price = this.price(item);
-		const rect = this.itemRectWithPadding(index);
-		const priceWidth = this.priceWidth();
-		const priceX = rect.x + rect.width - priceWidth;
-		const nameWidth = rect.width - priceWidth;
-		const y = rect.y + this.itemPadding();
-		this.changePaintOpacity(this.isEnabled(item));
-		this.drawItemName(item, rect.x, y, nameWidth);
-		this.drawText(price, priceX, y, priceWidth, "right");
-		this.drawDescription(item, rect.x, y + this.lineHeight(), rect.width);
-		this.changePaintOpacity(true);
-	}
+	const item = this.itemAt(index);
+	const price = this.price(item);
+	const rect = this.itemRectWithPadding(index);
+	const priceWidth = this.priceWidth();
+	const priceX = rect.x + rect.width - priceWidth;
+	const nameWidth = rect.width - priceWidth;
+	const y = rect.y + this.itemPadding();
+	this.changePaintOpacity(this.isEnabled(item));
+	this.drawItemName(item, rect.x, y, nameWidth);
+	this.drawText(price, priceX, y, priceWidth, "right");
+	this.drawDescription(item, rect.x, y + this.lineHeight(), rect.width);
+	this.changePaintOpacity(true);
 };
 
 const _Window_ShopNumber_refresh = Window_ShopNumber.prototype.refresh;
@@ -389,19 +468,29 @@ Window_ShopNumber.prototype.drawItemDescription = function() {
 	this.drawDescription(this._item, x, y, width);
 };
 
+Window_ShopNumber.prototype.itemNameY = function() {
+	return Math.floor(this.innerHeight / 4 - this.lineHeight());
+};
+
+Window_ShopNumber.prototype.totalPriceY = function() {
+	return Math.floor(this.itemNameY() + this.lineHeight() * 1.5);
+};
+
 Window_ShopNumber.prototype.descY = function() {
-	if (Graphics.boxWidth > Graphics.boxHeight) {
-		return Math.floor(this.height / 12);
-	} else {
-		return Math.floor(this.height / 8);
-	}
+	return Math.floor(this.totalPriceY() + this.lineHeight() * 1.5);
+};
+
+Window_ShopNumber.prototype.buttonY = function() {
+	return Math.floor(this.descY() + this.lineHeight() * 2.5);
 };
 
 Window_ShopSell.prototype.itemHeight = function() {
 	return Math.floor(this.innerHeight / SELL_ROWS);
 };
 
+//--------------------------------------
 // 「:」をスペースに変更
+
 Window_ItemList.prototype.drawItemNumber = function(item, x, y, width) {
 	if (this.needsNumber()) {
 		 this.drawText(" ", x, y, width - this.textWidth("00"), "right");

@@ -40,6 +40,8 @@
 
 テキストにルビを振れるようになります。
 
+フォントサイズが21以下の場合の表示を修正するプラグインを別途導入すると良いです（私は作っていません）。
+
 KRD_MZ_UI_UseRuby を使うことで、一部の表示位置を調整できます。
 
 [KRD_MZ_Rubyをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Ruby.js)

@@ -43,6 +43,7 @@
 KRD_MZ_UI_UseRuby を使うことで、一部の表示位置を調整できます。
 
 [KRD_MZ_Rubyをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Ruby.js)
+
 [KRD_MZ_UI_UseRubyをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_UI_UseRuby.js)
 
 ## KRD_MZ_KeepTypeActorChange（スキル画面アクター変更時スキルタイプ index 保持）

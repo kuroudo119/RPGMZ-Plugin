@@ -36,6 +36,13 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_Lonely（敵グループが1体の時にスイッチON）
+
+敵グループが1体の時にスイッチONになるスイッチを用意できます。  
+敵キャラの行動パターンに使う想定です。
+
+[KRD_MZ_Lonelyをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Lonely.js)
+
 ## KRD_MZ_Ruby（ルビ振り）
 
 テキストにルビを振れるようになります。

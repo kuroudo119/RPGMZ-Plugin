@@ -53,6 +53,18 @@
  * @default 50
  * @type number
  * 
+ * @param TP_REGENERATION_RATE
+ * @text TP再生率
+ * @desc TP再生率に加算する値（パーセント）です。使わない場合は任意のテキストを設定してください。
+ * @default 25
+ * @type number
+ * 
+ * @param TP_CHARGE_RATE
+ * @text TPチャージ率
+ * @desc TPチャージ率に掛ける値（パーセント）です。使わない場合は任意のテキストを設定してください。
+ * @default 0
+ * @type number
+ * 
  * @param PLUS_POINT
  * @text 能力値加算値
  * @desc 能力値に加算する値をカンマ区切りで値を8個記述します。
@@ -154,6 +166,7 @@ ver.|更新日|更新内容
 2.0.0|2025/03/31|pow を追加、一部パラメータ削除
 2.1.0|2025/04/23|HPレベル割合をパーセントに変更
 2.2.0|2025/07/29|リファクタリングなど
+2.3.0|2025/08/12|TP系のプラグインパラメータを追加
 
  * 
  * 
@@ -189,6 +202,9 @@ const USE_HP_LEVEL_RATE = Number(PARAM["USE_HP_LEVEL_RATE"]) || 0;
 const BORDER_LEVEL = Number(PARAM["BORDER_LEVEL"]) || 0;
 const HP_LEVEL_RATE = (Number(PARAM["HP_LEVEL_RATE"]) || 0) / 100;
 const MIN_HP = 1;
+
+const TP_REGENERATION_RATE = Number(PARAM["TP_REGENERATION_RATE"]) / 100;
+const TP_CHARGE_RATE = Number(PARAM["TP_CHARGE_RATE"]) / 100;
 
 //--------------------------------------
 
@@ -241,6 +257,20 @@ Object.defineProperties(Game_BattlerBase.prototype, {
 		},
 		configurable: true
   },
+	trg: {
+		get: function() {
+			const base = this.xparam(9);
+			return isNaN(TP_REGENERATION_RATE) ? base : base + TP_REGENERATION_RATE;
+		},
+		configurable: true
+	},
+	tcr: {
+		get: function() {
+			const base = this.sparam(5);
+			return isNaN(TP_CHARGE_RATE) ? base : base * TP_CHARGE_RATE;
+		},
+		configurable: true
+	},
 });
 
 //--------------------------------------

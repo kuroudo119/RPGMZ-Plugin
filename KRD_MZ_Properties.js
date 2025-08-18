@@ -167,6 +167,7 @@ ver.|更新日|更新内容
 2.1.0|2025/04/23|HPレベル割合をパーセントに変更
 2.2.0|2025/07/29|リファクタリングなど
 2.3.0|2025/08/12|TP系のプラグインパラメータを追加
+2.3.1|2025/08/18|bareHandsPoint のバグ修正
 
  * 
  * 
@@ -294,10 +295,12 @@ Game_BattlerBase.prototype.power = function() {
 };
 
 Game_Actor.prototype.bareHandsPoint = function(param) {
-	const bareHandsRate = this.hasNoWeapons() ? ATK_BAREHANDS : 1;
-	const bareHandsPoint = Math.floor(param * bareHandsRate);
-	const bareHandsPower = Math.max(bareHandsPoint, MIN_ATK_BAREHANDS);
-	return bareHandsPower;
+	if (this.hasNoWeapons()) {
+		const bareHandsPoint = Math.floor(param * ATK_BAREHANDS);
+		const bareHandsPower = Math.max(bareHandsPoint, MIN_ATK_BAREHANDS);
+		return bareHandsPower;
+	}
+	return param;
 };
 
 Game_Enemy.prototype.bareHandsPoint = function(param) {

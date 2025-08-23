@@ -170,6 +170,14 @@ Web Speech API に対応したブラウザで音声が流れます。
 index = 0 が 1 となります。
 0 は自動音声合成しないですので、1 始まりで指定してください。
 
+## 自動音声合成（アクター）
+
+アクター99 のメモ欄に <autoSpeakId:123> と書くことで、
+「文章の表示」の名前に \N[99] と書いた場合に、
+「自動音声合成パターン」の 123 が使われます。
+
+これは、「自動音声合成変数」の指定より優先されます。
+
 ## iPhone用ボタン
 
 iPhoneではユーザー操作に伴うAPI実行を1回行う必要があります。
@@ -213,6 +221,7 @@ iPhoneではユーザー操作に伴うAPI実行を1回行う必要がありま�
 - ver.2.0.0 (2024/07/20) 自動音声合成を追加
 - ver.2.1.0 (2024/07/25) 自動音声合成のKRD_MZ_BattleResult_OneLine対応
 - ver.2.2.0 (2024/12/11) 正規表現を見直した
+- ver.2.3.0 (2025/08/23) 自動音声合成（アクター）機能を追加
 
  * 
  * 
@@ -263,6 +272,8 @@ const KEY_REPEAT = Number(PARAM["KEY_REPEAT"]) || 0;
 
 const VAR_AUTO_SPEAK = Number(PARAM["VAR_AUTO_SPEAK"]) || 0;
 const AUTO_SPEAK_PATTERN = JSON.parse(PARAM["AUTO_SPEAK_PATTERN"] || null);
+
+const TAG_AUTO_ACTOR = "autoSpeakId";
 
 // 動作確認用
 const FORCE_BUTTON_IOS = false;
@@ -539,12 +550,33 @@ Window_ChoiceList.prototype.processTouch = function() {
 };
 
 //--------------------------------------
+// 自動音声出力
 
 const _Game_Message_add = Game_Message.prototype.add;
 Game_Message.prototype.add = function(text) {
-	const autoSpeak = $gameVariables.value(VAR_AUTO_SPEAK);
-	if (autoSpeak > 0) {
-		const param = JSON.parse(AUTO_SPEAK_PATTERN[autoSpeak - 1] || null);
+	this.autoSpeakAll(text);
+	_Game_Message_add.call(this, ...arguments);
+};
+
+Game_Message.prototype.autoSpeakAll = function(text) {
+	const actorId = this.speakActorId();
+	if (actorId > 0) {
+		const speakIdbyActor = Number($dataActors[actorId]?.meta[TAG_AUTO_ACTOR]) || 0;
+		if (speakIdbyActor > 0) {
+			this.autoSpeak(text, speakIdbyActor);
+		} else {
+			const autoSpeakId = $gameVariables.value(VAR_AUTO_SPEAK);
+			this.autoSpeak(text, autoSpeakId);
+		}
+	} else {
+		const autoSpeakId = $gameVariables.value(VAR_AUTO_SPEAK);
+		this.autoSpeak(text, autoSpeakId);
+	}
+};
+
+Game_Message.prototype.autoSpeak = function(text, autoSpeakId) {
+	if (autoSpeakId > 0) {
+		const param = JSON.parse(AUTO_SPEAK_PATTERN[autoSpeakId - 1] || null);
 		if (param) {
 			const convText = Window_Base.prototype.convertEscapeCharacters(Window_Base.prototype.convertEscapeCharacters(text));
 			const rubyText = typeof KRD_RUBY !== "undefined" ? KRD_RUBY.returnRuby(convText) : convText;
@@ -552,8 +584,26 @@ Game_Message.prototype.add = function(text) {
 			KRD_VOICE_OUTPUT.speak(speakText, param.language, null, Number(param.pitch), Number(param.rate));
 		}
 	}
-	_Game_Message_add.call(this, ...arguments);
 };
+
+Game_Message.prototype.speakActorId = function() {
+	const regex = /\\N\[(?<id>\d+)\]/i;
+	const found = regex.exec(convertVariables(this.speakerName()));
+	if (found) {
+		const actorId = Number(found.groups.id) || 0;
+		return actorId;
+	}
+	return 0;
+};
+
+function convertVariables(text) {
+	while (text.match(/\\V\[(\d+)\]/gi)) {
+		text = text.replace(/\\V\[(\d+)\]/gi, (_, p1) =>
+			$gameVariables.value(parseInt(p1))
+		);
+	}
+	return text;
+}
 
 function cutEsc(text) {
 	const regex1 = /\x1b[A-Z]*?\[.*?\]/gi;

@@ -36,6 +36,18 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_ClassMaxLevel（職業ごとに最大レベル設定）
+
+職業に最大レベルを設定できるようにします。
+
+[KRD_MZ_ClassMaxLevelをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_ClassMaxLevel.js)
+
+## KRD_MZ_GainItem（アイテムの増減（変数版））
+
+変数をパラメータとしてイベントコマンドの「アイテムの増減」を実行します。
+
+[KRD_MZ_GainItemをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_GainItem.js)
+
 ## KRD_MZ_Lonely（敵グループが1体の時にスイッチON）
 
 敵グループが1体の時にスイッチONになるスイッチを用意できます。  

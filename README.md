@@ -36,6 +36,12 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_Janken（じゃんけん）
+
+じゃんけんの判定が出来ます。
+
+[KRD_MZ_Jankenをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_Janken.js)
+
 ## KRD_MZ_ClassMaxLevel（職業ごとに最大レベル設定）
 
 職業に最大レベルを設定できるようにします。

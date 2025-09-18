@@ -152,6 +152,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.8.1 (2023/09/30) KRD_RUBY 周りの処理を修正
 - ver.1.9.0 (2024/08/31) アイコン表示位置を修正
 - ver.2.0.0 (2025/02/28) 仕様変更した
+- ver.2.0.1 (2025/09/18) リファクタリング
 
  * 
  * 
@@ -380,11 +381,7 @@ Game_Actor.prototype.learnSkill = function(skillId) {
 			_Game_Actor_learnSkill.call(this, ...arguments);
 			const stypeId = $dataSkills[skillId].stypeId;
 
-			// occasionに関係なくするのでコメントアウト
-			// const occasion = $dataSkills[skillId].occasion;
-			// if ($gameTemp.isBattleSkill(occasion)) {
-			// 	this.onUseSkill(skillId, stypeId);
-			// }
+			// occasionに関係なくする
 			this.onUseSkill(skillId, stypeId);
 		}
 	} else {
@@ -482,12 +479,7 @@ const _Window_SkillList_isEnabled = Window_SkillList.prototype.isEnabled;
 Window_SkillList.prototype.isEnabled = function(item) {
 	if (isSceneSkillSelect()) {
 
-		// スキルON／OFFは全スキルが対象とするためコメントアウト
-		// if (item) {
-		// 	return $gameTemp.isBattleSkill(item.occasion);
-		// } else {
-		// 	return true;
-		// }
+		// スキルON／OFFは全スキルが対象とする
 		return true;
 	} else {
 		return _Window_SkillList_isEnabled.call(this, ...arguments);
@@ -519,12 +511,10 @@ Window_SkillList.prototype.drawItemDefault = function(index) {
 	const skill = this.itemAt(index);
 	if (skill) {
 		const checkWidth = ImageManager.iconWidth + 2;
-		const costWidth = this.costWidth();
 		const rect = this.itemLineRect(index);
 		this.changePaintOpacity(this.isEnabled(skill));
 		this.drawCheck(skill, rect.x, rect.y);
-		this.drawItemName(skill, rect.x + checkWidth, rect.y, rect.width - costWidth - checkWidth);
-		this.drawSkillCost(skill, rect.x, rect.y, rect.width);
+		this.drawItemName(skill, rect.x + checkWidth, rect.y, rect.width - checkWidth);
 		this.changePaintOpacity(true);
 	}
 };
@@ -533,13 +523,11 @@ Window_SkillList.prototype.drawItemDesc = function(index) {
 	const skill = this.itemAt(index);
 	if (skill) {
 		const checkWidth = this.isCheck(skill) ? ImageManager.iconWidth + 2 : 0;
-		const costWidth = this.costWidth();
 		const rect = this.itemRectWithPadding(index);
 		const y = rect.y;
 		this.changePaintOpacity(this.isEnabled(skill));
 		this.drawCheck(skill, rect.x, y);
-		this.drawItemName(skill, rect.x + checkWidth, y, rect.width - costWidth - checkWidth);
-		this.drawSkillCost(skill, rect.x, y, rect.width);
+		this.drawItemName(skill, rect.x + checkWidth, y, rect.width - checkWidth);
 		this.drawDescription(skill, rect.x, y + this.lineHeight(), rect.width);
 		this.changePaintOpacity(true);
 	}
@@ -551,13 +539,6 @@ Window_SkillList.prototype.drawItemNull = function(index) {
 		const rect = this.itemLineRect(index);
 		this.changePaintOpacity(true);
 		this.drawTextEx(CLEAR_NAME, rect.x, rect.y, rect.width);
-	}
-};
-
-const _Window_SkillList_drawSkillCost = Window_SkillList.prototype.drawSkillCost;
-Window_SkillList.prototype.drawSkillCost = function(skill, x, y, width) {
-	if (!isSceneSkillSelect()) {
-		_Window_SkillList_drawSkillCost.call(this, ...arguments);
 	}
 };
 
@@ -587,15 +568,7 @@ Window_SkillList.prototype.isCurrentItemEnabled = function() {
 	if (isSceneSkillSelect()) {
 		if (this._actor && this._data) {
 
-			// occasionに関係なくするのでコメントアウト
-			// const data = this._data[this.index()];
-			// if (data) {
-				// const id = data.id;
-				// const stypeId = data.stypeId;
-				// const occasion = data.occasion;
-				// const canSkillSelect = this._actor.canSkillAdd(id, stypeId) || this._actor.canSkillMinus(id, stypeId);
-				// return $gameTemp.isBattleSkill(occasion) && canSkillSelect;
-			// }
+			// occasionに関係なくする
 			return true;
 		}
 	}

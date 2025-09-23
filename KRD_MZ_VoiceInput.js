@@ -12,7 +12,7 @@
  * 
  * @param language
  * @text 入力言語
- * @desc 音声入力する言語。日本語は「ja-JP」。
+ * @desc 音声入力する言語。日本語は「ja-JP」。アメリカ英語は「en-US」です。
  * @default ja-JP
  * 
  * @help
@@ -112,6 +112,8 @@ KRD_VOICE_INPUT.stop();
 - ver.2.1.1 (2023/11/06) SpeechRecognition 取得元を修正
 - ver.2.2.0 (2023/11/06) KRD_VOICE_INPUT.stop() を追加
 - ver.2.2.1 (2023/11/06) ヘルプ修正
+- ver.2.2.2 (2024/06/03) 動作確認用コードをコメントアウトで追記
+- ver.2.2.3 (2025/09/23) 説明文を追加
 
  * 
  * 
@@ -127,7 +129,8 @@ const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
 const VAR_SPEECH = Number(PARAM["varSpeech"]) || 0;
-const LANGUAGE = PARAM["language"] || "ja-JP";
+const JAPANESE = "ja-JP";
+const LANGUAGE = PARAM["language"] || JAPANESE;
 
 let recognition = null;
 
@@ -137,6 +140,13 @@ KRD_VOICE_INPUT.start = function(varSpeech = VAR_SPEECH, language = LANGUAGE) {
 			const SpeechRecognition = window.SpeechRecognition || webkitSpeechRecognition;
 			recognition = new SpeechRecognition();
 			recognition.lang = language;
+
+			// 動作確認用
+			// console.log("KRD_VOICE_INPUT.start");
+			// console.log(recognition);
+			// recognition.onstart = () => console.log("onstart");
+			// recognition.onend = () => console.log("onend");
+			// recognition.onerror = (event) => console.log(event);
 
 			recognition.onresult = (event) => {
 				$gameVariables.setValue(varSpeech, event.results[0][0].transcript);
@@ -158,6 +168,9 @@ KRD_VOICE_INPUT.start = function(varSpeech = VAR_SPEECH, language = LANGUAGE) {
 
 KRD_VOICE_INPUT.stop = function() {
 	if (recognition) {
+		// 動作確認用
+		// console.log("KRD_VOICE_INPUT.stop");
+
 		recognition.stop();
 	}
 };

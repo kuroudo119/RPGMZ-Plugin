@@ -78,7 +78,7 @@
  * @type multiline_string
  * @arg language
  * @text 出力言語
- * @desc 音声出力する言語。日本語は「ja-JP」です。
+ * @desc 音声出力する言語。日本語は「ja-JP」です。アメリカ英語は「en-US」です。
  * @default ja-JP
  * @type string
  * @arg pitch
@@ -101,7 +101,7 @@
  * @type variable
  * @arg language
  * @text 出力言語
- * @desc 音声出力する言語。日本語は「ja-JP」です。
+ * @desc 音声出力する言語。日本語は「ja-JP」です。アメリカ英語は「en-US」です。
  * @default ja-JP
  * @type string
  * @arg pitch
@@ -124,7 +124,7 @@
  * @type variable
  * @arg language
  * @text 出力言語
- * @desc 音声出力する言語。日本語は「ja-JP」です。
+ * @desc 音声出力する言語。日本語は「ja-JP」です。アメリカ英語は「en-US」です。
  * @default ja-JP
  * @type string
  * @arg pitch
@@ -222,6 +222,7 @@ iPhoneではユーザー操作に伴うAPI実行を1回行う必要がありま�
 - ver.2.1.0 (2024/07/25) 自動音声合成のKRD_MZ_BattleResult_OneLine対応
 - ver.2.2.0 (2024/12/11) 正規表現を見直した
 - ver.2.3.0 (2025/08/23) 自動音声合成（アクター）機能を追加
+- ver.2.3.1 (2025/09/23) 説明文を追加
 
  * 
  * 
@@ -231,19 +232,21 @@ iPhoneではユーザー操作に伴うAPI実行を1回行う必要がありま�
  * 
  * @param language
  * @text 出力言語
- * @desc 音声出力する言語。日本語は「ja-JP」です。
+ * @desc 音声出力する言語。日本語は「ja-JP」です。アメリカ英語は「en-US」です。
  * @default ja-JP
  * @type string
  * 
  * @param pitch
  * @text ピッチ
- * @desc 音声合成のピッチ（音の高低）です。
+ * @desc 音声合成のピッチ（音の高低）です。初期値：100
  * @type number
+ * @default 100
  * 
  * @param rate
  * @text レート
- * @desc 音声合成のレート（速度）です。
+ * @desc 音声合成のレート（速度）です。初期値：100
  * @type number
+ * @default 100
  * 
  */
 

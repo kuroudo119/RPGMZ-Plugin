@@ -36,6 +36,12 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_CorrectInfinity（ダメージ計算式の Infinity の許容）
+
+ダメージ計算式に Infinity がある場合、NaN になってしまうのを抑止し、Infinity を使えるようにします。
+
+[KRD_MZ_CorrectInfinityをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_CorrectInfinity.js)
+
 ## KRD_MZ_Janken（じゃんけん）
 
 じゃんけんの判定が出来ます。

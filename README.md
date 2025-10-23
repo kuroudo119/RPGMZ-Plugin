@@ -36,6 +36,13 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_ParamClass（能力値用職業）
+
+能力値用の職業を設定できるようにします。  
+種族（能力値）＋職業（補正）のような設定ができます。
+
+[KRD_MZ_ParamClassをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_ParamClass.js)
+
 ## KRD_MZ_CorrectInfinity（ダメージ計算式の Infinity の許容）
 
 ダメージ計算式に Infinity がある場合、NaN になってしまうのを抑止し、Infinity を使えるようにします。

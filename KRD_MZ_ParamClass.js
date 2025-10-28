@@ -39,11 +39,19 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 職業Aがサブ扱いです。
 
+メインとなる職業Bについては、
+通常の職業の設定の通りです。
+
 ## 設定方法
 
 データベースのアクターのメモ欄に以下を記述します。
 
 <ParamClass:職業Aの職業ID>
+
+## 二つ名の変更
+
+アクターの「二つ名」に \PC と設定することで、
+職業Aの名前を表示することができます。
 
 ## 更新履歴
 
@@ -52,6 +60,7 @@ ver.|更新日|更新内容
 0.0.1|2025/10/23|作成開始
 0.1.0|2025/10/23|非公開版完成
 1.0.0|2025/10/23|公開
+1.1.0|2025/10/28|paramClassName関数を追加
 
 */
 
@@ -64,6 +73,8 @@ ver.|更新日|更新内容
 "use strict"
 
 const TAG_PARAM_CLASS = "ParamClass";
+
+const ESCAPE_PARAM_CLASS = "\\PC";
 
 //--------------------------------------
 
@@ -78,6 +89,22 @@ Game_Actor.prototype.paramClass = function() {
 
 Game_Actor.prototype.paramBase = function(paramId) {
 	return this.paramClass().params[paramId][this._level];
+};
+
+//--------------------------------------
+
+Game_Actor.prototype.paramClassName = function() {
+	return this.paramClass().name;
+};
+
+const _Game_Actor_nickname = Game_Actor.prototype.nickname;
+Game_Actor.prototype.nickname = function() {
+	const base = _Game_Actor_nickname.call(this, ...arguments);
+	if (base === ESCAPE_PARAM_CLASS) {
+		return this.paramClassName();
+	} else {
+		return base;
+	}
 };
 
 //--------------------------------------

@@ -119,6 +119,7 @@ ver.|更新日|更新内容
 0.16.2|2024/12/09|obtainEscapeRuby の戻り値にダミーデータを設定
 0.17.0|2025/02/09|hasIcon に制御文字 IT を追加
 1.0.0|2025/07/25|公開
+1.1.0|2025/10/31|drawItemNameでのアイコン処理を変更
 
  * 
  * 
@@ -392,19 +393,40 @@ Window_Base.prototype.rightX = function(text, x, y, maxWidth, align) {
 // 特別処理
 
 // 上書き
-// アイテム名のアイコン制御文字は除去する。
 Window_Base.prototype.drawItemName = function(item, x, y, width) {
 	if (item) {
 		const convText = this.convertEscapeCharacters(item.name);
-		const text = KRD_RUBY.cutIcon(convText);
-
-		const iconY = y + (this.lineHeight() - ImageManager.iconHeight) / 2;
-		const textMargin = ImageManager.iconWidth + 4;
-		const itemWidth = Math.max(0, width - textMargin);
-		this.resetTextColor();
-		this.drawIcon(item.iconIndex, x, iconY);
-		this.drawText(text, x + textMargin, y, itemWidth);
+		if (KRD_RUBY.hasHeadIcon(convText)) {
+			this.drawItemNameIcon(item, x, y, width, convText);
+		} else {
+			this.drawItemNameMain(item, x, y, width, convText);
+		}
 	}
+};
+
+Window_Base.prototype.drawItemNameMain = function(item, x, y, width, convText) {
+	const iconY = y + (this.lineHeight() - ImageManager.iconHeight) / 2;
+	const textMargin = ImageManager.iconWidth + 4;
+	const itemWidth = Math.max(0, width - textMargin);
+	this.resetTextColor();
+	this.drawIcon(item.iconIndex, x, iconY);
+	this.drawText(convText, x + textMargin, y, itemWidth);
+};
+
+Window_Base.prototype.drawItemNameIcon = function(item, x, y, width, convText) {
+	const iconIndex = KRD_RUBY.returnIconIndex(convText);
+	const cutIconText = KRD_RUBY.cutIcon(convText);
+
+	const iconY = y + (this.lineHeight() - ImageManager.iconHeight) / 2;
+	const textMargin = ImageManager.iconWidth + 4;
+	const itemWidth = Math.max(0, width - textMargin);
+	this.resetTextColor();
+	this.drawIcon(item.iconIndex, x, iconY);
+
+	const x2 = x + textMargin;
+	const textWidth = itemWidth - textMargin;
+	this.drawIcon(iconIndex, x2, iconY);
+	this.drawText(cutIconText, x2 + textMargin, y, textWidth);
 };
 
 // 決定ボタン等がはみ出すのでmaxWidthを効かせるためにExから戻してる。
@@ -422,7 +444,7 @@ Window_Options.prototype.drawText = function(text, x, y, maxWidth, align) {
 //--------------------------------------
 // メッセージ高さ
 //
-// KRD_MZ_UI_UseRuby で変更可能になるのでコメントアウト。
+// KRD_MZ_UseRuby で変更可能になるのでコメントアウト。
 
 // const _Window_Message_lineHeight = Window_Message.prototype.lineHeight;
 // Window_Message.prototype.lineHeight = function() {
@@ -617,8 +639,19 @@ KRD_RUBY.isRuby = function(text) {
 };
 
 KRD_RUBY.hasIcon = function(text) {
-	return text?.toString().match(/\\I\[/) || text?.toString().match(/\x1bI\[/) 
-	|| text?.toString().match(/\\IT\[/) || text?.toString().match(/\x1bIT\[/);
+	return !!( text?.toString().match(/\\I\[/)
+		|| text?.toString().match(/\x1bI\[/)
+		|| text?.toString().match(/\\IT\[/)
+		|| text?.toString().match(/\x1bIT\[/)
+	);
+};
+
+KRD_RUBY.hasHeadIcon = function(text) {
+	return !!( text?.toString().match(/^\\I\[/)
+		|| text?.toString().match(/^\x1bI\[/)
+		|| text?.toString().match(/^\\IT\[/)
+		|| text?.toString().match(/^\x1bIT\[/)
+	);
 };
 
 KRD_RUBY.cutIcon = function(text) {
@@ -633,6 +666,21 @@ KRD_RUBY.cutIcon = function(text) {
 function iconReplacer() {
 	return "";
 }
+
+KRD_RUBY.returnIconIndex = function(text) {
+	const regex1 = /\\I\[(?<index>\d+)\]/;
+	const regex2 = /\x1bI\[(?<index>\d+)\]/;
+	
+	const result1 = text?.toString().match(regex1);
+	const result2 = text?.toString().match(regex2);
+	const iconIndex1 = Number(result1?.groups.index);
+	const iconIndex2 = Number(result2?.groups.index);
+	if (!isNaN(iconIndex1)) {
+		return iconIndex1 || 0;
+	} else {
+		return iconIndex2 || 0;
+	}
+};
 
 function multilingual() {
 	if (typeof KRD_MULTILINGUAL !== "undefined") {

@@ -36,6 +36,13 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_ParamOrder（param の計算順序を変更）
+
+能力値の計算順序を変更します。  
+能力値の倍率を算出した後に装備品データが加算されます。
+
+[KRD_MZ_ParamOrderをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_ParamOrder.js)
+
 ## KRD_MZ_ParamClass（能力値用職業）
 
 能力値用の職業を設定できるようにします。  

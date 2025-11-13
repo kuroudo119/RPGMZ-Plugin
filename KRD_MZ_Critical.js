@@ -12,6 +12,18 @@
  * @default 300
  * @type number
  * 
+ * @param CRITICAL_RATE_PHYSICAL
+ * @text クリティカル倍率（物理）
+ * @desc 物理でのクリティカル発生時にダメージにかかる倍率（パーセント）です。初期値 300
+ * @default 300
+ * @type number
+ * 
+ * @param CRITICAL_RATE_MAGICAL
+ * @text クリティカル倍率（魔法）
+ * @desc 魔法でのクリティカル発生時にダメージにかかる倍率（パーセント）です。初期値 300
+ * @default 300
+ * @type number
+ * 
  * @help
 # KRD_MZ_Critical.js
 
@@ -41,6 +53,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.1.0 (2024/09/07) 上記は使い方の誤りだったのでついでに機能変更
 - ver.1.2.0 (2024/09/14) 計算式の a, b 両方にクリティカルを設定
 - ver.2.0.0 (2025/04/06) 計算式の b のみに変更
+- ver.2.1.0 (2025/11/13) 物理と魔法を分けた
 
  * 
  * 
@@ -54,12 +67,20 @@ const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
 const CRITICAL_RATE = Number(PARAM["criticalRate"]) || 0;
+const CRITICAL_RATE_PHYSICAL = Number(PARAM["CRITICAL_RATE_PHYSICAL"]) || 0;
+const CRITICAL_RATE_MAGICAL = Number(PARAM["CRITICAL_RATE_MAGICAL"]) || 0;
 
 //--------------------------------------
 
 // 上書き
 Game_Action.prototype.applyCritical = function(damage) {
-	return Math.floor(damage * CRITICAL_RATE / 100);
+	if (this.isPhysical()) {
+		return Math.floor(damage * CRITICAL_RATE_PHYSICAL / 100);
+	} else if (this.isMagical()) {
+		return Math.floor(damage * CRITICAL_RATE_MAGICAL / 100);
+	} else {
+		return Math.floor(damage * CRITICAL_RATE / 100);
+	}
 };
 
 //--------------------------------------

@@ -6,63 +6,122 @@
  * @author kuroudo119 (くろうど)
  * 
  * @param RATE_GROUP
- * @text 強化・弱体割合
+ * @text 強化割合
  * 
  * @param MHP_BUFF_RATE
  * @text 最大HP 強化割合
- * @desc 最大HPの強化・弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @desc 最大HPの強化の1段階ごとの変化率（パーセント）です。システム値は 25 です。
  * @default 25
  * @type number
  * @parent RATE_GROUP
  * 
  * @param MMP_BUFF_RATE
  * @text 最大MP 強化割合
- * @desc 最大MPの強化・弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @desc 最大MPの強化の1段階ごとの変化率（パーセント）です。システム値は 25 です。
  * @default 25
  * @type number
  * @parent RATE_GROUP
  * 
  * @param ATK_BUFF_RATE
  * @text 攻撃力 強化割合
- * @desc 攻撃力の強化・弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @desc 攻撃力の強化の1段階ごとの変化率（パーセント）です。システム値は 25 です。
  * @default 25
  * @type number
  * @parent RATE_GROUP
  * 
  * @param DEF_BUFF_RATE
  * @text 防御力 強化割合
- * @desc 防御力の強化・弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @desc 防御力の強化の1段階ごとの変化率（パーセント）です。システム値は 25 です。
  * @default 25
  * @type number
  * @parent RATE_GROUP
  * 
  * @param MAT_BUFF_RATE
  * @text 魔法力 強化割合
- * @desc 魔法力の強化・弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @desc 魔法力の強化の1段階ごとの変化率（パーセント）です。システム値は 25 です。
  * @default 25
  * @type number
  * @parent RATE_GROUP
  * 
  * @param MDF_BUFF_RATE
  * @text 魔法防御 強化割合
- * @desc 魔法防御の強化・弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @desc 魔法防御の強化の1段階ごとの変化率（パーセント）です。システム値は 25 です。
  * @default 25
  * @type number
  * @parent RATE_GROUP
  * 
  * @param AGI_BUFF_RATE
  * @text 敏捷性 強化割合
- * @desc 敏捷性の強化・弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @desc 敏捷性の強化の1段階ごとの変化率（パーセント）です。システム値は 25 です。
  * @default 25
  * @type number
  * @parent RATE_GROUP
  * 
  * @param LUK_BUFF_RATE
  * @text 運 強化割合
- * @desc 運の強化・弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @desc 運の強化の1段階ごとの変化率（パーセント）です。システム値は 25 です。
  * @default 25
  * @type number
  * @parent RATE_GROUP
+ * 
+ * @param DEBUFF_RATE_GROUP
+ * @text 弱体割合
+ * 
+ * @param MHP_DEBUFF_RATE
+ * @text 最大HP 弱体割合
+ * @desc 最大HPの弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @default 25
+ * @type number
+ * @parent DEBUFF_RATE_GROUP
+ * 
+ * @param MMP_DEBUFF_RATE
+ * @text 最大MP 弱体割合
+ * @desc 最大MPの弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @default 25
+ * @type number
+ * @parent DEBUFF_RATE_GROUP
+ * 
+ * @param ATK_DEBUFF_RATE
+ * @text 攻撃力 弱体割合
+ * @desc 攻撃力の弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @default 25
+ * @type number
+ * @parent DEBUFF_RATE_GROUP
+ * 
+ * @param DEF_DEBUFF_RATE
+ * @text 防御力 弱体割合
+ * @desc 防御力の弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @default 25
+ * @type number
+ * @parent DEBUFF_RATE_GROUP
+ * 
+ * @param MAT_DEBUFF_RATE
+ * @text 魔法力 弱体割合
+ * @desc 魔法力の弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @default 25
+ * @type number
+ * @parent DEBUFF_RATE_GROUP
+ * 
+ * @param MDF_DEBUFF_RATE
+ * @text 魔法防御 弱体割合
+ * @desc 魔法防御の弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @default 25
+ * @type number
+ * @parent DEBUFF_RATE_GROUP
+ * 
+ * @param AGI_DEBUFF_RATE
+ * @text 敏捷性 弱体割合
+ * @desc 敏捷性の弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @default 25
+ * @type number
+ * @parent DEBUFF_RATE_GROUP
+ * 
+ * @param LUK_DEBUFF_RATE
+ * @text 運 弱体割合
+ * @desc 運の弱体の1段階ごとの変化率（パーセント）です。システム値は 25 です。
+ * @default 25
+ * @type number
+ * @parent DEBUFF_RATE_GROUP
  * 
  * @param MAX_BUFF
  * @text 最大強化回数
@@ -222,6 +281,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.1.1 (2023/10/31) パラメータの初期値を変更した
 - ver.1.1.2 (2023/11/13) パラメータの初期値を変更した
 - ver.2.0.0 (2025/06/18) 最大回数を能力値ごとにした
+- ver.2.1.0 (2025/11/22) DEBUFF_RATE を追加した
 
  * 
  * 
@@ -252,6 +312,26 @@ const PARAM_BUFF_RATE = [
 	MDF_BUFF_RATE,
 	AGI_BUFF_RATE,
 	LUK_BUFF_RATE
+];
+
+const MHP_DEBUFF_RATE = (Number(PARAM["MHP_DEBUFF_RATE"]) || 0) / 100;
+const MMP_DEBUFF_RATE = (Number(PARAM["MMP_DEBUFF_RATE"]) || 0) / 100;
+const ATK_DEBUFF_RATE = (Number(PARAM["ATK_DEBUFF_RATE"]) || 0) / 100;
+const DEF_DEBUFF_RATE = (Number(PARAM["DEF_DEBUFF_RATE"]) || 0) / 100;
+const MAT_DEBUFF_RATE = (Number(PARAM["MAT_DEBUFF_RATE"]) || 0) / 100;
+const MDF_DEBUFF_RATE = (Number(PARAM["MDF_DEBUFF_RATE"]) || 0) / 100;
+const AGI_DEBUFF_RATE = (Number(PARAM["AGI_DEBUFF_RATE"]) || 0) / 100;
+const LUK_DEBUFF_RATE = (Number(PARAM["LUK_DEBUFF_RATE"]) || 0) / 100;
+
+const PARAM_DEBUFF_RATE = [
+	MHP_DEBUFF_RATE,
+	MMP_DEBUFF_RATE,
+	ATK_DEBUFF_RATE,
+	DEF_DEBUFF_RATE,
+	MAT_DEBUFF_RATE,
+	MDF_DEBUFF_RATE,
+	AGI_DEBUFF_RATE,
+	LUK_DEBUFF_RATE
 ];
 
 const MAX_BUFF_MHP = Number(PARAM["MAX_BUFF_MHP"] || 0);
@@ -301,7 +381,11 @@ const ICON_DEBUFF_START = Number(PARAM["ICON_DEBUFF_START"] || 0);
 
 // 上書き
 Game_BattlerBase.prototype.paramBuffRate = function(paramId) {
-	return this._buffs[paramId] * PARAM_BUFF_RATE[paramId] + 1.0;
+	if (this._buffs[paramId] >= 0) {
+		return this._buffs[paramId] * PARAM_BUFF_RATE[paramId] + 1.0;
+	} else {
+		return this._buffs[paramId] * PARAM_DEBUFF_RATE[paramId] + 1.0;
+	}
 };
 
 // 上書き

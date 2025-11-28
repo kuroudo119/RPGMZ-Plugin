@@ -70,6 +70,7 @@ HP吸収になります。
 - ver.0.1.0 (2025/03/05) 非公開版完成
 - ver.1.0.0 (2025/03/05) 公開
 - ver.1.1.0 (2025/03/06) 公開
+- ver.1.1.1 (2025/11/28) 会心率の計算を修正
 
  * 
  * 
@@ -134,14 +135,13 @@ Game_Action.prototype.isDrain = function() {
 
 const _Game_Action_itemCri = Game_Action.prototype.itemCri;
 Game_Action.prototype.itemCri = function(target) {
+	const base = _Game_Action_itemCri.call(this, ...arguments);
 	const value = this.subject().twoHandsValue(TAG_CRITICAL_2HANDS, this.item());
 	if (value != null) {
 		const cri = (Number(value) || 0) / 100;
-		return this.item().damage.critical
-		? (this.subject().cri + cri) * (1 - target.cev)
-		: 0;
+		return base + cri;
 	} else {
-		return _Game_Action_itemCri.call(this, ...arguments);
+		return base;
 	}
 };
 

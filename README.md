@@ -36,6 +36,12 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_OnlyOneSkills（習得スキル共通化）
+
+指定したアクターの習得スキルを全アクターに適用します。
+
+[KRD_MZ_OnlyOneSkillsをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_OnlyOneSkills.js)
+
 ## KRD_MZ_ParamOrder（param の計算順序を変更）
 
 能力値の計算順序を変更します。  

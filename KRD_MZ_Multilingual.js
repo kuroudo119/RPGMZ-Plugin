@@ -415,6 +415,7 @@ System.jsonをコピーして、
 - ver.5.2.1 (2024/02/22) null チェック追加など
 - ver.5.3.0 (2024/08/28) パラメータ VAR_FORCE_LANGUAGE 追加
 - ver.5.3.1 (2025/03/04) 内部処理 jsonParse の一段階を初期処理に移動
+- ver.5.4.0 (2025/12/27) getGameTitle を Game_System に変更
 
  * 
  * 
@@ -1368,7 +1369,7 @@ Scene_Title.prototype.drawGameTitle = function() {
 	if (language <= 0) {
 		_Scene_Title_drawGameTitle.call(this, ...arguments);
 	} else {
-		const text = this.getGameTitle();
+		const text = $gameSystem.getGameTitle();
 		if (text) {
 			const x = 20;
 			const y = Graphics.height / 4;
@@ -1385,7 +1386,8 @@ Scene_Title.prototype.drawGameTitle = function() {
 	}
 };
 
-Scene_Title.prototype.getGameTitle = function() {
+Game_System.prototype.getGameTitle = function() {
+	const base = $dataSystem.gameTitle;
 	const exData = TextManager.getExWord("gameTitle");
 	if (exData) {
 		return exData;
@@ -1393,10 +1395,12 @@ Scene_Title.prototype.getGameTitle = function() {
 		if (GAME_TITLE) {
 			const language = KRD_MULTILINGUAL.multilingual();
 			const data = GAME_TITLE[language - 1];
-			return data && data.gameTitle ? data.gameTitle : null;
+			if (data && data.gameTitle) {
+				return data.gameTitle;
+			}
 		}
 	}
-	return null;
+	return base;
 };
 
 //--------------------------------------

@@ -50,7 +50,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 ## 二つ名の変更
 
-アクターの「二つ名」に \PC と設定することで、
+アクターの「二つ名」に \PC または \ParamClass と設定することで、
 職業Aの名前を表示することができます。
 
 ## 更新履歴
@@ -61,6 +61,7 @@ ver.|更新日|更新内容
 0.1.0|2025/10/23|非公開版完成
 1.0.0|2025/10/23|公開
 1.1.0|2025/10/28|paramClassName関数を追加
+1.2.0|2025/12/30|制御文字 \ParamClass を追加
 
 */
 
@@ -74,7 +75,12 @@ ver.|更新日|更新内容
 
 const TAG_PARAM_CLASS = "ParamClass";
 
-const ESCAPE_PARAM_CLASS = "\\PC";
+const ESCAPE_PARAM_CLASS_1 = "\\PC";
+const ESCAPE_PARAM_CLASS_2 = "\\ParamClass";
+const ESCAPE_PARAM_CLASS = [
+	ESCAPE_PARAM_CLASS_1,
+	ESCAPE_PARAM_CLASS_2,
+];
 
 //--------------------------------------
 
@@ -100,7 +106,7 @@ Game_Actor.prototype.paramClassName = function() {
 const _Game_Actor_nickname = Game_Actor.prototype.nickname;
 Game_Actor.prototype.nickname = function() {
 	const base = _Game_Actor_nickname.call(this, ...arguments);
-	if (base === ESCAPE_PARAM_CLASS) {
+	if (ESCAPE_PARAM_CLASS.includes(base)) {
 		return this.paramClassName();
 	} else {
 		return base;

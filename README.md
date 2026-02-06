@@ -36,6 +36,12 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_OnlyOneShop（限定品ショップ）
+
+ショップで1つしか買えない限定品を作れるようにします。
+
+[KRD_MZ_OnlyOneShopをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_OnlyOneShop.js)
+
 ## KRD_MZ_OnlyOneSkills（習得スキル共通化）
 
 指定したアクターの習得スキルを全アクターに適用します。

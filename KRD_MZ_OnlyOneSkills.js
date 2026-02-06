@@ -57,6 +57,13 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 装備品でのスキル追加により、アクターに差を付ける場合を想定しています。
 
+## アイテム所持による習得
+
+所持アイテムのメモ欄に以下のタグがある場合、
+スキル番号 99 のスキルを習得スキルとします。
+
+<OnlyOneSkill:99>
+
 ## 更新履歴
 
 ver.|更新日|更新内容
@@ -65,8 +72,7 @@ ver.|更新日|更新内容
 0.1.0|2025/12/15|非公開版完成
 1.0.0|2025/12/15|公開
 1.1.0|2026/01/25|「スキル一覧結合」を追加
-
-## 以下プラグイン本体（ヘルプ欄には非表示）
+1.2.0|2026/02/06|「アイテム所持による習得」を追加
 
 */
 
@@ -84,18 +90,24 @@ const PARAM = PluginManager.parameters(PLUGIN_NAME);
 const MAIN_SKILLS_ACTOR_ID = Number(PARAM["MAIN_SKILLS_ACTOR_ID"]) || 0;
 const CONCAT_SKILL_LIST = PARAM["CONCAT_SKILL_LIST"] === "true";
 
+const ONLY_ONE_SKILL_TAG = "OnlyOneSkill";
+
 //--------------------------------------
 
 const _Game_Actor_skills = Game_Actor.prototype.skills;
 Game_Actor.prototype.skills = function() {
-	const result = this.onlyOneSkills();
-	if (result != null) {
-		return result;
-	}
-	return _Game_Actor_skills.call(this, ...arguments);
+	return this.onlyOneSkills();
 };
 
 Game_Actor.prototype.onlyOneSkills = function() {
+	const base = this.mainOnlyOneSkills();
+	const partySkillList = this.partySkillList();
+	const joinList = base.concat(partySkillList);
+	const result = Array.from(new Set(joinList)); // 重複除去
+	return result;
+};
+
+Game_Actor.prototype.mainOnlyOneSkills = function() {
 	const actorId = MAIN_SKILLS_ACTOR_ID;
 	if (actorId > 0) {
 		const actor = $gameActors.actor(actorId);
@@ -111,7 +123,17 @@ Game_Actor.prototype.onlyOneSkills = function() {
 			}
 		}
 	}
-	return null;
+	return [];
+};
+
+//--------------------------------------
+
+Game_Actor.prototype.partySkillList = function() {
+	const items = $gameParty.items();
+	const onlyOneItemList = items.map(item => Number(item.meta[ONLY_ONE_SKILL_TAG]));
+	const partySkillIdList = onlyOneItemList.filter(item => item > 0);
+	const partySkillList = partySkillIdList.map(id => $dataSkills[id]);
+	return partySkillList;
 };
 
 //--------------------------------------

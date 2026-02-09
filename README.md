@@ -36,6 +36,12 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_OptimizeEquip（装備タイプ限定最強装備）
+
+最強装備される装備スロットを制限できます。
+
+[KRD_MZ_OptimizeEquipをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_OptimizeEquip.js)
+
 ## KRD_MZ_OnlyOneShop（限定品ショップ）
 
 ショップで1つしか買えない限定品を作れるようにします。

@@ -57,6 +57,9 @@ https://github.com/triacontane/RPGMakerMV/blob/mz_master/ApngPicture.js
 戦闘背景とするAPNGファイルを用意し、
 img/battlebacks1/ 配下に置いてください。
 
+サンプルapng画像
+https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/human_apng.png
+
 ## 使い方（ApngPicture側）
 
 ApngPictureプラグイン

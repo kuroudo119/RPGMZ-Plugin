@@ -36,6 +36,12 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_MapStatus（マップステータス）
+
+マップ画面にステータスを表示します。
+
+[KRD_MZ_MapStatusをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_MapStatus.js)
+
 ## KRD_MZ_OptimizeEquip（装備タイプ限定最強装備）
 
 最強装備される装備スロットを制限できます。

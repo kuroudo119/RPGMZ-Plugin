@@ -27,14 +27,12 @@
  * @param top
  * @text 画像上余白
  * @desc Window上端と画像上側の空白をピクセルで指定します。bottomより優先です。使わない時は値を削除してください。
- * @default
  * @type number
  * @min -10000
  * 
  * @param left
  * @text 画像左余白
  * @desc Window左端と画像左側の空白をピクセルで指定します。rightより優先です。使わない時は値を削除してください。
- * @default
  * @type number
  * @min -10000
  * 
@@ -88,6 +86,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.1.0.0 (2022/01/13) 公開
 - ver.1.1.0 (2022/01/13) コモン呼出を左クリックのみ＆連打不可
 - ver.1.2.0 (2022/01/14) 画像位置を右下以外も可能にした
+- ver.1.3.0 (2026/03/03) ALTとIDの既定値を修正
 
 ## 概要
 
@@ -137,7 +136,7 @@ const COMMON_EVENT = Number(PARAM["commonEventId"]) || 0;
 
 let viewStatus = false;
 
-class KRD_AlwaysImage {
+class _AlwaysImage {
 	constructor() {
 		this._img = document.createElement("img");
 		this._img.src = PATH + FILE;
@@ -193,12 +192,12 @@ class KRD_AlwaysImage {
 	}
 }
 
-const KRD_Scene_Base_start = Scene_Base.prototype.start;
+const _Scene_Base_start = Scene_Base.prototype.start;
 Scene_Base.prototype.start = function() {
-	KRD_Scene_Base_start.apply(this, arguments);
+	_Scene_Base_start.call(this, ...arguments);
 	if (!viewStatus) {
 		viewStatus = true;
-		this._portrait = new KRD_AlwaysImage();
+		this._portrait = new _AlwaysImage();
 	}
 };
 

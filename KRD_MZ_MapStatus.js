@@ -10,11 +10,19 @@
  * @desc マップステータスの状態を示すスイッチの番号です。
  * @type switch
  * 
- * @param HORIZON_MODE
- * @text 横表示モード
- * @desc マップステータスを横表示モードにする：true ／ しない：false
- * @type boolean
- * @default false
+ * @param POSITION
+ * @text 表示位置
+ * @desc マップステータスを表示する位置です。下：2、左：4、右：6、上：8
+ * @type select
+ * @option 下(2)
+ * @value 2
+ * @option 左(4)
+ * @value 4
+ * @option 右(6)
+ * @value 6
+ * @option 上(8)
+ * @value 8
+ * @default 6
  * 
  * @command SHOW_MAP_STATUS
  * @text マップステータス開始
@@ -66,6 +74,7 @@ ver.|更新日|更新内容
 0.0.1|2026/02/23|作成開始（作り直し）
 0.1.0|2026/02/23|非公開版完成
 1.0.0|2026/02/23|公開
+2.0.0|2026/03/03|プラグインパラメータ「表示位置」に変更
 
 */
 
@@ -81,11 +90,10 @@ const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
 const SW_MAP_STATUS = Number(PARAM["SW_MAP_STATUS"]) || 0;
-
-const HORIZON_MODE = PARAM["HORIZON_MODE"] === "true";
+const POSITION = Number(PARAM["POSITION"]) || 0;
 
 const BASE_VERTICAL_RECT_WIDTH = 168;
-const BASE_HORIZONTAL_RECT_WIDTH = 158;
+const BASE_HORIZONTAL_RECT_WIDTH = 156;
 const BASE_RECT_HEIGHT = 134;
 
 //--------------------------------------
@@ -120,40 +128,85 @@ Scene_Map.prototype.createMapNameWindow = function() {
 };
 
 Scene_Map.prototype.createMapStatus = function() {
-	if (HORIZON_MODE) {
-		this.createHorizontalMapStatus();
+	if (POSITION === 2) {
+		this.createBottomMapStatus();
+	} else if (POSITION === 4) {
+		this.createLeftMapStatus();
+	} else if (POSITION === 6) {
+		this.createRightMapStatus();
+	} else if (POSITION === 8) {
+		this.createTopMapStatus();
 	} else {
-		this.createVerticalMapStatus();
+		this.createRightMapStatus();
 	}
 };
 
-Scene_Map.prototype.createHorizontalMapStatus = function() {
-	const rect = this.horizontalStatusWindowRect();
+Scene_Map.prototype.createTopMapStatus = function() {
+	const rect = this.topStatusWindowRect();
 	this._statusWindow = new Window_MapStatus_Horizon(rect);
 	this.addWindow(this._statusWindow);
 };
 
-Scene_Map.prototype.createVerticalMapStatus = function() {
-	const rect = this.verticalStatusWindowRect();
+Scene_Map.prototype.createBottomMapStatus = function() {
+	const rect = this.bottomStatusWindowRect();
+	this._statusWindow = new Window_MapStatus_Horizon(rect);
+	this.addWindow(this._statusWindow);
+};
+
+Scene_Map.prototype.createLeftMapStatus = function() {
+	const rect = this.leftStatusWindowRect();
 	this._statusWindow = new Window_MapStatus_Vertical(rect);
 	this.addWindow(this._statusWindow);
 };
 
-Scene_Map.prototype.horizontalStatusWindowRect = function() {
+Scene_Map.prototype.createRightMapStatus = function() {
+	const rect = this.rightStatusWindowRect();
+	this._statusWindow = new Window_MapStatus_Vertical(rect);
+	this.addWindow(this._statusWindow);
+};
+
+Scene_Map.prototype.topStatusWindowRect = function() {
 	const members = $gameParty.maxBattleMembers() || 1;
 	const ww = BASE_HORIZONTAL_RECT_WIDTH * members;
 	const wh = BASE_RECT_HEIGHT;
 	const wx = Math.floor((Graphics.boxWidth - ww) / 2);
-	const wy = Graphics.boxHeight - wh;
+	const tmpY = Math.floor((Graphics.height - Graphics.boxHeight) / 2);
+	const wy = -tmpY;
 	return new Rectangle(wx, wy, ww, wh);
 };
 
-Scene_Map.prototype.verticalStatusWindowRect = function() {
+Scene_Map.prototype.bottomStatusWindowRect = function() {
+	const members = $gameParty.maxBattleMembers() || 1;
+	const ww = BASE_HORIZONTAL_RECT_WIDTH * members;
+	const wh = BASE_RECT_HEIGHT;
+	const wx = Math.floor((Graphics.boxWidth - ww) / 2);
+	const tmpY = Math.floor((Graphics.height - Graphics.boxHeight) / 2);
+	const wy = Graphics.boxHeight + tmpY - wh;
+	return new Rectangle(wx, wy, ww, wh);
+};
+
+Scene_Map.prototype.leftStatusWindowRect = function() {
 	const members = $gameParty.maxBattleMembers() || 1;
 	const ww = BASE_VERTICAL_RECT_WIDTH;
-	const wh = BASE_RECT_HEIGHT * members;
-	const tmpX = Math.floor((Graphics.width - Graphics.boxWidth) / 2) - ww;
-	const wx = Graphics.boxWidth + tmpX;
+	const bh = this.buttonAreaHeight();
+	const tmpH1 = BASE_RECT_HEIGHT * members;
+	const tmpH2 = Graphics.boxHeight - bh * 2;
+	const wh = tmpH1 < tmpH2 ? tmpH1 : tmpH2;
+	const tmpX = Math.floor((Graphics.width - Graphics.boxWidth) / 2);
+	const wx = -tmpX;
+	const wy = Math.floor((Graphics.boxHeight - wh) / 2);
+	return new Rectangle(wx, wy, ww, wh);
+};
+
+Scene_Map.prototype.rightStatusWindowRect = function() {
+	const members = $gameParty.maxBattleMembers() || 1;
+	const ww = BASE_VERTICAL_RECT_WIDTH;
+	const bh = this.buttonAreaHeight();
+	const tmpH1 = BASE_RECT_HEIGHT * members;
+	const tmpH2 = Graphics.boxHeight - bh * 2;
+	const wh = tmpH1 < tmpH2 ? tmpH1 : tmpH2;
+	const tmpX = Math.floor((Graphics.width - Graphics.boxWidth) / 2);
+	const wx = Graphics.boxWidth + tmpX - ww;
 	const wy = Math.floor((Graphics.boxHeight - wh) / 2);
 	return new Rectangle(wx, wy, ww, wh);
 };
@@ -230,7 +283,7 @@ class Window_MapStatus_Vertical extends Window_MapStatus {
 	}
 
 	rowSpacing() {
-		return 8;
+		return Window_Selectable.prototype.rowSpacing.call(this, ...arguments);
 	}
 }
 

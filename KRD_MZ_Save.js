@@ -4,6 +4,7 @@
  * @url https://twitter.com/kuroudo119/
  * @url https://github.com/kuroudo119/RPGMZ-Plugin
  * @author kuroudo119 (くろうど)
+ * @orderBefore KRD_MZ_DoubleAutoSave
  * 
  * @param versionKey
  * @text バージョン値
@@ -52,6 +53,12 @@
  * @default 32
  * @type number
  * 
+ * @param FONT_SIZE
+ * @text 文字サイズ
+ * @desc セーブデータ情報の文字サイズです。 0 の場合はシステムと同じになります。
+ * @default 0
+ * @type number
+ * 
  * @param varText
  * @text テキスト変数番号
  * @desc マップ名の代わりに表示するテキストが入っている変数番号。この変数はセーブ後にゼロクリアされる。
@@ -79,7 +86,7 @@
  * 
  * @param compressRate
  * @text jpeg圧縮率
- * @desc jpegの圧縮率です。パーセントで記述します。
+ * @desc jpegの圧縮率です。パーセントで記述します。最大100が高品質です。
  * @default 10
  * @type number
  * @max 100
@@ -143,6 +150,9 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 - ver.0.17.0 (2023/10/31) LANDSCAPE_PLUGIN 対応
 - ver.0.18.0 (2024/05/06) 内部処理改善
 - ver.0.19.0 (2024/05/06) マップ移動オートセーブのサムネイルあり追加
+- ver.0.19.1 (2025/03/05) orderBefore を設定
+- ver.0.20.0 (2025/03/07) refresh の回数を削減
+- ver.0.21.0 (2026/03/12) サムネイルをGraphicsのBoxではない値に修正
 
  * 
  * 
@@ -155,7 +165,7 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
-const LANDSCAPE_PLUGIN = typeof KRD_MZ_UI_Landscape !== "undefined" ? KRD_MZ_UI_Landscape : false;
+const LANDSCAPE_PLUGIN = typeof KRD_MZ_Landscape !== "undefined" ? KRD_MZ_Landscape : false;
 
 const VERSION_KEY = PARAM["versionKey"];
 const VERSION_TEXT = PARAM["versionText"];
@@ -178,13 +188,15 @@ const MIME_PNG = "image/png";
 const MIME_JPEG = "image/jpeg";
 const MIME_TYPE = USE_PNG ? MIME_PNG : MIME_JPEG;
 const COMPRESS_RATE = (Number(PARAM["compressRate"]) || 10) / 100;
-const THUMBNAIL_SCALE = Number(PARAM["thumbnailScale"] || 13) / 100;
+const THUMBNAIL_SCALE = (Number(PARAM["thumbnailScale"]) || 13) / 100;
 
 const USE_MAP_IMAGE_MAP_CHANGE = PARAM["USE_MAP_IMAGE_MAP_CHANGE"] === "true";
 
 const INIT_FILE_ID = 1;
 
 const NEW_FILE_COLOR = 17;
+
+const FONT_SIZE = Number(PARAM["FONT_SIZE"]) || 0;
 
 //--------------------------------------
 // セーブデータ info 追加
@@ -235,6 +247,25 @@ DataManager.getMapImage = function() {
 
 //--------------------------------------
 // セーブ画面
+
+// refresh() の回数が多いのでコメントアウト
+Scene_File.prototype.createListWindow = function() {
+	const rect = this.listWindowRect();
+	this._listWindow = new Window_SavefileList(rect);
+	this._listWindow.setHandler("ok", this.onSavefileOk.bind(this));
+	this._listWindow.setHandler("cancel", this.popScene.bind(this));
+	this._listWindow.setMode(this.mode(), this.needsAutosave());
+	this._listWindow.selectSavefile(this.firstSavefileId());
+	// this._listWindow.refresh();
+	this.addWindow(this._listWindow);
+};
+
+// refresh() の回数が多いのでコメントアウト
+Window_SavefileList.prototype.setMode = function(mode, autosave) {
+	this._mode = mode;
+	this._autosave = autosave;
+	// this.refresh();
+};
 
 Window_SavefileList.prototype.drawItem = function(index) {
 	// 最初に index:0 から始まるので初期indexをselectしておく
@@ -299,7 +330,20 @@ Window_SavefileList.prototype.changeTitleColor = function(savefileId) {
 	}
 }
 
+const _Window_SavefileList_drawTitle = Window_SavefileList.prototype.drawTitle;
+Window_SavefileList.prototype.drawTitle = function(savefileId, x, y) {
+	const fontSize = this.contents.fontSize;
+	this.contents.fontSize = FONT_SIZE ? FONT_SIZE : fontSize;
+
+	_Window_SavefileList_drawTitle.call(this, ...arguments);
+
+	this.contents.fontSize = fontSize;
+};
+
 Window_SavefileList.prototype.drawMainContents = function(info, rect, savefileId) {
+	const fontSize = this.contents.fontSize;
+	this.contents.fontSize = FONT_SIZE ? FONT_SIZE : fontSize;
+
 	const bottom = rect.y + rect.height;
 	const lineHeight = this.lineHeight();
 	this.drawPartyCharacters(info, rect.x + 16, bottom - lineHeight - 8);
@@ -322,6 +366,8 @@ Window_SavefileList.prototype.drawMainContents = function(info, rect, savefileId
 		const verText = Window_Base.prototype.convertEscapeCharacters(VERSION_TEXT);
 		this.drawText(verText + info.version, rect.x, y5, rect.width, "right");
 	}
+
+	this.contents.fontSize = fontSize;
 };
 
 Window_SavefileList.prototype.drawMapImage = function(rect, image) {
@@ -550,8 +596,8 @@ Scene_Map.prototype.stop = function() {
 Scene_Base.prototype.mapImage = function() {
 	if (USE_MAP_IMAGE) {
 		const scale = THUMBNAIL_SCALE;
-		const width = Math.floor(Graphics.boxWidth * scale);
-		const height = Math.floor(Graphics.boxHeight * scale);
+		const width = Math.floor(Graphics.width * scale);
+		const height = Math.floor(Graphics.height * scale);
 		const bitmap = SceneManager.snapWH(width, height);
 		const image = new Image(width, height);
 		image.src = bitmap.canvas.toDataURL(MIME_TYPE, COMPRESS_RATE);

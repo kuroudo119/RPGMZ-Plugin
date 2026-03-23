@@ -36,6 +36,14 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_EnemyText（敵キャラ文字列）
+
+敵キャラ画像を文字列に変更します。
+
+[KRD_MZ_EnemyTextをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_EnemyText.js)
+
+![MapStatus](img/EnemyText.png)
+
 ## KRD_MZ_MapStatus（マップステータス）
 
 マップ画面にステータスを表示します。

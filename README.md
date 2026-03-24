@@ -36,6 +36,14 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_EnemyNameLabel（敵キャラ名ラベル）
+
+敵キャラ画像の下部に敵キャラ名を表示します。
+
+[KRD_MZ_EnemyNameLabelをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_EnemyNameLabel.js)
+
+![MapStatus](img/EnemyNameLabel.png)
+
 ## KRD_MZ_EnemyText（敵キャラ文字列）
 
 敵キャラ画像を文字列に変更します。

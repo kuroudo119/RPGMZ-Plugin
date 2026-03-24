@@ -23,6 +23,12 @@
  * @default 2
  * @type number
  * 
+ * @param STOP_STATE_MAX
+ * @text 行動不可ステートの数
+ * @desc 行動不可ステートの付与上限数です。
+ * @default 1
+ * @type number
+ * 
  * @param OTHER_STATE_MAX
  * @text その他ステートの数
  * @desc その他ステートの付与上限数です。
@@ -51,16 +57,23 @@ https://github.com/kuroudo119/RPGMZ-Plugin/blob/master/LICENSE
 
 ## 使い方
 
-ステートのメモ欄に <goodState> または <badState> と書いてください。
-または <otherState> も使えます。
+ステートのメモ欄に以下のいずれかを書いてください。
+<goodState>
+<badState>
+<stopState>
+<otherState>
 
-goodState は良性ステート、badState は悪性ステートとして、
-otherState はその他ステートとして、
+goodState は良性ステート、
+badState は悪性ステート、
+stopState は行動不可ステート、
+otherState はその他のステートとして、
 それぞれ数をカウントします。
+
+それぞれの名前は目安であり、その用途でなくても構いません。
 
 ## 補足
 
-タグ <goodState> <badState> <otherState> を書いてないステートは
+タグ <goodState> <badState> <stopState> <otherState> を書いてないステートは
 上限数に関係なく付与されます。
 
 ## 更新履歴
@@ -70,6 +83,7 @@ otherState はその他ステートとして、
 - ver.0.2.0 (2023/06/29) ステート優先度に対応
 - ver.1.0.0 (2023/06/29) 公開
 - ver.1.1.0 (2023/06/30) タグotherState追加、押し出しフラグ追加
+- ver.1.2.0 (2026/03/23) タグ stopState を追加
 
  * 
  * 
@@ -84,15 +98,18 @@ const PARAM = PluginManager.parameters(PLUGIN_NAME);
 
 const GOOD_STATE_MAX = Number(PARAM["GOOD_STATE_MAX"]) || 0;
 const BAD_STATE_MAX = Number(PARAM["BAD_STATE_MAX"]) || 0;
+const STOP_STATE_MAX = Number(PARAM["STOP_STATE_MAX"]) || 0;
 const OTHER_STATE_MAX = Number(PARAM["OTHER_STATE_MAX"]) || 0;
 
 const GOOD_STATE_TAG = "goodState";
 const BAD_STATE_TAG = "badState";
+const STOP_STATE_TAG = "stopState";
 const OTHER_STATE_TAG = "otherState";
 
 const STATE_DATA_LIST = [
 	{tag: GOOD_STATE_TAG, max: GOOD_STATE_MAX},
 	{tag: BAD_STATE_TAG, max: BAD_STATE_MAX},
+	{tag: STOP_STATE_TAG, max: STOP_STATE_MAX},
 	{tag: OTHER_STATE_TAG, max: OTHER_STATE_MAX},
 ];
 
@@ -101,7 +118,7 @@ const PUSH_OUT_FLAG = PARAM["PUSH_OUT_FLAG"] === "true";
 //--------------------------------------
 // ステート追加処理
 
-const KRD_Game_Battler_addState = Game_Battler.prototype.addState;
+const _Game_Battler_addState = Game_Battler.prototype.addState;
 Game_Battler.prototype.addState = function(stateId) {
 	let added = false;
 	for (const data of STATE_DATA_LIST) {
@@ -113,14 +130,14 @@ Game_Battler.prototype.addState = function(stateId) {
 	}
 
 	if (!added) {
-		KRD_Game_Battler_addState.apply(this, arguments);
+		_Game_Battler_addState.call(this, ...arguments);
 	}
 };
 
 Game_Battler.prototype.addStateByCount = function(stateId, tag, max) {
 	const states = this._states.filter(id => $dataStates[id].meta[tag]);
 	if (states.length < max) {
-		KRD_Game_Battler_addState.call(this, stateId);
+		_Game_Battler_addState.call(this, stateId);
 	} else {
 		if (PUSH_OUT_FLAG) {
 			if (this.isStateAddable(stateId)) {

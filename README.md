@@ -36,6 +36,12 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_EscapeTp（TPを消費して逃げる）
+
+逃げる時に「逃走時消費TP」が必要になります。
+
+[KRD_MZ_EscapeTpをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_EscapeTp.js)
+
 ## KRD_MZ_EnemyNameLabel（敵キャラ名ラベル）
 
 敵キャラ画像の下部に敵キャラ名を表示します。

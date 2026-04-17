@@ -36,6 +36,12 @@
 4. このソフトウェアの利用について保証はありません。  
 5. 作者はこのソフトウェアについての責任を負いません。  
 
+## KRD_MZ_BenchExp（ベンチメンバー経験値）
+
+戦闘に参加しないメンバーの獲得経験値を変更します。
+
+[KRD_MZ_BenchExpをダウンロード](https://raw.githubusercontent.com/kuroudo119/RPGMZ-Plugin/master/KRD_MZ_BenchExp.js)
+
 ## KRD_MZ_EscapeTp（TPを消費して逃げる）
 
 逃げる時に「逃走時消費TP」が必要になります。
